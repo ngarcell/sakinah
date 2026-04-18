@@ -23,4 +23,16 @@ final class AppState {
             self.route = .main
         }
     }
+
+    var partnerName: String {
+        currentCouple?.user2Name ?? "Partner"
+    }
+
+    var userName: String {
+        currentUser?.name ?? "Friend"
+    }
+
+    var daysTogether: Int {
+        currentCouple?.daysTogether ?? 0
+    }
 }

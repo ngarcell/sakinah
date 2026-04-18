@@ -29,8 +29,8 @@ struct MainTabView: View {
         ZStack(alignment: .bottom) {
             Group {
                 switch selected {
-                case .today: TodayPlaceholderView()
-                case .us: UsPlaceholderView()
+                case .today: TodayView()
+                case .us: UsView()
                 case .learn: LearnPlaceholderView()
                 case .ours: OursPlaceholderView()
                 }
@@ -85,96 +85,6 @@ struct CustomTabBar: View {
             SakinahColor.surface
                 .clipShape(.rect(cornerRadius: SakinahRadius.large))
                 .sakinahShadow(.medium)
-        )
-    }
-}
-
-private struct TodayPlaceholderView: View {
-    @Environment(AppState.self) private var appState
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: SakinahSpacing.xl) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(greeting)
-                        .font(SakinahFont.bodySmall)
-                        .foregroundStyle(SakinahColor.textSecondary)
-                    Text("Assalamu alaikum,\n\(appState.currentUser?.name ?? "friend") 🌙")
-                        .font(SakinahFont.title1)
-                        .foregroundStyle(SakinahColor.textPrimary)
-                }
-                .padding(.horizontal, SakinahSpacing.base)
-
-                SakinahCard(elevated: true) {
-                    VStack(alignment: .leading, spacing: SakinahSpacing.md) {
-                        SakinahBadge(text: "Today's Prompt", icon: "sparkles",
-                                     color: SakinahColor.accent, tintedBackground: SakinahColor.accentLight)
-                        Text(ContentService.shared.todaysPrompt().text)
-                            .font(SakinahFont.title3)
-                            .foregroundStyle(SakinahColor.textPrimary)
-                            .lineSpacing(3)
-                        HStack {
-                            Image(systemName: "lock.fill")
-                                .foregroundStyle(SakinahColor.textTertiary)
-                            Text("Reveals when you both answer")
-                                .font(SakinahFont.caption)
-                                .foregroundStyle(SakinahColor.textTertiary)
-                        }
-                    }
-                }
-                .padding(.horizontal, SakinahSpacing.base)
-
-                Text("Coming next")
-                    .font(SakinahFont.captionBold)
-                    .foregroundStyle(SakinahColor.textSecondary)
-                    .tracking(0.4).textCase(.uppercase)
-                    .padding(.horizontal, SakinahSpacing.base)
-
-                VStack(spacing: SakinahSpacing.md) {
-                    comingSoon(icon: "heart.text.square.fill", title: "Daily check-in", subtitle: "How are you feeling today?")
-                    comingSoon(icon: "moon.stars.fill", title: "Du'a of the day", subtitle: "Arabic, English, transliteration")
-                    comingSoon(icon: "leaf.fill", title: "Your wellness garden", subtitle: "Watch it grow with every moment")
-                }
-                .padding(.horizontal, SakinahSpacing.base)
-
-                Spacer(minLength: 100)
-            }
-            .padding(.top, SakinahSpacing.lg)
-        }
-    }
-
-    private var greeting: String {
-        let h = Calendar.current.component(.hour, from: Date())
-        if h < 5 { return "Late night" }
-        if h < 12 { return "Good morning" }
-        if h < 17 { return "Good afternoon" }
-        if h < 21 { return "Good evening" }
-        return "Good night"
-    }
-
-    private func comingSoon(icon: String, title: String, subtitle: String) -> some View {
-        SakinahCard {
-            HStack(spacing: SakinahSpacing.base) {
-                ZStack {
-                    Circle().fill(SakinahColor.primaryLight).frame(width: 44, height: 44)
-                    Image(systemName: icon).foregroundStyle(SakinahColor.primary)
-                }
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title).font(SakinahFont.headline).foregroundStyle(SakinahColor.textPrimary)
-                    Text(subtitle).font(SakinahFont.caption).foregroundStyle(SakinahColor.textSecondary)
-                }
-                Spacer()
-                SakinahBadge(text: "Soon")
-            }
-        }
-    }
-}
-
-private struct UsPlaceholderView: View {
-    var body: some View {
-        SakinahEmptyState(
-            icon: "heart.circle",
-            title: "Your story together",
-            message: "Shared memories, milestones, and the daily prompts you answer as a couple will live here."
         )
     }
 }

@@ -13,12 +13,25 @@ final class Couple {
     var anniversaryDate: Date?
     var useHijriCalendar: Bool
     var createdAt: Date
-    var gardenStreakDays: Int
-    var gardenPlantsGrown: Int
+    var gardenStateData: Data?
 
     var relationshipStage: RelationshipStage {
         get { RelationshipStage(rawValue: relationshipStageRaw) ?? .married }
         set { relationshipStageRaw = newValue.rawValue }
+    }
+
+    var gardenState: GardenState {
+        get {
+            guard let data = gardenStateData else { return GardenState() }
+            return (try? JSONDecoder().decode(GardenState.self, from: data)) ?? GardenState()
+        }
+        set {
+            gardenStateData = try? JSONEncoder().encode(newValue)
+        }
+    }
+
+    var daysTogether: Int {
+        Calendar.current.dateComponents([.day], from: createdAt, to: Date()).day ?? 0
     }
 
     init(id: String = UUID().uuidString,
@@ -30,9 +43,7 @@ final class Couple {
          relationshipStage: RelationshipStage = .married,
          anniversaryDate: Date? = nil,
          useHijriCalendar: Bool = false,
-         createdAt: Date = Date(),
-         gardenStreakDays: Int = 0,
-         gardenPlantsGrown: Int = 0) {
+         createdAt: Date = Date()) {
         self.id = id
         self.user1ID = user1ID
         self.user2ID = user2ID
@@ -43,7 +54,6 @@ final class Couple {
         self.anniversaryDate = anniversaryDate
         self.useHijriCalendar = useHijriCalendar
         self.createdAt = createdAt
-        self.gardenStreakDays = gardenStreakDays
-        self.gardenPlantsGrown = gardenPlantsGrown
+        self.gardenStateData = try? JSONEncoder().encode(GardenState())
     }
 }

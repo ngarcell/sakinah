@@ -12,6 +12,8 @@ struct SakinahApp: App {
             DailyPrompt.self,
             PromptResponse.self,
             CheckIn.self,
+            WeeklyReflection.self,
+            Memory.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         do {

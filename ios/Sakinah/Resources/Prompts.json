@@ -1,0 +1,226 @@
+[
+  {
+    "id": "prompt_001",
+    "text": "What's one small thing {partnerName} did this week that made your day better?",
+    "category": "gratitude",
+    "tags": ["beginner", "light"],
+    "minRelationshipDays": 0
+  },
+  {
+    "id": "prompt_002",
+    "text": "If you could relive one moment from your relationship, which would it be and why?",
+    "category": "memories",
+    "tags": ["deep", "reflective"],
+    "minRelationshipDays": 30
+  },
+  {
+    "id": "prompt_003",
+    "text": "What's a du'a you've been making for {partnerName} lately?",
+    "category": "faith",
+    "tags": ["beginner", "spiritual"],
+    "minRelationshipDays": 0
+  },
+  {
+    "id": "prompt_004",
+    "text": "Describe a moment this week where you felt truly connected to {partnerName}.",
+    "category": "intimacy",
+    "tags": ["beginner", "reflective"],
+    "minRelationshipDays": 7
+  },
+  {
+    "id": "prompt_005",
+    "text": "If we had a completely free weekend, what would your dream day together look like?",
+    "category": "dreams",
+    "tags": ["light", "fun"],
+    "minRelationshipDays": 0
+  },
+  {
+    "id": "prompt_006",
+    "text": "What's the funniest thing that's happened between you two recently?",
+    "category": "fun",
+    "tags": ["light", "playful"],
+    "minRelationshipDays": 0
+  },
+  {
+    "id": "prompt_007",
+    "text": "What's something {partnerName} does that makes you feel safe and at home?",
+    "category": "gratitude",
+    "tags": ["deep", "emotional"],
+    "minRelationshipDays": 14
+  },
+  {
+    "id": "prompt_008",
+    "text": "When did you last feel closest to Allah together? What was happening?",
+    "category": "faith",
+    "tags": ["deep", "spiritual"],
+    "minRelationshipDays": 7
+  },
+  {
+    "id": "prompt_009",
+    "text": "What's a dream you've been carrying that you haven't shared yet?",
+    "category": "dreams",
+    "tags": ["deep", "vulnerable"],
+    "minRelationshipDays": 30
+  },
+  {
+    "id": "prompt_010",
+    "text": "What's one thing you'd love to learn or try together this year?",
+    "category": "dreams",
+    "tags": ["light", "forward-looking"],
+    "minRelationshipDays": 0
+  },
+  {
+    "id": "prompt_011",
+    "text": "Describe the moment you knew this was love.",
+    "category": "memories",
+    "tags": ["deep", "romantic"],
+    "minRelationshipDays": 14
+  },
+  {
+    "id": "prompt_012",
+    "text": "What's one small act that makes you feel most loved by {partnerName}?",
+    "category": "intimacy",
+    "tags": ["beginner", "emotional"],
+    "minRelationshipDays": 0
+  },
+  {
+    "id": "prompt_013",
+    "text": "What Surah or ayah has been on your mind lately, and why?",
+    "category": "faith",
+    "tags": ["reflective", "spiritual"],
+    "minRelationshipDays": 0
+  },
+  {
+    "id": "prompt_014",
+    "text": "What's a challenge you faced together that made you stronger?",
+    "category": "memories",
+    "tags": ["deep", "growth"],
+    "minRelationshipDays": 30
+  },
+  {
+    "id": "prompt_015",
+    "text": "If {partnerName} could hear one thing you don't say often enough, what would it be?",
+    "category": "intimacy",
+    "tags": ["deep", "vulnerable"],
+    "minRelationshipDays": 14
+  },
+  {
+    "id": "prompt_016",
+    "text": "What's something about your journey together that still surprises you?",
+    "category": "gratitude",
+    "tags": ["reflective", "light"],
+    "minRelationshipDays": 7
+  },
+  {
+    "id": "prompt_017",
+    "text": "What's a tradition you'd love to start together?",
+    "category": "dreams",
+    "tags": ["light", "forward-looking"],
+    "minRelationshipDays": 0
+  },
+  {
+    "id": "prompt_018",
+    "text": "What makes you laugh the hardest when you're with {partnerName}?",
+    "category": "fun",
+    "tags": ["light", "playful"],
+    "minRelationshipDays": 0
+  },
+  {
+    "id": "prompt_019",
+    "text": "How has your relationship changed the way you practice your faith?",
+    "category": "faith",
+    "tags": ["deep", "reflective"],
+    "minRelationshipDays": 30
+  },
+  {
+    "id": "prompt_020",
+    "text": "What's the best meal you've ever shared together? Describe it.",
+    "category": "memories",
+    "tags": ["light", "fun"],
+    "minRelationshipDays": 0
+  },
+  {
+    "id": "prompt_021",
+    "text": "What quality of {partnerName}'s do you admire most?",
+    "category": "gratitude",
+    "tags": ["beginner", "light"],
+    "minRelationshipDays": 0
+  },
+  {
+    "id": "prompt_022",
+    "text": "Where do you see us in five years, in sha Allah?",
+    "category": "dreams",
+    "tags": ["deep", "forward-looking"],
+    "minRelationshipDays": 14
+  },
+  {
+    "id": "prompt_023",
+    "text": "What's one way {partnerName} has helped you grow as a person?",
+    "category": "gratitude",
+    "tags": ["deep", "growth"],
+    "minRelationshipDays": 14
+  },
+  {
+    "id": "prompt_024",
+    "text": "What's a small kindness you could show {partnerName} tomorrow?",
+    "category": "intimacy",
+    "tags": ["light", "actionable"],
+    "minRelationshipDays": 0
+  },
+  {
+    "id": "prompt_025",
+    "text": "What's something you've been grateful for about our home life lately?",
+    "category": "gratitude",
+    "tags": ["light", "reflective"],
+    "minRelationshipDays": 7
+  },
+  {
+    "id": "prompt_026",
+    "text": "If you could travel anywhere together for a spiritual retreat, where would you go?",
+    "category": "faith",
+    "tags": ["light", "dreams"],
+    "minRelationshipDays": 0
+  },
+  {
+    "id": "prompt_027",
+    "text": "What's a song, poem, or verse that reminds you of us?",
+    "category": "memories",
+    "tags": ["light", "romantic"],
+    "minRelationshipDays": 7
+  },
+  {
+    "id": "prompt_028",
+    "text": "What does sakinah — true tranquility — feel like in our relationship?",
+    "category": "faith",
+    "tags": ["deep", "spiritual"],
+    "minRelationshipDays": 30
+  },
+  {
+    "id": "prompt_029",
+    "text": "What's something silly about {partnerName} that you secretly love?",
+    "category": "fun",
+    "tags": ["light", "playful"],
+    "minRelationshipDays": 0
+  },
+  {
+    "id": "prompt_030",
+    "text": "What's a conversation we had that changed how you see things?",
+    "category": "memories",
+    "tags": ["deep", "growth"],
+    "minRelationshipDays": 30
+  },
+  {
+    "id": "prompt_031",
+    "text": "What's one thing you want to be better at for {partnerName}?",
+    "category": "intimacy",
+    "tags": ["deep", "vulnerable"],
+    "minRelationshipDays": 14
+  },
+  {
+    "id": "prompt_032",
+    "text": "If we wrote a book about our love story, what would the title be?",
+    "category": "fun",
+    "tags": ["light", "creative"],
+    "minRelationshipDays": 7
+  }
+]
