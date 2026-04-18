@@ -45,25 +45,8 @@ struct WelcomeScreen: View {
 
                 Spacer()
 
-                VStack(spacing: SakinahSpacing.sm) {
-                    SakinahButton(title: "Get Started") {
-                        vm.advance(to: .signIn)
-                    }
-                    Button {
-                        HapticEngine.shared.fire(.tap)
-                        vm.advance(to: .signIn)
-                    } label: {
-                        HStack(spacing: 4) {
-                            Text("Already have an account?")
-                                .foregroundStyle(SakinahColor.textSecondary)
-                            Text("Sign In")
-                                .foregroundStyle(SakinahColor.primary)
-                                .fontWeight(.semibold)
-                        }
-                        .font(SakinahFont.bodySmall)
-                    }
-                    .pressScale()
-                    .padding(.top, SakinahSpacing.xs)
+                SakinahButton(title: "Get Started") {
+                    vm.advance(to: .invitePartner)
                 }
                 .padding(.horizontal, SakinahSpacing.base)
                 .padding(.bottom, SakinahSpacing.base)

@@ -1,9 +1,8 @@
 import SwiftUI
 import SwiftData
-import AuthenticationServices
 
 enum OnboardingStep: Int, CaseIterable {
-    case welcome, signIn, invitePartner, waiting, coupleSetup, firstPrompt
+    case welcome, invitePartner, waiting, coupleSetup, firstPrompt
 }
 
 enum InvitePath {
@@ -19,7 +18,6 @@ final class OnboardingViewModel {
     var joinCode: String = ""
     var joinError: String?
 
-    var appleUserID: String = ""
     var yourName: String = ""
     var partnerName: String = ""
     var relationshipStage: RelationshipStage = .married
@@ -40,20 +38,6 @@ final class OnboardingViewModel {
         }
     }
 
-    func handleSignIn(result: Result<ASAuthorization, Error>) {
-        switch result {
-        case .success(let auth):
-            if let info = AuthService.shared.handleAppleSignIn(auth) {
-                self.appleUserID = info.id
-                self.yourName = info.name
-                HapticEngine.shared.fire(.success)
-                advance(to: .invitePartner)
-            }
-        case .failure:
-            HapticEngine.shared.fire(.error)
-        }
-    }
-
     func validateAndJoin() -> Bool {
         let code = joinCode.uppercased()
         guard PairingService.shared.validateFormat(code) else {
@@ -69,7 +53,7 @@ final class OnboardingViewModel {
 
     func finish(context: ModelContext, appState: AppState) {
         let user = User(
-            id: appleUserID.isEmpty ? UUID().uuidString : appleUserID,
+            id: UUID().uuidString,
             name: yourName.isEmpty ? "You" : yourName,
             duaLanguagePreference: duaLanguage
         )

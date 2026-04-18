@@ -20,9 +20,6 @@ struct OnboardingView: View {
         case .welcome:
             WelcomeScreen(vm: vm)
                 .transition(screenTransition)
-        case .signIn:
-            SignInScreen(vm: vm)
-                .transition(screenTransition)
         case .invitePartner:
             InvitePartnerScreen(vm: vm)
                 .transition(screenTransition)

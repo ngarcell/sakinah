@@ -39,7 +39,7 @@ struct InvitePartnerScreen: View {
         HStack {
             Button {
                 HapticEngine.shared.fire(.tap)
-                vm.advance(to: .signIn)
+                vm.advance(to: .welcome)
             } label: {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 17, weight: .semibold))
