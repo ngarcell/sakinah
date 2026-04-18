@@ -1,2 +1,0 @@
-# sakinah
-Created by Rork
