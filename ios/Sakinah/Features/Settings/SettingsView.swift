@@ -10,8 +10,6 @@ struct SettingsView: View {
     @State private var deleteText = ""
     @State private var showFinalDelete = false
     @State private var showUnlinkConfirm = false
-    @State private var showSeedConfirm = false
-    @State private var showPurgeConfirm = false
 
     // Notification preferences
     @State private var dailyPromptNotif = true
@@ -34,9 +32,6 @@ struct SettingsView: View {
                 preferencesSection
                 privacySection
                 aboutSection
-                #if DEBUG
-                developerSection
-                #endif
             }
             .listStyle(.insetGrouped)
             .navigationTitle("Settings")
@@ -73,22 +68,7 @@ struct SettingsView: View {
             } message: {
                 Text("This is your final confirmation. All data will be permanently removed.")
             }
-            .alert("Load Screenshot Data?", isPresented: $showSeedConfirm) {
-                Button("Cancel", role: .cancel) {}
-                Button("Load Seed Data") {
-                    SeedDataService.shared.seed(context: modelContext, appState: appState)
-                }
-            } message: {
-                Text("This will replace all existing data with demo content (Yusuf & Aisha, 187 days together).")
-            }
-            .alert("Purge All Data?", isPresented: $showPurgeConfirm) {
-                Button("Cancel", role: .cancel) {}
-                Button("Purge Everything", role: .destructive) {
-                    SeedDataService.shared.purgeAll(context: modelContext, appState: appState)
-                }
-            } message: {
-                Text("All records will be deleted and the app will return to onboarding.")
-            }
+
         }
     }
 
@@ -292,31 +272,6 @@ struct SettingsView: View {
             Link("Contact Support", destination: URL(string: "https://socialreporthq.com/sakinah/support")!)
         }
     }
-
-    // MARK: - Developer (DEBUG only)
-
-    #if DEBUG
-    private var developerSection: some View {
-        Section {
-            Button {
-                showSeedConfirm = true
-            } label: {
-                Label("Load Screenshot Data", systemImage: "photo.badge.plus")
-                    .foregroundStyle(SakinahColor.primary)
-            }
-
-            Button(role: .destructive) {
-                showPurgeConfirm = true
-            } label: {
-                Label("Purge All Data", systemImage: "trash.slash")
-            }
-        } header: {
-            Text("Developer")
-        } footer: {
-            Text("Debug builds only. Seed data loads Yusuf & Aisha with 187 days of realistic content.")
-        }
-    }
-    #endif
 
     private func deleteAllData() {
         do {

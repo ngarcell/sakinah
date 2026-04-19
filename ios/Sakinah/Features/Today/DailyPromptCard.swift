@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import StoreKit
+import UserNotifications
 
 struct DailyPromptCard: View {
     @Bindable var vm: TodayViewModel
@@ -183,9 +184,15 @@ struct DailyPromptCard: View {
 
             SakinahButton(title: "Nudge \(vm.partnerName) 💌", variant: .secondary) {
                 HapticEngine.shared.fire(.tap)
-                // In production: sends push notification
-                // For demo: simulate partner answering
-                vm.simulatePartnerAnswer()
+                Task {
+                    let content = UNMutableNotificationContent()
+                    content.title = "A moment is waiting for you 🌙"
+                    content.body = "\(vm.userName) has answered today's prompt. Tap to reveal together."
+                    content.sound = .default
+                    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+                    let request = UNNotificationRequest(identifier: "nudge-\(Date().timeIntervalSince1970)", content: content, trigger: trigger)
+                    try? await UNUserNotificationCenter.current().add(request)
+                }
             }
         }
     }

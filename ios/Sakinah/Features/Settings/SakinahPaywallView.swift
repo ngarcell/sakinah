@@ -240,22 +240,20 @@ struct SakinahPaywallView: View {
     private func purchase() {
         isPurchasing = true
         Task { @MainActor in
-            if let product = SubscriptionService.shared.availableProducts.first(where: { $0.id == selectedPlan.productID }) {
-                if let _ = try? await SubscriptionService.shared.purchase(product) {
+            defer { isPurchasing = false }
+            guard let product = SubscriptionService.shared.availableProducts.first(where: { $0.id == selectedPlan.productID }) else {
+                return
+            }
+            do {
+                if let _ = try await SubscriptionService.shared.purchase(product) {
                     HapticEngine.shared.fire(.celebration)
                     withAnimation { showCelebration = true }
                     try? await Task.sleep(for: .seconds(2))
                     dismiss()
                 }
-            } else {
-                // No products available (dev mode) — simulate success
-                HapticEngine.shared.fire(.celebration)
-                SubscriptionService.shared.isPremium = true
-                withAnimation { showCelebration = true }
-                try? await Task.sleep(for: .seconds(2))
-                dismiss()
+            } catch {
+                // StoreKit handles its own error UI; dismiss loading state silently
             }
-            isPurchasing = false
         }
     }
 }

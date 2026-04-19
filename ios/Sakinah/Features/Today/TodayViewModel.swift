@@ -232,11 +232,4 @@ final class TodayViewModel {
         }
     }
 
-    // Demo: simulate partner answering (for single-device testing)
-    func simulatePartnerAnswer() {
-        partnerResponse = "I love how you always make me laugh, even on the hardest days. Your smile is my favourite thing in this dunya. 💕"
-        withAnimation(SakinahAnimation.gentle) {
-            promptState = .partnerAnswered
-        }
-    }
 }

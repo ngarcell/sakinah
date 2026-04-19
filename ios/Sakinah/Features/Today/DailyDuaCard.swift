@@ -132,17 +132,12 @@ struct DailyDuaCard: View {
         // Try to load audio file from bundle
         let fileName = dua.audioFile.replacingOccurrences(of: ".mp3", with: "")
         guard let url = Bundle.main.url(forResource: fileName, withExtension: "mp3") else {
-            // Graceful fallback: brief haptic feedback instead
+            // Audio file not bundled — show animated icon as visual feedback only
             HapticEngine.shared.fire(.select)
-            withAnimation {
-                isPlaying = true
-            }
-            // Simulate playback duration
+            withAnimation { isPlaying = true }
             Task { @MainActor in
                 try? await Task.sleep(for: .seconds(3))
-                withAnimation {
-                    isPlaying = false
-                }
+                withAnimation { isPlaying = false }
             }
             return
         }
