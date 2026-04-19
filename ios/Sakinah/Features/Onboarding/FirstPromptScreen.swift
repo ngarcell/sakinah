@@ -7,7 +7,8 @@ struct FirstPromptScreen: View {
     @State private var celebrating = false
     @FocusState private var focused: Bool
 
-    private var prompt: (text: String, category: PromptCategory) {
+    @MainActor
+    private var prompt: (id: String, text: String, category: PromptCategory) {
         ContentService.shared.firstPrompt(partnerName: vm.partnerName.isEmpty ? "your partner" : vm.partnerName)
     }
 

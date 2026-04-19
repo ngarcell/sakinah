@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 nonisolated enum DuaLanguage: String, Codable, CaseIterable, Sendable {
     case arabicEnglish
@@ -67,6 +68,7 @@ nonisolated enum PromptCategory: String, Codable, CaseIterable, Sendable {
         }
     }
 
+    @MainActor
     var badgeColor: Color {
         switch self {
         case .gratitude: return SakinahColor.accent
@@ -102,8 +104,6 @@ nonisolated enum Mood: Int, Codable, CaseIterable, Sendable {
         }
     }
 }
-
-import SwiftUI
 
 nonisolated enum GardenDimension: String, Codable, CaseIterable, Sendable {
     case communication

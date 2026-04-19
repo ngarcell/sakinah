@@ -11,7 +11,7 @@ final class CheckIn {
     var date: Date
 
     var mood: Mood {
-        get { Mood(rawValue: moodRaw) ?? .neutral }
+        get { Mood(rawValue: moodRaw) ?? .okay }
         set { moodRaw = newValue.rawValue }
     }
 

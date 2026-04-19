@@ -262,7 +262,7 @@ struct PackDetailSheet: View {
     }
 }
 
-extension ConversationPack: @retroactive Hashable {
+extension ConversationPack: Hashable {
     nonisolated static func == (lhs: ConversationPack, rhs: ConversationPack) -> Bool { lhs.id == rhs.id }
     nonisolated func hash(into hasher: inout Hasher) { hasher.combine(id) }
 }
