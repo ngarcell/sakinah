@@ -2,7 +2,7 @@ import Foundation
 import StoreKit
 import Observation
 
-enum SubscriptionStatus: Equatable {
+enum SubscriptionStatus: Equatable, Sendable {
     case notSubscribed
     case subscribed(Product.ID)
     case expired
@@ -21,14 +21,10 @@ final class SubscriptionService {
     static let annualID = "com.sakinah.premium.annual"
     static let lifetimeID = "com.sakinah.premium.lifetime"
 
-    private var updateListenerTask: Task<Void, Error>? = nil
-
     private init() {
-        updateListenerTask = listenForTransactions()
-    }
-
-    deinit {
-        updateListenerTask?.cancel()
+        Task { [weak self] in
+            await self?.listenForTransactions()
+        }
     }
 
     func loadProducts() async {
@@ -40,8 +36,6 @@ final class SubscriptionService {
             ])
             availableProducts = products.sorted { $0.price < $1.price }
         } catch {
-            // Products not available (likely no App Store config)
-            // Use placeholder data for development
             availableProducts = []
         }
     }
@@ -50,7 +44,7 @@ final class SubscriptionService {
         let result = try await product.purchase()
         switch result {
         case .success(let verification):
-            let transaction = try checkVerified(verification)
+            let transaction = try Self.checkVerified(verification)
             await updateSubscriptionStatus()
             await transaction.finish()
             return transaction
@@ -72,7 +66,7 @@ final class SubscriptionService {
 
     private func updateSubscriptionStatus() async {
         for await result in Transaction.currentEntitlements {
-            if let transaction = try? checkVerified(result) {
+            if let transaction = try? Self.checkVerified(result) {
                 isPremium = true
                 subscriptionStatus = .subscribed(transaction.productID)
                 return
@@ -82,18 +76,16 @@ final class SubscriptionService {
         subscriptionStatus = .notSubscribed
     }
 
-    private func listenForTransactions() -> Task<Void, Error> {
-        Task.detached { [weak self] in
-            for await result in Transaction.updates {
-                if let transaction = try? self?.checkVerified(result) {
-                    await self?.updateSubscriptionStatus()
-                    await transaction.finish()
-                }
+    private func listenForTransactions() async {
+        for await result in Transaction.updates {
+            if let transaction = try? Self.checkVerified(result) {
+                await updateSubscriptionStatus()
+                await transaction.finish()
             }
         }
     }
 
-    private func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
+    nonisolated private static func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
         switch result {
         case .unverified:
             throw StoreError.verificationFailed
