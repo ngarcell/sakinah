@@ -25,6 +25,8 @@ struct TodayView: View {
                     )
                     .zIndex(1)
 
+                OfflineBanner()
+
                 ScrollView {
                     VStack(spacing: SakinahSpacing.xl) {
                         // Daily Prompt Card — hero element
@@ -48,6 +50,10 @@ struct TodayView: View {
                     .padding(.top, SakinahSpacing.md)
                 }
                 .scrollIndicators(.hidden)
+                .refreshable {
+                    vm.loadContent(appState: appState)
+                    vm.loadExistingData(context: modelContext)
+                }
             }
         }
         .onAppear {

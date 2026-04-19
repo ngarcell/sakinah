@@ -24,6 +24,7 @@ final class ContentService {
 
     private var prompts: [PromptData] = []
     private var duas: [DuaData] = []
+    private var lastCheckedDate: Date = Date()
 
     private init() {
         loadPrompts()
@@ -92,6 +93,16 @@ final class ContentService {
         hasher.combine(coupleID)
         hasher.combine(day)
         return abs(hasher.finalize())
+    }
+
+    // MARK: - Date Rollover
+
+    func checkDateRollover() {
+        let cal = Calendar.current
+        if !cal.isDate(lastCheckedDate, inSameDayAs: Date()) {
+            lastCheckedDate = Date()
+            // Content will be re-fetched with new date next time todaysPrompt/todaysDua is called
+        }
     }
 
     // MARK: - Fallbacks

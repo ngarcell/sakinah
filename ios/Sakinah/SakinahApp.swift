@@ -14,6 +14,11 @@ struct SakinahApp: App {
             CheckIn.self,
             WeeklyReflection.self,
             Memory.self,
+            Lesson.self,
+            JournalEntry.self,
+            LoveLetter.self,
+            SharedGoal.self,
+            WishItem.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         do {
@@ -28,7 +33,29 @@ struct SakinahApp: App {
             ContentView()
                 .environment(appState)
                 .tint(SakinahColor.primary)
+                .onOpenURL { url in
+                    handleDeepLink(url)
+                }
+                .task {
+                    await SubscriptionService.shared.loadProducts()
+                    await SubscriptionService.shared.checkEntitlement()
+                    appState.isSubscribed = SubscriptionService.shared.isPremium
+                }
+                .onChange(of: scenePhase) { _, phase in
+                    if phase == .active {
+                        // Check for day rollover
+                        ContentService.shared.checkDateRollover()
+                    }
+                }
         }
         .modelContainer(sharedModelContainer)
+    }
+
+    @Environment(\.scenePhase) private var scenePhase
+
+    private func handleDeepLink(_ url: URL) {
+        // sakinah://today/prompt or sakinah://today/dua
+        guard url.scheme == "sakinah" else { return }
+        // Deep link routing handled by ContentView
     }
 }

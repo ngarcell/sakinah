@@ -16,13 +16,14 @@ enum MainTab: Int, CaseIterable {
         case .today: return "sun.max.fill"
         case .us: return "heart.circle.fill"
         case .learn: return "book.closed.fill"
-        case .ours: return "leaf.fill"
+        case .ours: return "lock.fill"
         }
     }
 }
 
 struct MainTabView: View {
     @State private var selected: MainTab = .today
+    @State private var showSettings = false
     @Environment(AppState.self) private var appState
 
     var body: some View {
@@ -31,22 +32,26 @@ struct MainTabView: View {
                 switch selected {
                 case .today: TodayView()
                 case .us: UsView()
-                case .learn: LearnPlaceholderView()
-                case .ours: OursPlaceholderView()
+                case .learn: LearnView()
+                case .ours: OursView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(SakinahColor.background.ignoresSafeArea())
 
-            CustomTabBar(selected: $selected)
+            CustomTabBar(selected: $selected, showSettings: $showSettings)
                 .padding(.horizontal, SakinahSpacing.base)
                 .padding(.bottom, SakinahSpacing.sm)
+        }
+        .sheet(isPresented: $showSettings) {
+            SettingsView()
         }
     }
 }
 
 struct CustomTabBar: View {
     @Binding var selected: MainTab
+    @Binding var showSettings: Bool
     @Namespace private var ns
 
     var body: some View {
@@ -78,33 +83,35 @@ struct CustomTabBar: View {
                     )
                 }
                 .pressScale(0.94)
+                .if(selected == tab) { v in
+                    v.overlay(
+                        Circle()
+                            .fill(SakinahColor.primary.opacity(0.15))
+                            .frame(width: 40, height: 40)
+                            .blur(radius: 10)
+                            .offset(y: -4)
+                            .allowsHitTesting(false)
+                    )
+                }
             }
+
+            // Settings gear
+            Button {
+                HapticEngine.shared.fire(.tap)
+                showSettings = true
+            } label: {
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(SakinahColor.textTertiary)
+                    .frame(width: 40, height: 40)
+            }
+            .pressScale(0.94)
         }
         .padding(6)
         .background(
             SakinahColor.surface
                 .clipShape(.rect(cornerRadius: SakinahRadius.large))
                 .sakinahShadow(.medium)
-        )
-    }
-}
-
-private struct LearnPlaceholderView: View {
-    var body: some View {
-        SakinahEmptyState(
-            icon: "book.closed",
-            title: "Learn together",
-            message: "Short lessons on love, faith, and growing in sakinah — coming soon."
-        )
-    }
-}
-
-private struct OursPlaceholderView: View {
-    var body: some View {
-        SakinahEmptyState(
-            icon: "leaf",
-            title: "Your garden",
-            message: "Shared goals, du'as, and the wellness garden you tend together."
         )
     }
 }

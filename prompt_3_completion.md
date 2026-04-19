@@ -320,14 +320,14 @@ final class SubscriptionService {
 
 | Plan | Price | Subtitle | Visual |
 |------|-------|----------|--------|
-| Monthly | $9.99/mo | "Flexible" | `NoorCard`, standard border |
-| **Annual** | $49.99/yr | "Best Value — Save 58%" | `NoorCard`, `accent` border (3pt), `NoorBadge` "BEST VALUE" overlapping top-right corner, default selected |
-| Lifetime | $129.99 | "Pay once, forever" | `NoorCard`, standard border |
+| Monthly | $9.99/mo | "Flexible" | `SakinahCard`, standard border |
+| **Annual** | $49.99/yr | "Best Value — Save 58%" | `SakinahCard`, `accent` border (3pt), `SakinahBadge` "BEST VALUE" overlapping top-right corner, default selected |
+| Lifetime | $129.99 | "Pay once, forever" | `SakinahCard`, standard border |
 
 - Selected plan: `accent` border, `accentLight` background, subtle `glow` shadow in `accent`
 - Unselected: `surface` background, `divider` border
 
-5. "Start 7-Day Free Trial" `NoorButton(.primary)`, full width (for annual plan). For monthly: "Subscribe". For lifetime: "Purchase"
+5. "Start 7-Day Free Trial" `SakinahButton(.primary)`, full width (for annual plan). For monthly: "Subscribe". For lifetime: "Purchase"
    - Below button: "Then $49.99/year. Cancel anytime." in `caption`, `textTertiary`
 
 6. Bottom links: "Restore Purchases" and "Terms • Privacy" in `caption`, `textTertiary`, tappable
@@ -338,7 +338,7 @@ final class SubscriptionService {
 
 ## WIDGETKIT — Home Screen Widget
 
-### Widget: NoorDailyWidget
+### Widget: SakinahDailyWidget
 
 **Widget Configuration:**
 - `StaticConfiguration` (no user config needed)
@@ -420,9 +420,9 @@ Apply these across the entire app before considering it complete:
 2. Complete `OursView` with all 4 sub-features: shared journal (with compose), love letters (with scheduled delivery), shared goals (with progress tracking and completion animation), and wishlists
 3. `EncryptionService` implementation using CryptoKit for E2EE on all Private Space content
 4. `SubscriptionService` full StoreKit 2 implementation with transaction listener
-5. `NoorPaywallView` — complete paywall with plan selection and purchase flow
+5. `SakinahPaywallView` — complete paywall with plan selection and purchase flow
 6. `SettingsView` — complete with all sections, all toggles functional
-7. `NoorDailyWidget` — WidgetKit implementation for small and medium widgets
+7. `SakinahDailyWidget` — WidgetKit implementation for small and medium widgets
 8. All final polish: accessibility labels, reduce motion support, offline banner, empty states, edge case handling, keyboard management
 9. Full navigation wiring: `ContentView` routes auth state, `MainTabView` has all 4 tabs connected to real views
 
