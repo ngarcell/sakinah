@@ -5,7 +5,6 @@ import StoreKit
 struct SettingsView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
-    @Environment(\.requestReview) private var requestReview
     @State private var showPaywall = false
     @State private var showDeleteConfirm = false
     @State private var deleteText = ""
@@ -259,8 +258,8 @@ struct SettingsView: View {
                 Label("Delete All Data", systemImage: "trash")
             }
 
-            Link("Privacy Policy", destination: URL(string: "https://sakinah.app/privacy")!)
-            Link("Terms of Service", destination: URL(string: "https://sakinah.app/terms")!)
+            Link("Privacy Policy", destination: URL(string: "https://socialreporthq.com/sakinah/privacy")!)
+            Link("Terms of Service", destination: URL(string: "https://socialreporthq.com/sakinah/terms")!)
         }
     }
 
@@ -280,7 +279,8 @@ struct SettingsView: View {
                 .foregroundStyle(SakinahColor.textSecondary)
 
             Button("Rate Sakinah") {
-                requestReview()
+                // Opens App Store write-review page directly — more reliable than requestReview
+                UIApplication.shared.open(ReviewService.shared.writeReviewURL)
             }
 
             Button {
@@ -289,7 +289,7 @@ struct SettingsView: View {
                 Label("Share Sakinah", systemImage: "square.and.arrow.up")
             }
 
-            Link("Contact Support", destination: URL(string: "mailto:support@sakinah.app")!)
+            Link("Contact Support", destination: URL(string: "https://socialreporthq.com/sakinah/support")!)
         }
     }
 

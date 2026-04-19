@@ -1,9 +1,11 @@
 import SwiftUI
 import SwiftData
+import StoreKit
 
 struct QuickCheckInCard: View {
     @Bindable var vm: TodayViewModel
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.requestReview) private var requestReview
 
     private let moods: [Mood] = [.great, .good, .okay, .low, .tough]
 
@@ -36,7 +38,7 @@ struct QuickCheckInCard: View {
                             .clipShape(.rect(cornerRadius: SakinahRadius.medium))
                             .lineLimit(3...5)
                             .onSubmit {
-                                vm.saveCheckIn(context: modelContext)
+                                vm.saveCheckIn(context: modelContext, requestReview: { requestReview() })
                             }
                     }
                     .transition(.opacity.combined(with: .move(edge: .top)))

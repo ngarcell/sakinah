@@ -1,9 +1,11 @@
 import SwiftUI
 import SwiftData
+import StoreKit
 
 struct DailyPromptCard: View {
     @Bindable var vm: TodayViewModel
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.requestReview) private var requestReview
     @State private var wordAppeared: [Bool] = []
     @State private var orbitAngle: Double = 0
     @State private var dotPhase: Int = 0
@@ -254,7 +256,7 @@ struct DailyPromptCard: View {
             .shimmer()
 
             SakinahButton(title: "Reveal Together") {
-                vm.revealResponses(context: modelContext)
+                vm.revealResponses(context: modelContext, requestReview: { requestReview() })
             }
             .glow(color: SakinahColor.accent, radius: 15, opacity: 0.3)
         }

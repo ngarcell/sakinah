@@ -125,7 +125,7 @@ final class TodayViewModel {
         }
     }
 
-    func revealResponses(context: ModelContext) {
+    func revealResponses(context: ModelContext, requestReview: @escaping () -> Void = {}) {
         revealFlash = true
         HapticEngine.shared.fire(.celebration)
 
@@ -155,6 +155,9 @@ final class TodayViewModel {
                 }
                 try? context.save()
             }
+
+            // Trigger review after emotional reveal moment
+            ReviewService.shared.onPromptRevealed(requestReview: requestReview)
         }
     }
 
@@ -172,7 +175,7 @@ final class TodayViewModel {
         saveCheckIn(context: context)
     }
 
-    func saveCheckIn(context: ModelContext) {
+    func saveCheckIn(context: ModelContext, requestReview: @escaping () -> Void = {}) {
         guard let mood = selectedMood else { return }
         let today = Calendar.current.startOfDay(for: Date())
         let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today)!
@@ -199,6 +202,22 @@ final class TodayViewModel {
 
         try? context.save()
         hasCheckedInToday = true
+
+        // Calculate streak and potentially request review
+        let allPredicate = #Predicate<CheckIn> { c in c.coupleID == cid && c.userID == uid }
+        let allDescriptor = FetchDescriptor<CheckIn>(predicate: allPredicate, sortBy: [SortDescriptor(\.date, order: .reverse)])
+        if let all = try? context.fetch(allDescriptor) {
+            var streak = 0
+            var checkDate = today
+            for checkIn in all {
+                let checkDay = Calendar.current.startOfDay(for: checkIn.date)
+                if checkDay == checkDate {
+                    streak += 1
+                    checkDate = Calendar.current.date(byAdding: .day, value: -1, to: checkDate)!
+                } else { break }
+            }
+            ReviewService.shared.onCheckInSaved(streakDays: streak, requestReview: requestReview)
+        }
     }
 
     func toggleUpdateCheckIn() {
