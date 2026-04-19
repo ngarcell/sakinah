@@ -17,9 +17,9 @@ final class SubscriptionService {
     var availableProducts: [Product] = []
     var isPremium: Bool = false
 
-    static let monthlyID = "com.sakinah.premium.monthly"
-    static let annualID = "com.sakinah.premium.annual"
-    static let lifetimeID = "com.sakinah.premium.lifetime"
+    static let monthlyID  = "com.socialreporthq.sakinah.premium.monthly"
+    static let annualID   = "com.socialreporthq.sakinah.premium.annual"
+    static let lifetimeID = "com.socialreporthq.sakinah.premium.lifetime"
 
     private init() {
         Task { [weak self] in
