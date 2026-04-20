@@ -19,7 +19,7 @@ final class SubscriptionService {
 
     static let monthlyID  = "com.socialreporthq.sakinah.premium.monthly"
     static let annualID   = "com.socialreporthq.sakinah.premium.annual"
-    static let lifetimeID = "com.socialreporthq.sakinah.premium.lifetime"
+    static let lifetimeID = "com.socialreporthq.sakinah.premium.lifetimev2"
 
     private init() {
         Task { [weak self] in
