@@ -1,5 +1,4 @@
 import SwiftUI
-import StoreKit
 
 struct SakinahPaywallView: View {
     @Environment(\.dismiss) private var dismiss
@@ -241,11 +240,11 @@ struct SakinahPaywallView: View {
         isPurchasing = true
         Task { @MainActor in
             defer { isPurchasing = false }
-            guard let product = SubscriptionService.shared.availableProducts.first(where: { $0.id == selectedPlan.productID }) else {
+            guard SubscriptionService.shared.availableProducts.contains(selectedPlan.productID) else {
                 return
             }
             do {
-                if let _ = try await SubscriptionService.shared.purchase(product) {
+                if try await SubscriptionService.shared.purchase(productID: selectedPlan.productID) {
                     HapticEngine.shared.fire(.celebration)
                     withAnimation { showCelebration = true }
                     try? await Task.sleep(for: .seconds(2))

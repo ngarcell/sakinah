@@ -1,10 +1,10 @@
 import Foundation
-import StoreKit
 import Observation
+import RevenueCat
 
 enum SubscriptionStatus: Equatable, Sendable {
     case notSubscribed
-    case subscribed(Product.ID)
+    case subscribed(String)
     case expired
 }
 
@@ -14,87 +14,82 @@ final class SubscriptionService {
     static let shared = SubscriptionService()
 
     var subscriptionStatus: SubscriptionStatus = .notSubscribed
-    var availableProducts: [Product] = []
+    var availableProducts: [String] = []
     var isPremium: Bool = false
 
     static let monthlyID  = "com.socialreporthq.sakinah.premium.monthly"
     static let annualID   = "com.socialreporthq.sakinah.premium.annual"
     static let lifetimeID = "com.socialreporthq.sakinah.premium.lifetimev2"
 
-    private init() {
-        Task { [weak self] in
-            await self?.listenForTransactions()
-        }
+    private var packagesByProductID: [String: Package] = [:]
+
+    private init() {}
+
+    func configure(apiKey: String) {
+        Purchases.configure(withAPIKey: apiKey)
+        Purchases.shared.delegate = self
     }
 
     func loadProducts() async {
         do {
-            let products = try await Product.products(for: [
-                Self.monthlyID,
-                Self.annualID,
-                Self.lifetimeID
-            ])
-            availableProducts = products.sorted { $0.price < $1.price }
+            let offerings = try await Purchases.shared.offerings()
+            let packages = offerings.current?.availablePackages ?? []
+            packagesByProductID = Dictionary(uniqueKeysWithValues: packages.map { ($0.storeProduct.productIdentifier, $0) })
+            availableProducts = packages.map(\.storeProduct.productIdentifier)
         } catch {
+            packagesByProductID = [:]
             availableProducts = []
         }
     }
 
-    func purchase(_ product: Product) async throws -> Transaction? {
-        let result = try await product.purchase()
-        switch result {
-        case .success(let verification):
-            let transaction = try Self.checkVerified(verification)
-            await updateSubscriptionStatus()
-            await transaction.finish()
-            return transaction
-        case .userCancelled, .pending:
-            return nil
-        @unknown default:
-            return nil
+    func purchase(productID: String) async throws -> Bool {
+        guard let package = packagesByProductID[productID] else {
+            return false
         }
+
+        let result = try await Purchases.shared.purchase(package: package)
+        await updateSubscriptionStatus(customerInfo: result.customerInfo)
+        return !result.userCancelled
     }
 
     func checkEntitlement() async {
-        await updateSubscriptionStatus()
+        do {
+            let customerInfo = try await Purchases.shared.customerInfo()
+            await updateSubscriptionStatus(customerInfo: customerInfo)
+        } catch {
+            isPremium = false
+            subscriptionStatus = .notSubscribed
+        }
     }
 
     func restorePurchases() async {
-        try? await AppStore.sync()
-        await updateSubscriptionStatus()
+        do {
+            let customerInfo = try await Purchases.shared.restorePurchases()
+            await updateSubscriptionStatus(customerInfo: customerInfo)
+        } catch {
+            await checkEntitlement()
+        }
     }
 
-    private func updateSubscriptionStatus() async {
-        for await result in Transaction.currentEntitlements {
-            if let transaction = try? Self.checkVerified(result) {
+    private func updateSubscriptionStatus(customerInfo: CustomerInfo) async {
+        let active = Set(customerInfo.activeSubscriptions)
+        for productID in [Self.monthlyID, Self.annualID, Self.lifetimeID] {
+            if active.contains(productID) {
                 isPremium = true
-                subscriptionStatus = .subscribed(transaction.productID)
+                subscriptionStatus = .subscribed(productID)
                 return
             }
         }
+
         isPremium = false
         subscriptionStatus = .notSubscribed
     }
+}
 
-    private func listenForTransactions() async {
-        for await result in Transaction.updates {
-            if let transaction = try? Self.checkVerified(result) {
-                await updateSubscriptionStatus()
-                await transaction.finish()
-            }
+extension SubscriptionService: PurchasesDelegate {
+    nonisolated func purchases(_ purchases: Purchases, receivedUpdated customerInfo: CustomerInfo) {
+        Task { @MainActor [weak self] in
+            await self?.updateSubscriptionStatus(customerInfo: customerInfo)
         }
-    }
-
-    nonisolated private static func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
-        switch result {
-        case .unverified:
-            throw StoreError.verificationFailed
-        case .verified(let safe):
-            return safe
-        }
-    }
-
-    enum StoreError: Error {
-        case verificationFailed
     }
 }
