@@ -31,9 +31,14 @@ final class SubscriptionService: NSObject {
     func configure(apiKey: String) {
         guard !isConfigured else { return }
         Purchases.logLevel = .debug
-        Purchases.configure(withAPIKey: apiKey)
+        // Force StoreKit 1 — SK2 has known issues with payment sheet presentation
+        Purchases.configure(
+            with: .init(withAPIKey: apiKey)
+                .with(storeKitVersion: .storeKit1)
+        )
         Purchases.shared.delegate = self
         isConfigured = true
+        print("[Sakinah] RevenueCat configured with SK1")
     }
 
     func loadProducts() async {
@@ -56,25 +61,27 @@ final class SubscriptionService: NSObject {
     func purchase(productID: String) async throws -> Bool {
         // Ensure products are loaded
         if packagesByProductID.isEmpty {
+            print("[Sakinah] Products not loaded, loading now...")
             await loadProducts()
         }
 
         guard let package = packagesByProductID[productID] else {
-            print("[Sakinah] No package found for \(productID). Available: \(Array(packagesByProductID.keys))")
+            print("[Sakinah] ERROR: No package found for \(productID)")
+            print("[Sakinah] Available packages: \(Array(packagesByProductID.keys))")
             return false
         }
 
-        print("[Sakinah] Starting purchase for \(productID)...")
+        print("[Sakinah] Initiating purchase for: \(productID)")
 
-        // This call triggers the Apple payment sheet
+        // Purchase — SK1 will show the native Apple payment sheet
         let result = try await Purchases.shared.purchase(package: package)
 
         if result.userCancelled {
-            print("[Sakinah] User cancelled purchase")
+            print("[Sakinah] User cancelled")
             return false
         }
 
-        print("[Sakinah] Purchase successful, updating status...")
+        print("[Sakinah] Purchase completed successfully")
         await updateSubscriptionStatus(customerInfo: result.customerInfo)
         return true
     }
@@ -84,7 +91,7 @@ final class SubscriptionService: NSObject {
             let customerInfo = try await Purchases.shared.customerInfo()
             await updateSubscriptionStatus(customerInfo: customerInfo)
         } catch {
-            print("[Sakinah] Failed to check entitlement: \(error)")
+            print("[Sakinah] Entitlement check failed: \(error)")
             isPremium = false
             subscriptionStatus = .notSubscribed
         }
@@ -100,38 +107,38 @@ final class SubscriptionService: NSObject {
     }
 
     private func updateSubscriptionStatus(customerInfo: CustomerInfo) async {
-        // Check for active entitlement first (most reliable)
+        // 1. Check entitlements (most reliable)
         if customerInfo.entitlements["premium"]?.isActive == true {
             isPremium = true
             let activeID = customerInfo.activeSubscriptions.first ?? "premium"
             subscriptionStatus = .subscribed(activeID)
-            print("[Sakinah] Premium active via entitlement")
+            print("[Sakinah] Premium ACTIVE via entitlement")
             return
         }
 
-        // Fallback: check active subscriptions directly
+        // 2. Check active subscriptions by product ID
         let active = Set(customerInfo.activeSubscriptions)
         for productID in [Self.monthlyID, Self.annualID, Self.lifetimeID] {
             if active.contains(productID) {
                 isPremium = true
                 subscriptionStatus = .subscribed(productID)
-                print("[Sakinah] Premium active via subscription: \(productID)")
+                print("[Sakinah] Premium ACTIVE via subscription: \(productID)")
                 return
             }
         }
 
-        // Check non-consumable purchases (lifetime)
+        // 3. Check non-consumable (lifetime)
         let nonConsumable = Set(customerInfo.nonSubscriptions.map(\.productIdentifier))
         if nonConsumable.contains(Self.lifetimeID) {
             isPremium = true
             subscriptionStatus = .subscribed(Self.lifetimeID)
-            print("[Sakinah] Premium active via lifetime purchase")
+            print("[Sakinah] Premium ACTIVE via lifetime")
             return
         }
 
         isPremium = false
         subscriptionStatus = .notSubscribed
-        print("[Sakinah] No active premium")
+        print("[Sakinah] No active premium found")
     }
 }
 
