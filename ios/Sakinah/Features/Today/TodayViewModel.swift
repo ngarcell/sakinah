@@ -36,6 +36,10 @@ final class TodayViewModel {
     var todaysDua: DuaData?
     var isPlayingAudio: Bool = false
 
+    // Progress & Streaks
+    var currentStreak: Int = 0
+    var totalPromptsAnswered: Int = 0
+
     // Context
     var userName: String = ""
     var partnerName: String = ""
@@ -105,6 +109,33 @@ final class TodayViewModel {
             checkInNote = existing.note ?? ""
             hasCheckedInToday = true
         }
+
+        // Calculate streak
+        calculateStreak(context: context)
+
+        // Count total prompts answered
+        let allResponsePredicate = #Predicate<PromptResponse> { r in r.userID == uid }
+        let allResponseDescriptor = FetchDescriptor<PromptResponse>(predicate: allResponsePredicate)
+        totalPromptsAnswered = (try? context.fetchCount(allResponseDescriptor)) ?? 0
+    }
+
+    private func calculateStreak(context: ModelContext) {
+        let uid = userID
+        let cid = coupleID
+        let allPredicate = #Predicate<CheckIn> { c in c.coupleID == cid && c.userID == uid }
+        let allDescriptor = FetchDescriptor<CheckIn>(predicate: allPredicate, sortBy: [SortDescriptor(\.date, order: .reverse)])
+        guard let all = try? context.fetch(allDescriptor) else { return }
+
+        var streak = 0
+        var checkDate = Calendar.current.startOfDay(for: Date())
+        for checkIn in all {
+            let checkDay = Calendar.current.startOfDay(for: checkIn.date)
+            if checkDay == checkDate {
+                streak += 1
+                checkDate = Calendar.current.date(byAdding: .day, value: -1, to: checkDate)!
+            } else { break }
+        }
+        currentStreak = streak
     }
 
     func submitResponse(context: ModelContext) {
@@ -119,6 +150,7 @@ final class TodayViewModel {
         try? context.save()
 
         HapticEngine.shared.fire(.success)
+        totalPromptsAnswered += 1
 
         withAnimation(SakinahAnimation.gentle) {
             promptState = .waiting
@@ -156,7 +188,6 @@ final class TodayViewModel {
                 try? context.save()
             }
 
-            // Trigger review after emotional reveal moment
             ReviewService.shared.onPromptRevealed(requestReview: requestReview)
         }
     }
@@ -203,21 +234,10 @@ final class TodayViewModel {
         try? context.save()
         hasCheckedInToday = true
 
-        // Calculate streak and potentially request review
-        let allPredicate = #Predicate<CheckIn> { c in c.coupleID == cid && c.userID == uid }
-        let allDescriptor = FetchDescriptor<CheckIn>(predicate: allPredicate, sortBy: [SortDescriptor(\.date, order: .reverse)])
-        if let all = try? context.fetch(allDescriptor) {
-            var streak = 0
-            var checkDate = today
-            for checkIn in all {
-                let checkDay = Calendar.current.startOfDay(for: checkIn.date)
-                if checkDay == checkDate {
-                    streak += 1
-                    checkDate = Calendar.current.date(byAdding: .day, value: -1, to: checkDate)!
-                } else { break }
-            }
-            ReviewService.shared.onCheckInSaved(streakDays: streak, requestReview: requestReview)
-        }
+        // Recalculate streak
+        calculateStreak(context: context)
+
+        ReviewService.shared.onCheckInSaved(streakDays: currentStreak, requestReview: requestReview)
     }
 
     func toggleUpdateCheckIn() {
@@ -231,5 +251,4 @@ final class TodayViewModel {
             selectedReaction = selectedReaction == emoji ? nil : emoji
         }
     }
-
 }

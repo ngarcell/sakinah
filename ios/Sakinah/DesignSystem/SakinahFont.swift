@@ -1,7 +1,11 @@
 import SwiftUI
 
 enum SakinahFont {
+    // Signature
+    static let display = Font.system(size: 38, weight: .bold, design: .serif)
     static let heroTitle = Font.system(size: 34, weight: .bold, design: .default)
+
+    // Hierarchy
     static let title1 = Font.system(size: 28, weight: .bold, design: .default)
     static let title2 = Font.system(size: 22, weight: .semibold, design: .default)
     static let title3 = Font.system(size: 20, weight: .semibold, design: .default)
@@ -10,8 +14,14 @@ enum SakinahFont {
     static let bodySmall = Font.system(size: 15, weight: .regular, design: .default)
     static let caption = Font.system(size: 13, weight: .regular, design: .default)
     static let captionBold = Font.system(size: 13, weight: .semibold, design: .default)
+    static let micro = Font.system(size: 11, weight: .medium, design: .default)
+
+    // Arabic
     static let arabic = Font.system(size: 24, weight: .regular, design: .serif)
     static let arabicSmall = Font.system(size: 18, weight: .regular, design: .serif)
+
+    // Mono (for codes, counts)
+    static let mono = Font.system(size: 15, weight: .medium, design: .monospaced)
 }
 
 extension Text {

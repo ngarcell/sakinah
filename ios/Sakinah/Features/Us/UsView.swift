@@ -9,7 +9,6 @@ struct UsView: View {
     @Query private var memories: [Memory]
 
     init() {
-        // Fetch memories ordered by date descending
         _memories = Query(sort: \Memory.date, order: .reverse)
     }
 
@@ -21,7 +20,7 @@ struct UsView: View {
                 VStack(spacing: SakinahSpacing.xl) {
                     header
 
-                    // Wellness Garden — hero visual
+                    // Wellness Garden
                     WellnessGardenView(
                         gardenState: vm.gardenState,
                         onPlantTapped: { dim in
@@ -31,12 +30,26 @@ struct UsView: View {
                     )
                     .padding(.horizontal, SakinahSpacing.base)
 
-                    // Weekly Reflection (conditional)
+                    // Garden health hint
+                    if vm.gardenState.averageLevel < 2.5 {
+                        HStack(spacing: SakinahSpacing.sm) {
+                            Image(systemName: "leaf.fill")
+                                .foregroundStyle(SakinahColor.primary)
+                            Text("Complete check-ins and reflections to help your garden grow")
+                                .font(SakinahFont.caption)
+                                .foregroundStyle(SakinahColor.textSecondary)
+                        }
+                        .padding(SakinahSpacing.md)
+                        .background(SakinahColor.primaryLight)
+                        .clipShape(.rect(cornerRadius: SakinahRadius.medium))
+                        .padding(.horizontal, SakinahSpacing.base)
+                    }
+
+                    // Weekly Reflection
                     if vm.showReflection {
                         WeeklyReflectionCard {
                             withAnimation(SakinahAnimation.gentle) {
                                 vm.showReflection = false
-                                // Reload garden state
                                 vm.gardenState = appState.currentCouple?.gardenState ?? GardenState()
                             }
                         }
@@ -72,7 +85,7 @@ struct UsView: View {
     }
 
     private var header: some View {
-        VStack(spacing: SakinahSpacing.xs) {
+        VStack(spacing: SakinahSpacing.sm) {
             Text("Us")
                 .font(SakinahFont.title1)
                 .foregroundStyle(SakinahColor.textPrimary)
@@ -81,6 +94,7 @@ struct UsView: View {
                 Text("\(vm.daysTogether)")
                     .font(SakinahFont.headline)
                     .foregroundStyle(SakinahColor.accent)
+                    .contentTransition(.numericText())
                 Text("days growing together")
                     .font(SakinahFont.bodySmall)
                     .foregroundStyle(SakinahColor.textSecondary)

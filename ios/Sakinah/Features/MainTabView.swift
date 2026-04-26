@@ -83,16 +83,6 @@ struct CustomTabBar: View {
                     )
                 }
                 .pressScale(0.94)
-                .if(selected == tab) { v in
-                    v.overlay(
-                        Circle()
-                            .fill(SakinahColor.primary.opacity(0.15))
-                            .frame(width: 40, height: 40)
-                            .blur(radius: 10)
-                            .offset(y: -4)
-                            .allowsHitTesting(false)
-                    )
-                }
             }
 
             // Settings gear

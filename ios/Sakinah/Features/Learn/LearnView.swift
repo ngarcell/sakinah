@@ -5,64 +5,62 @@ struct LearnView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
     @Query private var completedLessons: [Lesson]
-    @State private var selectedLesson: LessonData? = nil
-    @State private var selectedPack: ConversationPack? = nil
+    @State private var selectedLesson: LessonData?
+    @State private var selectedPack: ConversationPack?
+    @State private var showPaywall = false
 
     var body: some View {
         NavigationStack {
             ZStack {
                 SakinahColor.background.ignoresSafeArea()
+
                 ScrollView {
-                    VStack(spacing: SakinahSpacing.xl) {
-                        header
-                        thisWeekCard
+                    VStack(spacing: SakinahSpacing.xxl) {
+                        // Header
+                        VStack(spacing: SakinahSpacing.xs) {
+                            Text("Learn")
+                                .font(SakinahFont.title1)
+                                .foregroundStyle(SakinahColor.textPrimary)
+                            Text("Strengthen what matters most")
+                                .font(SakinahFont.bodySmall)
+                                .foregroundStyle(SakinahColor.textSecondary)
+                        }
+                        .padding(.top, SakinahSpacing.lg)
+
+                        // Weekly Lesson
+                        weeklyLesson
+
+                        // Conversation Starters
                         conversationStarters
+
+                        // Past lessons
                         pastLessons
+
                         Spacer().frame(height: 100)
                     }
-                    .padding(.top, SakinahSpacing.lg)
                 }
                 .scrollIndicators(.hidden)
             }
-            .navigationDestination(item: $selectedLesson) { lesson in
+            .sheet(item: $selectedLesson) { lesson in
                 LessonDetailView(lesson: lesson)
             }
             .sheet(item: $selectedPack) { pack in
-                PackDetailSheet(pack: pack, isPremium: appState.isSubscribed)
-                    .presentationDetents([.large])
+                packDetailSheet(pack)
+            }
+            .sheet(isPresented: $showPaywall) {
+                SakinahPaywallView()
             }
         }
     }
 
-    private var header: some View {
-        VStack(spacing: SakinahSpacing.xs) {
-            Text("Learn")
-                .font(SakinahFont.title1)
-                .foregroundStyle(SakinahColor.textPrimary)
-            Text("Wisdom for your journey together")
-                .font(SakinahFont.bodySmall)
-                .foregroundStyle(SakinahColor.textSecondary)
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    private var thisWeekCard: some View {
+    private var weeklyLesson: some View {
         Group {
-            if let lesson = LessonService.shared.currentWeekLesson() {
+            if let lesson = LessonService.shared.currentWeekLesson(completed: completedLessons) {
                 SakinahCard(elevated: true) {
                     VStack(alignment: .leading, spacing: SakinahSpacing.md) {
-                        // Illustration area
-                        ZStack {
-                            SakinahColor.primaryLight
-                            LessonIllustration(category: lesson.category)
-                                .opacity(0.2)
-                            Image(systemName: categoryIcon(lesson.category))
-                                .font(.system(size: 40))
-                                .foregroundStyle(SakinahColor.primary.opacity(0.3))
-                        }
-                        .frame(height: 180)
-                        .frame(maxWidth: .infinity)
-                        .clipShape(.rect(cornerRadius: SakinahRadius.medium))
+                        LessonIllustration(category: lesson.category)
+                            .frame(height: 120)
+                            .clipShape(.rect(cornerRadius: SakinahRadius.medium))
 
                         SakinahBadge(text: lesson.category.capitalized, color: SakinahColor.primary, tintedBackground: SakinahColor.primaryLight)
 
@@ -101,9 +99,11 @@ struct LearnView: View {
                 Text("Conversation Starters")
                     .font(SakinahFont.title3)
                     .foregroundStyle(SakinahColor.textPrimary)
-                Image(systemName: appState.isSubscribed ? "crown.fill" : "lock.fill")
-                    .font(.system(size: 14))
-                    .foregroundStyle(appState.isSubscribed ? SakinahColor.accent : SakinahColor.textTertiary)
+                if !appState.isPremium {
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(SakinahColor.accent)
+                }
                 Spacer()
             }
             .padding(.horizontal, SakinahSpacing.base)
@@ -118,13 +118,29 @@ struct LearnView: View {
                 .scrollTargetLayout()
             }
             .scrollTargetBehavior(.viewAligned)
+
+            // Upgrade prompt after browsing packs
+            if !appState.isPremium {
+                UpgradePromptView(
+                    icon: "bubble.left.and.bubble.right.fill",
+                    headline: "100+ conversation prompts",
+                    message: "Go beyond surface-level with themed packs.",
+                    ctaTitle: "Unlock all packs",
+                    onUpgrade: { showPaywall = true }
+                )
+                .padding(.horizontal, SakinahSpacing.base)
+            }
         }
     }
 
     private func packCard(_ pack: ConversationPack) -> some View {
         Button {
             HapticEngine.shared.fire(.tap)
-            selectedPack = pack
+            if appState.isPremium {
+                selectedPack = pack
+            } else {
+                showPaywall = true
+            }
         } label: {
             VStack(spacing: 0) {
                 ZStack {
@@ -136,13 +152,11 @@ struct LearnView: View {
                         .font(.system(size: 32, weight: .medium))
                         .foregroundStyle(.white)
 
-                    if !appState.isSubscribed {
-                        Color.black.opacity(0.3)
-                        VStack {
-                            Image(systemName: "lock.fill")
-                                .font(.system(size: 20))
-                                .foregroundStyle(.white)
-                        }
+                    if !appState.isPremium {
+                        Color.black.opacity(0.25)
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 18))
+                            .foregroundStyle(.white)
                     }
                 }
                 .frame(height: 130)
@@ -165,6 +179,21 @@ struct LearnView: View {
             .sakinahShadow(.subtle)
         }
         .pressScale()
+    }
+
+    private func packDetailSheet(_ pack: ConversationPack) -> some View {
+        NavigationStack {
+            List {
+                ForEach(pack.prompts, id: \.self) { prompt in
+                    Text(prompt)
+                        .font(SakinahFont.body)
+                        .foregroundStyle(SakinahColor.textPrimary)
+                        .listRowBackground(SakinahColor.surface)
+                }
+            }
+            .navigationTitle(pack.name)
+            .navigationBarTitleDisplayMode(.inline)
+        }
     }
 
     private var pastLessons: some View {
@@ -209,17 +238,6 @@ struct LearnView: View {
             }
         }
     }
-
-    private func categoryIcon(_ cat: String) -> String {
-        switch cat {
-        case "communication": return "bubble.left.and.bubble.right.fill"
-        case "conflict": return "hand.raised.fill"
-        case "spiritual": return "moon.stars.fill"
-        case "intimacy": return "heart.fill"
-        case "practical": return "briefcase.fill"
-        default: return "book.fill"
-        }
-    }
 }
 
 struct LessonIllustration: View {
@@ -247,7 +265,7 @@ struct LessonIllustration: View {
     }
 }
 
-extension LessonData: Hashable {
-    nonisolated static func == (lhs: LessonData, rhs: LessonData) -> Bool { lhs.id == rhs.id }
-    nonisolated func hash(into hasher: inout Hasher) { hasher.combine(id) }
+extension LessonData: @retroactive Hashable {
+    nonisolated public static func == (lhs: LessonData, rhs: LessonData) -> Bool { lhs.id == rhs.id }
+    nonisolated public func hash(into hasher: inout Hasher) { hasher.combine(id) }
 }

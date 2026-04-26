@@ -12,9 +12,17 @@ struct QuickCheckInCard: View {
     var body: some View {
         SakinahCard {
             VStack(spacing: SakinahSpacing.base) {
-                Text("How are you today?")
-                    .font(SakinahFont.headline)
-                    .foregroundStyle(SakinahColor.textPrimary)
+                HStack {
+                    Text("How are you feeling?")
+                        .font(SakinahFont.headline)
+                        .foregroundStyle(SakinahColor.textPrimary)
+                    Spacer()
+                    if vm.hasCheckedInToday {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(SakinahColor.success)
+                            .font(.system(size: 16))
+                    }
+                }
 
                 // Mood options
                 HStack(spacing: 0) {
@@ -23,14 +31,14 @@ struct QuickCheckInCard: View {
                     }
                 }
 
-                // Optional note field
+                // Optional note
                 if vm.showCheckInNote {
                     VStack(alignment: .leading, spacing: SakinahSpacing.sm) {
-                        Text("Anything you'd like to share?")
+                        Text("Want to add a note?")
                             .font(SakinahFont.bodySmall)
                             .foregroundStyle(SakinahColor.textSecondary)
 
-                        TextField("Write a note (optional)...", text: $vm.checkInNote, axis: .vertical)
+                        TextField("Share what's on your mind...", text: $vm.checkInNote, axis: .vertical)
                             .font(SakinahFont.body)
                             .foregroundStyle(SakinahColor.textPrimary)
                             .padding(SakinahSpacing.md)
@@ -50,12 +58,12 @@ struct QuickCheckInCard: View {
                         .transition(.opacity.combined(with: .move(edge: .bottom)))
                 }
 
-                // Update button if already checked in
+                // Update button
                 if vm.hasCheckedInToday && !vm.isUpdatingCheckIn {
                     Button {
                         vm.toggleUpdateCheckIn()
                     } label: {
-                        Text("Update")
+                        Text("Change")
                             .font(SakinahFont.captionBold)
                             .foregroundStyle(SakinahColor.primary)
                     }
@@ -101,15 +109,10 @@ struct QuickCheckInCard: View {
         HStack(spacing: SakinahSpacing.sm) {
             Text(mood.emoji)
                 .font(.system(size: 18))
-            Text("\(vm.partnerName) is feeling \(mood.label.lowercased()) today")
+            Text("\(vm.partnerName) is feeling \(mood.label.lowercased())")
                 .font(SakinahFont.bodySmall)
                 .foregroundStyle(SakinahColor.textSecondary)
             Spacer()
-            if vm.partnerNote != nil {
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(SakinahColor.textTertiary)
-            }
         }
         .padding(SakinahSpacing.md)
         .background(SakinahColor.backgroundSecondary)

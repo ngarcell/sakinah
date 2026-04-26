@@ -15,6 +15,7 @@ final class AppState {
     var currentCouple: Couple?
     var isSubscribed: Bool = false
     var onboardingStep: OnboardingStep = .welcome
+    var selectedTab: MainTab = .today
 
     func completeOnboarding(user: User, couple: Couple?) {
         self.currentUser = user
@@ -34,5 +35,9 @@ final class AppState {
 
     var daysTogether: Int {
         currentCouple?.daysTogether ?? 0
+    }
+
+    var isPremium: Bool {
+        SubscriptionService.shared.isPremium
     }
 }

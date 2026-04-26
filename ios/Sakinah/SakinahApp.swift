@@ -44,8 +44,11 @@ struct SakinahApp: App {
                 }
                 .onChange(of: scenePhase) { _, phase in
                     if phase == .active {
-                        // Check for day rollover
                         ContentService.shared.checkDateRollover()
+                        Task {
+                            await SubscriptionService.shared.checkEntitlement()
+                            appState.isSubscribed = SubscriptionService.shared.isPremium
+                        }
                     }
                 }
         }
@@ -55,8 +58,6 @@ struct SakinahApp: App {
     @Environment(\.scenePhase) private var scenePhase
 
     private func handleDeepLink(_ url: URL) {
-        // sakinah://today/prompt or sakinah://today/dua
         guard url.scheme == "sakinah" else { return }
-        // Deep link routing handled by ContentView
     }
 }

@@ -1,10 +1,12 @@
 import SwiftUI
+import StoreKit
 
 struct SakinahPaywallView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var selectedPlan: PlanOption = .annual
     @State private var isPurchasing = false
     @State private var showCelebration = false
+    @State private var appeared = false
 
     enum PlanOption: String, CaseIterable {
         case monthly, annual, lifetime
@@ -35,9 +37,9 @@ struct SakinahPaywallView: View {
 
         var subtitle: String {
             switch self {
-            case .monthly: return "Flexible"
-            case .annual: return "Best Value — Save 58%"
-            case .lifetime: return "Pay once, forever"
+            case .monthly: return "Flexible, cancel anytime"
+            case .annual: return "Save 58% \u{2014} $4.17/mo"
+            case .lifetime: return "Pay once, yours forever"
             }
         }
 
@@ -62,21 +64,46 @@ struct SakinahPaywallView: View {
             SakinahColor.background.ignoresSafeArea()
 
             ScrollView {
-                VStack(spacing: SakinahSpacing.xl) {
-                    // Title
-                    Text("Unlock Sakinah Premium ✨")
-                        .font(SakinahFont.title1)
-                        .foregroundStyle(SakinahColor.textPrimary)
-                        .multilineTextAlignment(.center)
-                        .padding(.top, SakinahSpacing.xl)
+                VStack(spacing: SakinahSpacing.xxl) {
+                    // Close button
+                    HStack {
+                        Spacer()
+                        Button { dismiss() } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 28))
+                                .foregroundStyle(SakinahColor.textTertiary)
+                        }
+                    }
+                    .padding(.horizontal, SakinahSpacing.base)
+                    .padding(.top, SakinahSpacing.sm)
+
+                    // Hero
+                    VStack(spacing: SakinahSpacing.md) {
+                        Text("Grow deeper,\ntogether")
+                            .font(SakinahFont.display)
+                            .foregroundStyle(SakinahColor.textPrimary)
+                            .multilineTextAlignment(.center)
+                            .opacity(appeared ? 1 : 0)
+                            .offset(y: appeared ? 0 : 16)
+
+                        Text("Premium unlocks the tools that turn\ndaily check-ins into lasting growth.")
+                            .font(SakinahFont.bodySmall)
+                            .foregroundStyle(SakinahColor.textSecondary)
+                            .multilineTextAlignment(.center)
+                            .lineSpacing(3)
+                            .opacity(appeared ? 1 : 0)
+                    }
 
                     // Garden illustration
                     gardenIllustration
+                        .opacity(appeared ? 1 : 0)
+                        .scaleEffect(appeared ? 1 : 0.95)
 
-                    // Benefits
-                    benefitsList
+                    // Outcomes, not features
+                    outcomesList
+                        .opacity(appeared ? 1 : 0)
 
-                    // Plan selection
+                    // Plan cards
                     VStack(spacing: SakinahSpacing.md) {
                         ForEach(PlanOption.allCases, id: \.self) { plan in
                             planCard(plan)
@@ -84,7 +111,7 @@ struct SakinahPaywallView: View {
                     }
                     .padding(.horizontal, SakinahSpacing.base)
 
-                    // Purchase button
+                    // Purchase CTA
                     VStack(spacing: SakinahSpacing.xs) {
                         SakinahButton(title: selectedPlan.buttonTitle, isLoading: isPurchasing) {
                             purchase()
@@ -98,7 +125,7 @@ struct SakinahPaywallView: View {
                         }
                     }
 
-                    // Footer links
+                    // Footer
                     HStack(spacing: SakinahSpacing.lg) {
                         Button("Restore Purchases") {
                             Task { await SubscriptionService.shared.restorePurchases() }
@@ -106,7 +133,11 @@ struct SakinahPaywallView: View {
                         .font(SakinahFont.caption)
                         .foregroundStyle(SakinahColor.textTertiary)
 
-                        Text("Terms • Privacy")
+                        Link("Terms", destination: URL(string: "https://socialreporthq.com/sakinah/terms")!)
+                            .font(SakinahFont.caption)
+                            .foregroundStyle(SakinahColor.textTertiary)
+
+                        Link("Privacy", destination: URL(string: "https://socialreporthq.com/sakinah/privacy")!)
                             .font(SakinahFont.caption)
                             .foregroundStyle(SakinahColor.textTertiary)
                     }
@@ -121,67 +152,91 @@ struct SakinahPaywallView: View {
             }
         }
         .presentationDragIndicator(.visible)
+        .onAppear {
+            withAnimation(.spring(response: 0.7, dampingFraction: 0.85).delay(0.15)) {
+                appeared = true
+            }
+        }
+    }
+
+    // MARK: - Outcomes (not features)
+
+    private var outcomesList: some View {
+        VStack(alignment: .leading, spacing: SakinahSpacing.lg) {
+            outcomeRow(
+                icon: "bubble.left.and.bubble.right.fill",
+                title: "Conversations that matter",
+                detail: "100+ themed prompts that go beyond surface-level"
+            )
+            outcomeRow(
+                icon: "chart.line.uptrend.xyaxis",
+                title: "See your growth over time",
+                detail: "Track how your relationship evolves week by week"
+            )
+            outcomeRow(
+                icon: "envelope.fill",
+                title: "Surprise each other",
+                detail: "Write love letters now, deliver them when it matters"
+            )
+            outcomeRow(
+                icon: "target",
+                title: "Build together",
+                detail: "Shared goals, wishlists, and a private journal"
+            )
+        }
+        .padding(.horizontal, SakinahSpacing.xl)
+    }
+
+    private func outcomeRow(icon: String, title: String, detail: String) -> some View {
+        HStack(alignment: .top, spacing: SakinahSpacing.md) {
+            ZStack {
+                Circle()
+                    .fill(SakinahColor.primaryLight)
+                    .frame(width: 36, height: 36)
+                Image(systemName: icon)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(SakinahColor.primary)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(SakinahFont.headline)
+                    .foregroundStyle(SakinahColor.textPrimary)
+                Text(detail)
+                    .font(SakinahFont.caption)
+                    .foregroundStyle(SakinahColor.textSecondary)
+                    .lineSpacing(2)
+            }
+        }
     }
 
     private var gardenIllustration: some View {
         ZStack {
             SakinahColor.primaryLight
-            // Simplified garden at full bloom
             Canvas { context, size in
                 let groundY = size.height * 0.7
                 let groundRect = CGRect(x: 0, y: groundY, width: size.width, height: size.height - groundY)
                 context.fill(Rectangle().path(in: groundRect), with: .color(SakinahColor.primaryLight))
-
-                // Draw 5 simplified blooming plants
                 let spacing = size.width / 6
                 for i in 0..<5 {
                     let x = spacing * CGFloat(i + 1)
                     GardenPlantRenderer.drawPlant(
-                        in: context,
-                        dimension: GardenDimension.allCases[i],
-                        level: 5,
-                        at: CGPoint(x: x, y: 0),
-                        groundY: groundY,
-                        time: 0,
-                        swayPhase: 1.0,
-                        breezeActive: false
+                        in: context, dimension: GardenDimension.allCases[i],
+                        level: 5, at: CGPoint(x: x, y: 0),
+                        groundY: groundY, time: 0, swayPhase: 1.0, breezeActive: false
                     )
                 }
             }
         }
-        .frame(height: 160)
+        .frame(height: 140)
         .clipShape(.rect(cornerRadius: SakinahRadius.large))
         .padding(.horizontal, SakinahSpacing.base)
-    }
-
-    private var benefitsList: some View {
-        VStack(alignment: .leading, spacing: SakinahSpacing.md) {
-            benefitRow("Deeper conversations with themed prompt packs")
-            benefitRow("Relationship trend insights over time")
-            benefitRow("Scheduled love letters & shared goals")
-            benefitRow("Early access to new features")
-        }
-        .padding(.horizontal, SakinahSpacing.xl)
-    }
-
-    private func benefitRow(_ text: String) -> some View {
-        HStack(spacing: SakinahSpacing.md) {
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(SakinahColor.accent)
-                .font(.system(size: 20))
-            Text(text)
-                .font(SakinahFont.body)
-                .foregroundStyle(SakinahColor.textPrimary)
-        }
     }
 
     private func planCard(_ plan: PlanOption) -> some View {
         let isSelected = selectedPlan == plan
         return Button {
             HapticEngine.shared.fire(.select)
-            withAnimation(SakinahAnimation.bounce) {
-                selectedPlan = plan
-            }
+            withAnimation(SakinahAnimation.bounce) { selectedPlan = plan }
         } label: {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
@@ -202,11 +257,8 @@ struct SakinahPaywallView: View {
             .clipShape(.rect(cornerRadius: SakinahRadius.medium))
             .overlay(
                 RoundedRectangle(cornerRadius: SakinahRadius.medium)
-                    .stroke(isSelected ? SakinahColor.accent : SakinahColor.divider, lineWidth: isSelected ? 3 : 1)
+                    .stroke(isSelected ? SakinahColor.accent : SakinahColor.divider, lineWidth: isSelected ? 2.5 : 1)
             )
-            .if(isSelected) { view in
-                view.glow(color: SakinahColor.accent, radius: 12, opacity: 0.2)
-            }
             .overlay(alignment: .topTrailing) {
                 if plan == .annual {
                     Text("BEST VALUE")
@@ -214,7 +266,12 @@ struct SakinahPaywallView: View {
                         .foregroundStyle(.white)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
-                        .background(SakinahColor.accent)
+                        .background(
+                            LinearGradient(
+                                colors: [SakinahColor.accent, SakinahColor.accentWarm],
+                                startPoint: .leading, endPoint: .trailing
+                            )
+                        )
                         .clipShape(.capsule)
                         .offset(x: -8, y: -10)
                 }
@@ -229,9 +286,12 @@ struct SakinahPaywallView: View {
             VStack(spacing: SakinahSpacing.lg) {
                 ParticleSystem(isActive: true, color: SakinahColor.accent, particleCount: 20)
                     .frame(width: 200, height: 200)
-                Text("Welcome to Premium ✨")
+                Text("Welcome to Premium \u{2728}")
                     .font(SakinahFont.title1)
                     .foregroundStyle(.white)
+                Text("Your garden is ready to bloom.")
+                    .font(SakinahFont.body)
+                    .foregroundStyle(.white.opacity(0.8))
             }
         }
     }
@@ -248,7 +308,7 @@ struct SakinahPaywallView: View {
                     dismiss()
                 }
             } catch {
-                // StoreKit handles its own error UI; dismiss loading state silently
+                // StoreKit handles its own error UI
             }
         }
     }

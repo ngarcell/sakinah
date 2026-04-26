@@ -1,7 +1,9 @@
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.modelContext) private var modelContext
 
     var body: some View {
         ZStack {
@@ -24,9 +26,20 @@ struct ContentView: View {
             }
         }
         .animation(SakinahAnimation.gentle, value: appState.route)
+        .onAppear {
+            restoreSession()
+        }
     }
-}
 
-#Preview {
-    ContentView().environment(AppState())
+    private func restoreSession() {
+        let userDescriptor = FetchDescriptor<User>()
+        guard let user = try? modelContext.fetch(userDescriptor).first else { return }
+        
+        let coupleDescriptor = FetchDescriptor<Couple>()
+        let couple = try? modelContext.fetch(coupleDescriptor).first
+        
+        appState.currentUser = user
+        appState.currentCouple = couple
+        appState.route = .main
+    }
 }

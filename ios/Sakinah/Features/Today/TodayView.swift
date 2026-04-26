@@ -5,6 +5,7 @@ struct TodayView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
     @State private var vm = TodayViewModel()
+    @State private var showPaywall = false
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -29,7 +30,7 @@ struct TodayView: View {
 
                 ScrollView {
                     VStack(spacing: SakinahSpacing.xl) {
-                        // Daily Prompt Card — hero element
+                        // Daily Prompt Card
                         DailyPromptCard(vm: vm)
 
                         // Daily Du'a Card
@@ -43,9 +44,19 @@ struct TodayView: View {
                         // Quick Check-In Card
                         QuickCheckInCard(vm: vm)
 
-                        // Bottom breathing room
-                        Spacer()
-                            .frame(height: 100)
+                        // Contextual upgrade — after user has experienced value
+                        if !SubscriptionService.shared.isPremium && vm.totalPromptsAnswered >= Constants.promptsBeforeUpgradeHint {
+                            UpgradePromptView(
+                                icon: "sparkles",
+                                headline: "You're building a habit",
+                                body: "\(vm.totalPromptsAnswered) prompts answered. Unlock deeper conversation packs.",
+                                ctaTitle: "See Premium",
+                                onUpgrade: { showPaywall = true }
+                            )
+                            .padding(.horizontal, SakinahSpacing.base)
+                        }
+
+                        Spacer().frame(height: 100)
                     }
                     .padding(.top, SakinahSpacing.md)
                 }
@@ -60,15 +71,18 @@ struct TodayView: View {
             vm.loadContent(appState: appState)
             vm.loadExistingData(context: modelContext)
         }
+        .sheet(isPresented: $showPaywall) {
+            SakinahPaywallView()
+        }
     }
 
     // MARK: - Header
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: SakinahSpacing.xs) {
+        VStack(alignment: .leading, spacing: SakinahSpacing.sm) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Salaam, \(firstName) 🌙")
+                    Text("\(Theme.greeting), \(firstName) \(Theme.greetingEmoji)")
                         .font(SakinahFont.title2)
                         .foregroundStyle(SakinahColor.textPrimary)
 
@@ -81,6 +95,16 @@ struct TodayView: View {
 
                 // Partner avatar
                 partnerAvatar
+            }
+
+            // Progress badges
+            HStack(spacing: SakinahSpacing.sm) {
+                if vm.currentStreak > 0 {
+                    StreakBadge(count: vm.currentStreak, label: "day streak")
+                }
+                if appState.daysTogether > 0 {
+                    StreakBadge(count: appState.daysTogether, label: "days together", icon: "heart.fill")
+                }
             }
         }
         .padding(.horizontal, SakinahSpacing.base)
@@ -98,7 +122,7 @@ struct TodayView: View {
         let gregorian = Date.now.formatted(.dateTime.weekday(.wide).month(.wide).day())
         if appState.currentCouple?.useHijriCalendar == true {
             let hijri = DateFormatting.hijri(Date())
-            return "\(gregorian) · \(hijri)"
+            return "\(gregorian) \u{00B7} \(hijri)"
         }
         return gregorian
     }
@@ -110,20 +134,19 @@ struct TodayView: View {
         return ZStack {
             Circle()
                 .fill(SakinahColor.primaryLight)
-                .frame(width: 32, height: 32)
+                .frame(width: 36, height: 36)
             Text(initials)
-                .font(.system(size: 13, weight: .semibold))
+                .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(SakinahColor.primary)
         }
         .overlay(alignment: .bottomTrailing) {
-            // Green dot if partner checked in today
             if vm.partnerMood != nil {
                 Circle()
                     .fill(SakinahColor.success)
-                    .frame(width: 8, height: 8)
+                    .frame(width: 10, height: 10)
                     .overlay(
                         Circle()
-                            .stroke(SakinahColor.background, lineWidth: 1.5)
+                            .stroke(SakinahColor.background, lineWidth: 2)
                     )
                     .offset(x: 2, y: 2)
             }

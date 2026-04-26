@@ -5,23 +5,24 @@ import StoreKit
 struct SettingsView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
+
     @State private var showPaywall = false
     @State private var showDeleteConfirm = false
     @State private var deleteText = ""
     @State private var showFinalDelete = false
     @State private var showUnlinkConfirm = false
+    @State private var showShareSheet = false
 
     // Notification preferences
-    @State private var dailyPromptNotif = true
-    @State private var promptTime = Calendar.current.date(from: DateComponents(hour: 9, minute: 0)) ?? Date()
-    @State private var partnerActivityNotif = true
-    @State private var weeklyReflectionNotif = true
-    @State private var reflectionDay = 6 // Friday
-    @State private var milestoneNotif = true
+    @AppStorage("dailyPromptNotif") private var dailyPromptNotif = true
+    @AppStorage("partnerActivityNotif") private var partnerActivityNotif = true
+    @AppStorage("weeklyReflectionNotif") private var weeklyReflectionNotif = true
+    @AppStorage("milestoneNotif") private var milestoneNotif = true
+    @AppStorage("reflectionDay") private var reflectionDay = 6
+    @AppStorage("selectedAppearance") private var selectedAppearance = 0
+    @AppStorage("hapticEnabled") private var hapticEnabled = true
 
-    // Appearance
-    @State private var selectedAppearance = 0 // 0=system, 1=light, 2=dark
-    @State private var hapticEnabled = true
+    @State private var promptTime = Calendar.current.date(from: DateComponents(hour: 20, minute: 0))!
 
     var body: some View {
         NavigationStack {
@@ -33,55 +34,45 @@ struct SettingsView: View {
                 privacySection
                 aboutSection
             }
-            .listStyle(.insetGrouped)
             .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showPaywall) {
                 SakinahPaywallView()
-                    .presentationDetents([.large])
             }
-            .alert("Unlink Partner?", isPresented: $showUnlinkConfirm) {
-                Button("Cancel", role: .cancel) {}
+            .alert("Unlink Partner", isPresented: $showUnlinkConfirm) {
                 Button("Unlink", role: .destructive) {
-                    // Handle unlink
+                    appState.currentCouple?.user2ID = ""
+                    appState.currentCouple?.user2Name = "Partner"
+                    try? modelContext.save()
                 }
+                Button("Cancel", role: .cancel) {}
             } message: {
-                Text("This will disconnect your account from \(appState.partnerName). Your data will be preserved.")
+                Text("This will remove the partner link. Your data stays safe.")
             }
             .alert("Delete All Data", isPresented: $showDeleteConfirm) {
                 TextField("Type DELETE to confirm", text: $deleteText)
-                Button("Cancel", role: .cancel) { deleteText = "" }
                 Button("Delete Everything", role: .destructive) {
-                    if deleteText == "DELETE" {
-                        showFinalDelete = true
+                    if deleteText.uppercased() == "DELETE" {
+                        deleteAllData()
                     }
                 }
-                .disabled(deleteText != "DELETE")
+                Button("Cancel", role: .cancel) { deleteText = "" }
             } message: {
-                Text("This action cannot be undone. All your data will be permanently deleted.")
+                Text("This will permanently erase all your data. This cannot be undone.")
             }
-            .alert("Are you absolutely sure?", isPresented: $showFinalDelete) {
-                Button("Cancel", role: .cancel) {}
-                Button("Yes, delete everything", role: .destructive) {
-                    deleteAllData()
-                }
-            } message: {
-                Text("This is your final confirmation. All data will be permanently removed.")
-            }
-
         }
     }
 
     // MARK: - Profile
 
     private var profileSection: some View {
-        Section("Profile") {
+        Section {
             HStack(spacing: SakinahSpacing.md) {
                 ZStack {
                     Circle()
                         .fill(SakinahColor.primaryLight)
-                        .frame(width: 48, height: 48)
-                    Text(String(appState.userName.prefix(1)).uppercased())
+                        .frame(width: 44, height: 44)
+                    Image(systemName: "person.2.fill")
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundStyle(SakinahColor.primary)
                 }
@@ -89,9 +80,20 @@ struct SettingsView: View {
                     Text(appState.userName)
                         .font(SakinahFont.headline)
                         .foregroundStyle(SakinahColor.textPrimary)
-                    Text("Paired with \(appState.partnerName)")
+                    Text("with \(appState.partnerName)")
                         .font(SakinahFont.bodySmall)
                         .foregroundStyle(SakinahColor.textSecondary)
+                }
+            }
+
+            if appState.daysTogether > 0 {
+                HStack {
+                    Text("Days together")
+                        .font(SakinahFont.body)
+                    Spacer()
+                    Text("\(appState.daysTogether)")
+                        .font(SakinahFont.headline)
+                        .foregroundStyle(SakinahColor.accent)
                 }
             }
 
@@ -107,7 +109,7 @@ struct SettingsView: View {
 
     private var notificationsSection: some View {
         Section("Notifications") {
-            Toggle("Daily prompt notification", isOn: $dailyPromptNotif)
+            Toggle("Daily prompt", isOn: $dailyPromptNotif)
                 .tint(SakinahColor.primary)
 
             if dailyPromptNotif {
@@ -119,7 +121,7 @@ struct SettingsView: View {
 
             Toggle("Partner activity", isOn: $partnerActivityNotif)
                 .tint(SakinahColor.primary)
-            Toggle("Weekly reflection reminder", isOn: $weeklyReflectionNotif)
+            Toggle("Weekly reflection", isOn: $weeklyReflectionNotif)
                 .tint(SakinahColor.primary)
 
             if weeklyReflectionNotif {
@@ -130,7 +132,7 @@ struct SettingsView: View {
                 }
             }
 
-            Toggle("Milestone celebrations", isOn: $milestoneNotif)
+            Toggle("Milestones", isOn: $milestoneNotif)
                 .tint(SakinahColor.primary)
         }
     }
@@ -138,12 +140,12 @@ struct SettingsView: View {
     // MARK: - Subscription
 
     private var subscriptionSection: some View {
-        Section("Subscription") {
+        Section("Premium") {
             HStack {
-                Text("Current plan")
+                Text("Status")
                     .font(SakinahFont.body)
                 Spacer()
-                Text(SubscriptionService.shared.isPremium ? "Sakinah Premium ✨" : "Free")
+                Text(SubscriptionService.shared.isPremium ? "Active \u{2728}" : "Free")
                     .font(SakinahFont.bodySmall)
                     .foregroundStyle(SubscriptionService.shared.isPremium ? SakinahColor.accent : SakinahColor.textSecondary)
             }
@@ -153,35 +155,30 @@ struct SettingsView: View {
                     showPaywall = true
                 } label: {
                     HStack {
-                        Text("Upgrade to Premium")
-                            .font(SakinahFont.headline)
-                            .foregroundStyle(.white)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Upgrade to Premium")
+                                .font(SakinahFont.headline)
+                                .foregroundStyle(.white)
+                            Text("Deeper conversations, letters, goals")
+                                .font(SakinahFont.caption)
+                                .foregroundStyle(.white.opacity(0.8))
+                        }
                         Spacer()
-                        Image(systemName: "crown.fill")
+                        Image(systemName: "arrow.right")
                             .foregroundStyle(.white)
                     }
                     .padding(SakinahSpacing.md)
                     .background(
-                        LinearGradient(colors: [SakinahColor.primary, SakinahColor.primary.opacity(0.88)], startPoint: .leading, endPoint: .trailing)
+                        LinearGradient(
+                            colors: [SakinahColor.accent, SakinahColor.accentWarm],
+                            startPoint: .leading, endPoint: .trailing
+                        )
                     )
                     .clipShape(.rect(cornerRadius: SakinahRadius.small))
                 }
                 .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
-
-                VStack(alignment: .leading, spacing: 6) {
-                    premiumBenefit("✨ Themed conversation packs")
-                    premiumBenefit("📊 Relationship trend insights")
-                    premiumBenefit("💌 Scheduled love letters")
-                    premiumBenefit("🎯 Shared goals & wishlists")
-                }
             }
         }
-    }
-
-    private func premiumBenefit(_ text: String) -> some View {
-        Text(text)
-            .font(SakinahFont.bodySmall)
-            .foregroundStyle(SakinahColor.textSecondary)
     }
 
     // MARK: - Preferences
@@ -254,17 +251,26 @@ struct SettingsView: View {
                     .foregroundStyle(SakinahColor.textTertiary)
             }
 
-            Text("Made with 🤍 for the ummah")
+            Text("Made with \u{1F90D} for the ummah")
                 .font(SakinahFont.bodySmall)
                 .foregroundStyle(SakinahColor.textSecondary)
 
             Button("Rate Sakinah") {
-                // Opens App Store write-review page directly — more reliable than requestReview
-                UIApplication.shared.open(ReviewService.shared.writeReviewURL)
+                if let url = URL(string: "https://apps.apple.com/app/id6762535411?action=write-review") {
+                    UIApplication.shared.open(url)
+                }
             }
 
             Button {
-                // Share sheet
+                let url = URL(string: "https://apps.apple.com/app/id6762535411")!
+                let av = UIActivityViewController(activityItems: [
+                    "My partner and I use Sakinah to grow our marriage daily. You should try it!",
+                    url
+                ], applicationActivities: nil)
+                if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let root = scene.windows.first?.rootViewController {
+                    root.present(av, animated: true)
+                }
             } label: {
                 Label("Share Sakinah", systemImage: "square.and.arrow.up")
             }

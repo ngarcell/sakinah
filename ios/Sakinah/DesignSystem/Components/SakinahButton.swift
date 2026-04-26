@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum SakinahButtonVariant {
-    case primary, secondary, ghost
+    case primary, secondary, ghost, accent
 }
 
 struct SakinahButton: View {
@@ -35,7 +35,7 @@ struct SakinahButton: View {
             .padding(.horizontal, isFullWidth ? 0 : SakinahSpacing.xl)
             .background(background)
             .clipShape(.rect(cornerRadius: SakinahRadius.small))
-            .sakinahShadow(variant == .primary ? .medium : .subtle)
+            .sakinahShadow(variant == .primary || variant == .accent ? .medium : .subtle)
             .opacity(isLoading ? 0.9 : 1)
         }
         .pressScale()
@@ -54,6 +54,11 @@ struct SakinahButton: View {
                 colors: [SakinahColor.primary, SakinahColor.primary.opacity(0.88)],
                 startPoint: .topLeading, endPoint: .bottomTrailing
             )
+        case .accent:
+            LinearGradient(
+                colors: [SakinahColor.accent, SakinahColor.accentWarm],
+                startPoint: .leading, endPoint: .trailing
+            )
         case .secondary:
             SakinahColor.primaryLight
         case .ghost:
@@ -63,7 +68,7 @@ struct SakinahButton: View {
 
     private var foreground: Color {
         switch variant {
-        case .primary: return .white
+        case .primary, .accent: return .white
         case .secondary, .ghost: return SakinahColor.primary
         }
     }
