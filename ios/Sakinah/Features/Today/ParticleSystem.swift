@@ -26,7 +26,7 @@ struct ParticleSystem: View {
         TimelineView(.animation(minimumInterval: 1.0 / 60.0, paused: !isActive)) { timeline in
             Canvas { context, size in
                 let center = CGPoint(x: size.width / 2, y: size.height / 2)
-                let time = timeline.date.timeIntervalSinceReferenceDate
+                _ = timeline.date.timeIntervalSinceReferenceDate
 
                 for particle in particles {
                     let progress = min(1.0, max(0, animationProgress - particle.delay))

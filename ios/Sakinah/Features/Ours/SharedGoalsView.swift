@@ -17,8 +17,9 @@ struct SharedGoalsView: View {
                     icon: "target",
                     title: "Shared goals",
                     message: "Set goals together and track your progress. Whether it's spiritual, financial, or quality time — grow side by side.",
-                    actionTitle: "Create a Goal"
-                ) { showAddGoal = true }
+                    actionTitle: "Create a Goal",
+                    action: { showAddGoal = true }
+                )
             } else {
                 ScrollView {
                     LazyVStack(spacing: SakinahSpacing.md) {

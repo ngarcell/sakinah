@@ -18,8 +18,9 @@ struct LoveLettersView: View {
                     icon: "envelope.fill",
                     title: "Love letters",
                     message: "Write a letter now, deliver it later. A surprise for an anniversary, birthday, or just a random Tuesday.",
-                    actionTitle: "Write a Letter"
-                ) { showCompose = true }
+                    actionTitle: "Write a Letter",
+                    action: { showCompose = true }
+                )
             } else {
                 ScrollView {
                     LazyVStack(spacing: SakinahSpacing.md) {

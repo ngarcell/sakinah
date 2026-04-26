@@ -22,7 +22,7 @@ struct OursView: View {
                             UpgradePromptView(
                                 icon: "lock.open.fill",
                                 headline: "Your private space awaits",
-                                body: "Journal, letters, goals \u{2014} encrypted and shared only between you two.",
+                                message: "Journal, letters, goals \u{2014} encrypted and shared only between you two.",
                                 ctaTitle: "Unlock Ours",
                                 onUpgrade: { showPaywall = true }
                             )

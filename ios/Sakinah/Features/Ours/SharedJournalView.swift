@@ -16,8 +16,9 @@ struct SharedJournalView: View {
                     icon: "book.closed",
                     title: "Your shared journal",
                     message: "Write your first entry together. Your thoughts, gratitude, and reflections — all in one place.",
-                    actionTitle: "Write Entry"
-                ) { showCompose = true }
+                    actionTitle: "Write Entry",
+                    action: { showCompose = true }
+                )
             } else {
                 ScrollView {
                     LazyVStack(spacing: SakinahSpacing.md) {
