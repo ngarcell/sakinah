@@ -33,8 +33,9 @@ final class SubscriptionService: NSObject {
         Purchases.logLevel = .debug
         // Force StoreKit 1 — SK2 has known issues with payment sheet presentation
         Purchases.configure(
-            with: .init(withAPIKey: apiKey)
+            with: Configuration.Builder(withAPIKey: apiKey)
                 .with(storeKitVersion: .storeKit1)
+                .build()
         )
         Purchases.shared.delegate = self
         isConfigured = true
