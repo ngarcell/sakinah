@@ -35,7 +35,10 @@ final class SubscriptionService: NSObject {
     func loadProducts() async {
         do {
             let offerings = try await Purchases.shared.offerings()
-            let packages = offerings.current?.availablePackages ?? []
+            let packages =
+                offerings.current?.availablePackages
+                ?? offerings.all.values.first(where: { !$0.availablePackages.isEmpty })?.availablePackages
+                ?? []
             packagesByProductID = Dictionary(uniqueKeysWithValues: packages.map { ($0.storeProduct.productIdentifier, $0) })
             availableProducts = packages.map(\.storeProduct.productIdentifier)
         } catch {
@@ -45,6 +48,10 @@ final class SubscriptionService: NSObject {
     }
 
     func purchase(productID: String) async throws -> Bool {
+        if packagesByProductID[productID] == nil {
+            await loadProducts()
+        }
+
         guard let package = packagesByProductID[productID] else {
             return false
         }

@@ -240,9 +240,6 @@ struct SakinahPaywallView: View {
         isPurchasing = true
         Task { @MainActor in
             defer { isPurchasing = false }
-            guard SubscriptionService.shared.availableProducts.contains(selectedPlan.productID) else {
-                return
-            }
             do {
                 if try await SubscriptionService.shared.purchase(productID: selectedPlan.productID) {
                     HapticEngine.shared.fire(.celebration)
