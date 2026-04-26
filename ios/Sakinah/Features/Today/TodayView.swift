@@ -49,7 +49,7 @@ struct TodayView: View {
                             UpgradePromptView(
                                 icon: "sparkles",
                                 headline: "You're building a habit",
-                                body: "\(vm.totalPromptsAnswered) prompts answered. Unlock deeper conversation packs.",
+                                message: "\(vm.totalPromptsAnswered) prompts answered. Unlock deeper conversation packs.",
                                 ctaTitle: "See Premium",
                                 onUpgrade: { showPaywall = true }
                             )

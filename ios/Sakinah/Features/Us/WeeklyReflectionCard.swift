@@ -187,7 +187,7 @@ struct WeeklyReflectionCard: View {
         modelContext.insert(reflection)
 
         // Update garden state
-        if var couple = appState.currentCouple {
+        if let couple = appState.currentCouple {
             var garden = couple.gardenState
             garden.applyReflectionScores(reflection.scores)
             couple.gardenState = garden
