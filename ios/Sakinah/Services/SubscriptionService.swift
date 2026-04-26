@@ -10,7 +10,7 @@ enum SubscriptionStatus: Equatable, Sendable {
 
 @Observable
 @MainActor
-final class SubscriptionService {
+final class SubscriptionService: NSObject {
     static let shared = SubscriptionService()
 
     var subscriptionStatus: SubscriptionStatus = .notSubscribed
@@ -23,7 +23,9 @@ final class SubscriptionService {
 
     private var packagesByProductID: [String: Package] = [:]
 
-    private init() {}
+    private override init() {
+        super.init()
+    }
 
     func configure(apiKey: String) {
         Purchases.configure(withAPIKey: apiKey)
