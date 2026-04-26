@@ -37,7 +37,7 @@ struct SakinahApp: App {
                     handleDeepLink(url)
                 }
                 .task {
-                    SubscriptionService.shared.configure(apiKey: "appl_EFLrEgtHqDLISjcHIeDXBCVtYND")
+                    SubscriptionService.shared.configure(apiKey: "appl_fbQPmfkwsuhasQyrthAyXiOhWxz")
                     await SubscriptionService.shared.loadProducts()
                     await SubscriptionService.shared.checkEntitlement()
                     appState.isSubscribed = SubscriptionService.shared.isPremium
