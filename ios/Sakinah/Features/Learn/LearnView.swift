@@ -55,7 +55,7 @@ struct LearnView: View {
 
     private var weeklyLesson: some View {
         Group {
-            if let lesson = LessonService.shared.currentWeekLesson(completed: completedLessons) {
+            if let lesson = LessonService.shared.currentWeekLesson() {
                 SakinahCard(elevated: true) {
                     VStack(alignment: .leading, spacing: SakinahSpacing.md) {
                         LessonIllustration(category: lesson.category)
@@ -265,7 +265,7 @@ struct LessonIllustration: View {
     }
 }
 
-extension LessonData: @retroactive Hashable {
-    nonisolated public static func == (lhs: LessonData, rhs: LessonData) -> Bool { lhs.id == rhs.id }
-    nonisolated public func hash(into hasher: inout Hasher) { hasher.combine(id) }
+extension LessonData: Hashable {
+    nonisolated static func == (lhs: LessonData, rhs: LessonData) -> Bool { lhs.id == rhs.id }
+    nonisolated func hash(into hasher: inout Hasher) { hasher.combine(id) }
 }
