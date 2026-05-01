@@ -4,9 +4,10 @@ import SwiftData
 struct OursView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
+    @State private var subscriptionService = SubscriptionService.shared
     @State private var showPaywall = false
 
-    private var isPremium: Bool { SubscriptionService.shared.isPremium }
+    private var isPremium: Bool { subscriptionService.isPremium }
 
     var body: some View {
         NavigationStack {
@@ -37,7 +38,7 @@ struct OursView: View {
             }
         }
         .sheet(isPresented: $showPaywall) {
-            SakinahPaywallView()
+            SakinahPaywallView(entryPoint: .sharedSpace)
         }
     }
 

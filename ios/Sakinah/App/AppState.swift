@@ -38,6 +38,6 @@ final class AppState {
     }
 
     var isPremium: Bool {
-        SubscriptionService.shared.isPremium
+        isSubscribed || SubscriptionService.shared.isPremium
     }
 }

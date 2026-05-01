@@ -5,6 +5,7 @@ struct LearnView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
     @Query private var completedLessons: [Lesson]
+    @State private var subscriptionService = SubscriptionService.shared
     @State private var selectedLesson: LessonData?
     @State private var selectedPack: ConversationPack?
     @State private var showPaywall = false
@@ -48,7 +49,7 @@ struct LearnView: View {
                 packDetailSheet(pack)
             }
             .sheet(isPresented: $showPaywall) {
-                SakinahPaywallView()
+                SakinahPaywallView(entryPoint: .conversationPacks)
             }
         }
     }
@@ -99,7 +100,7 @@ struct LearnView: View {
                 Text("Conversation Starters")
                     .font(SakinahFont.title3)
                     .foregroundStyle(SakinahColor.textPrimary)
-                if !appState.isPremium {
+                if !subscriptionService.isPremium {
                     Image(systemName: "lock.fill")
                         .font(.system(size: 12))
                         .foregroundStyle(SakinahColor.accent)
@@ -120,7 +121,7 @@ struct LearnView: View {
             .scrollTargetBehavior(.viewAligned)
 
             // Upgrade prompt after browsing packs
-            if !appState.isPremium {
+            if !subscriptionService.isPremium {
                 UpgradePromptView(
                     icon: "bubble.left.and.bubble.right.fill",
                     headline: "100+ conversation prompts",
@@ -136,7 +137,7 @@ struct LearnView: View {
     private func packCard(_ pack: ConversationPack) -> some View {
         Button {
             HapticEngine.shared.fire(.tap)
-            if appState.isPremium {
+            if subscriptionService.isPremium {
                 selectedPack = pack
             } else {
                 showPaywall = true
@@ -152,7 +153,7 @@ struct LearnView: View {
                         .font(.system(size: 32, weight: .medium))
                         .foregroundStyle(.white)
 
-                    if !appState.isPremium {
+                    if !subscriptionService.isPremium {
                         Color.black.opacity(0.25)
                         Image(systemName: "lock.fill")
                             .font(.system(size: 18))

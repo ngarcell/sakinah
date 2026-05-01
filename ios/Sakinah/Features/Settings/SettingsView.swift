@@ -1,12 +1,15 @@
 import SwiftUI
 import SwiftData
-import StoreKit
+import RevenueCatUI
 
 struct SettingsView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.openURL) private var openURL
 
+    @State private var subscriptionService = SubscriptionService.shared
     @State private var showPaywall = false
+    @State private var showCustomerCenter = false
     @State private var showDeleteConfirm = false
     @State private var deleteText = ""
     @State private var showFinalDelete = false
@@ -37,7 +40,16 @@ struct SettingsView: View {
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showPaywall) {
-                SakinahPaywallView()
+                SakinahPaywallView(entryPoint: .settings)
+            }
+            .sheet(isPresented: $showCustomerCenter) {
+                CustomerCenterView()
+                    .onCustomerCenterRestoreCompleted { customerInfo in
+                        subscriptionService.syncCustomerInfo(customerInfo)
+                    }
+                    .onCustomerCenterRestoreFailed { error in
+                        subscriptionService.setError(from: error)
+                    }
             }
             .alert("Unlink Partner", isPresented: $showUnlinkConfirm) {
                 Button("Unlink", role: .destructive) {
@@ -142,15 +154,15 @@ struct SettingsView: View {
     private var subscriptionSection: some View {
         Section("Premium") {
             HStack {
-                Text("Status")
+                Text("Plan")
                     .font(SakinahFont.body)
                 Spacer()
-                Text(SubscriptionService.shared.isPremium ? "Active \u{2728}" : "Free")
+                Text(subscriptionService.currentPlanName)
                     .font(SakinahFont.bodySmall)
-                    .foregroundStyle(SubscriptionService.shared.isPremium ? SakinahColor.accent : SakinahColor.textSecondary)
+                    .foregroundStyle(subscriptionService.isPremium ? SakinahColor.accent : SakinahColor.textSecondary)
             }
 
-            if !SubscriptionService.shared.isPremium {
+            if !subscriptionService.isPremium {
                 Button {
                     showPaywall = true
                 } label: {
@@ -177,8 +189,51 @@ struct SettingsView: View {
                     .clipShape(.rect(cornerRadius: SakinahRadius.small))
                 }
                 .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+
+                Text(subscriptionUpgradeMessage)
+                    .font(SakinahFont.caption)
+                    .foregroundStyle(SakinahColor.textSecondary)
+            }
+
+            if subscriptionService.canOpenCustomerCenter {
+                Button("Subscription Help") {
+                    showCustomerCenter = true
+                }
+            }
+
+            if subscriptionService.isPremium || subscriptionService.managementURL != nil {
+                Button("Manage Subscription") {
+                    openURL(subscriptionService.managementURL ?? Constants.manageSubscriptionsURL)
+                }
+            }
+
+            Button("Restore Access") {
+                Task { await subscriptionService.restorePurchases() }
+            }
+            .foregroundStyle(SakinahColor.primary)
+
+            if subscriptionService.isLoading {
+                HStack {
+                    Spacer()
+                    ProgressView()
+                    Spacer()
+                }
+            }
+
+            if let purchaseError = subscriptionService.purchaseError {
+                Text(purchaseError)
+                    .font(SakinahFont.caption)
+                    .foregroundStyle(SakinahColor.error)
             }
         }
+    }
+
+    private var subscriptionUpgradeMessage: String {
+        if let featuredUpgradePrice = subscriptionService.featuredUpgradePrice {
+            return "\(featuredUpgradePrice) • all packs, shared journal, letters, goals, and wishlists"
+        }
+
+        return "All packs, shared journal, letters, goals, and wishlists."
     }
 
     // MARK: - Preferences
@@ -218,7 +273,7 @@ struct SettingsView: View {
             HStack(spacing: SakinahSpacing.sm) {
                 Image(systemName: "lock.shield.fill")
                     .foregroundStyle(SakinahColor.success)
-                Text("Your data is encrypted end-to-end")
+                Text("You control what stays private and what gets shared with your partner.")
                     .font(SakinahFont.bodySmall)
                     .foregroundStyle(SakinahColor.textSecondary)
             }
@@ -250,10 +305,6 @@ struct SettingsView: View {
                 Text("\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0") (\(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"))")
                     .foregroundStyle(SakinahColor.textTertiary)
             }
-
-            Text("Made with \u{1F90D} for the ummah")
-                .font(SakinahFont.bodySmall)
-                .foregroundStyle(SakinahColor.textSecondary)
 
             Button("Rate Sakinah") {
                 if let url = URL(string: "https://apps.apple.com/app/id6762535411?action=write-review") {

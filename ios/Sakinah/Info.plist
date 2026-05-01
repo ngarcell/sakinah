@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFRevenueCatAllowDebugOverrides</key>
+	<string>$(CFRevenueCatAllowDebugOverrides)</string>
+	<key>CFRevenueCatAppleAPIKey</key>
+	<string>$(CFRevenueCatAppleAPIKey)</string>
+	<key>CFRevenueCatDefaultAPIKey</key>
+	<string>$(CFRevenueCatDefaultAPIKey)</string>
+	<key>CFRevenueCatLogLevel</key>
+	<string>$(CFRevenueCatLogLevel)</string>
+	<key>CFRevenueCatPremiumEntitlementFallbackIDs</key>
+	<string>$(CFRevenueCatPremiumEntitlementFallbackIDs)</string>
+	<key>CFRevenueCatPremiumEntitlementID</key>
+	<string>$(CFRevenueCatPremiumEntitlementID)</string>
+	<key>CFRevenueCatRequireAppleKey</key>
+	<string>$(CFRevenueCatRequireAppleKey)</string>
+	<key>CFRevenueCatTestAPIKey</key>
+	<string>$(CFRevenueCatTestAPIKey)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+	</dict>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>UILaunchScreen</key>
+	<dict/>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+</dict>
+</plist>

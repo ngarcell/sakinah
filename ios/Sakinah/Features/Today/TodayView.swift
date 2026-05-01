@@ -5,6 +5,7 @@ struct TodayView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
     @State private var vm = TodayViewModel()
+    @State private var subscriptionService = SubscriptionService.shared
     @State private var showPaywall = false
 
     var body: some View {
@@ -45,7 +46,7 @@ struct TodayView: View {
                         QuickCheckInCard(vm: vm)
 
                         // Contextual upgrade — after user has experienced value
-                        if !SubscriptionService.shared.isPremium && vm.totalPromptsAnswered >= Constants.promptsBeforeUpgradeHint {
+                        if !subscriptionService.isPremium && vm.totalPromptsAnswered >= Constants.promptsBeforeUpgradeHint {
                             UpgradePromptView(
                                 icon: "sparkles",
                                 headline: "You're building a habit",
@@ -72,7 +73,7 @@ struct TodayView: View {
             vm.loadExistingData(context: modelContext)
         }
         .sheet(isPresented: $showPaywall) {
-            SakinahPaywallView()
+            SakinahPaywallView(entryPoint: .dailyHabit)
         }
     }
 

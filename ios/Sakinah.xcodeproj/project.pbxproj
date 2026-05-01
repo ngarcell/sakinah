@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		A1B2C3D4E5F60718293A4B5C /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D4E5F60718293A4B5B /* RevenueCat */; };
+		A1B2C3D4E5F60718293A4B5E /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D4E5F60718293A4B5F /* RevenueCatUI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +58,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1B2C3D4E5F60718293A4B5C /* RevenueCat in Frameworks */,
+				A1B2C3D4E5F60718293A4B5E /* RevenueCatUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -118,6 +120,7 @@
 			name = Sakinah;
 			packageProductDependencies = (
 				A1B2C3D4E5F60718293A4B5B /* RevenueCat */,
+				A1B2C3D4E5F60718293A4B5F /* RevenueCatUI */,
 			);
 			productName = Sakinah;
 			productReference = 105FC57A2E9EAD3100EA8BCF /* Sakinah.app */;
@@ -294,6 +297,11 @@
 			package = A1B2C3D4E5F60718293A4B5A /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
 			productName = RevenueCat;
 		};
+		A1B2C3D4E5F60718293A4B5F /* RevenueCatUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1B2C3D4E5F60718293A4B5A /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCatUI;
+		};
 /* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
@@ -423,17 +431,20 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CFRevenueCatAllowDebugOverrides = YES;
+				CFRevenueCatAppleAPIKey = appl_fbQPmfkwsuhasQyrthAyXiOhWxz;
+				CFRevenueCatDefaultAPIKey = test_uMjDbsOgwWFKjqUFhUDgiJAnBnj;
+				CFRevenueCatLogLevel = debug;
+				CFRevenueCatPremiumEntitlementFallbackIDs = premium;
+				CFRevenueCatPremiumEntitlementID = "Sakinah Premium";
+				CFRevenueCatRequireAppleKey = NO;
+				CFRevenueCatTestAPIKey = test_uMjDbsOgwWFKjqUFhUDgiJAnBnj;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Sakinah/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -456,17 +467,20 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CFRevenueCatAllowDebugOverrides = NO;
+				CFRevenueCatAppleAPIKey = appl_fbQPmfkwsuhasQyrthAyXiOhWxz;
+				CFRevenueCatDefaultAPIKey = appl_fbQPmfkwsuhasQyrthAyXiOhWxz;
+				CFRevenueCatLogLevel = error;
+				CFRevenueCatPremiumEntitlementFallbackIDs = premium;
+				CFRevenueCatPremiumEntitlementID = "Sakinah Premium";
+				CFRevenueCatRequireAppleKey = YES;
+				CFRevenueCatTestAPIKey = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Sakinah/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

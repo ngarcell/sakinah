@@ -4,6 +4,7 @@ import SwiftData
 @main
 struct SakinahApp: App {
     @State private var appState = AppState()
+    @State private var subscriptionService = SubscriptionService.shared
 
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
@@ -37,19 +38,20 @@ struct SakinahApp: App {
                     handleDeepLink(url)
                 }
                 .task {
-                    SubscriptionService.shared.configure(apiKey: "appl_fbQPmfkwsuhasQyrthAyXiOhWxz")
-                    await SubscriptionService.shared.loadProducts()
-                    await SubscriptionService.shared.checkEntitlement()
-                    appState.isSubscribed = SubscriptionService.shared.isPremium
+                    subscriptionService.loadSubscriptionState()
+                    appState.isSubscribed = subscriptionService.isPremium
                 }
                 .onChange(of: scenePhase) { _, phase in
                     if phase == .active {
                         ContentService.shared.checkDateRollover()
                         Task {
-                            await SubscriptionService.shared.checkEntitlement()
-                            appState.isSubscribed = SubscriptionService.shared.isPremium
+                            await subscriptionService.refreshEntitlements()
+                            appState.isSubscribed = subscriptionService.isPremium
                         }
                     }
+                }
+                .onChange(of: subscriptionService.currentTier) { _, tier in
+                    appState.isSubscribed = tier == .premium
                 }
         }
         .modelContainer(sharedModelContainer)
