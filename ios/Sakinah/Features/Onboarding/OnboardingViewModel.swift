@@ -41,7 +41,7 @@ final class OnboardingViewModel {
     func validateAndJoin() -> Bool {
         let code = joinCode.uppercased()
         guard PairingService.shared.validateFormat(code) else {
-            joinError = "Please enter a valid 6-character code"
+            joinError = "Enter the full code to continue."
             HapticEngine.shared.fire(.error)
             return false
         }

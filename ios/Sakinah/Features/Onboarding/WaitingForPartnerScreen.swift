@@ -58,27 +58,47 @@ struct WaitingForPartnerScreen: View {
             }
 
             VStack(spacing: SakinahSpacing.sm) {
-                Text("Waiting for your partner…")
+                Text("Keep your code handy")
                     .font(SakinahFont.title2)
                     .foregroundStyle(SakinahColor.textPrimary)
-                Text("They'll enter the code you shared and you'll pair up automatically.")
+                Text("You can keep going now and come back to this code later.")
                     .font(SakinahFont.bodySmall)
                     .foregroundStyle(SakinahColor.textSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, SakinahSpacing.xl)
             }
 
+            VStack(spacing: SakinahSpacing.xs) {
+                Text("Invite code")
+                    .font(SakinahFont.captionBold)
+                    .foregroundStyle(SakinahColor.textSecondary)
+                    .tracking(0.4)
+                    .textCase(.uppercase)
+
+                Text(vm.inviteCode)
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundStyle(SakinahColor.primary)
+                    .tracking(3)
+            }
+            .padding(SakinahSpacing.lg)
+            .frame(maxWidth: .infinity)
+            .background(SakinahColor.surface)
+            .clipShape(.rect(cornerRadius: SakinahRadius.large))
+            .sakinahShadow(.medium)
+            .padding(.horizontal, SakinahSpacing.base)
+
             Spacer()
 
             VStack(spacing: SakinahSpacing.sm) {
-                SakinahButton(title: "Resend Invite", icon: "paperplane", variant: .secondary) {
-                    HapticEngine.shared.fire(.select)
+                SakinahButton(title: "Copy code", icon: "doc.on.doc", variant: .secondary) {
+                    UIPasteboard.general.string = vm.inviteCode
+                    HapticEngine.shared.fire(.success)
                 }
                 Button {
                     HapticEngine.shared.fire(.tap)
                     vm.advance(to: .coupleSetup)
                 } label: {
-                    Text("Skip for now — explore solo")
+                    Text("Keep going for now")
                         .font(SakinahFont.bodySmall)
                         .foregroundStyle(SakinahColor.textSecondary)
                         .underline()

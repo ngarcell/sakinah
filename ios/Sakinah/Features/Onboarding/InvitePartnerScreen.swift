@@ -23,9 +23,9 @@ struct InvitePartnerScreen: View {
                 .animation(SakinahAnimation.spring, value: vm.invitePath)
             }
 
-            SakinahButton(title: vm.invitePath == .starting ? "Continue" : "Join") {
+            SakinahButton(title: vm.invitePath == .starting ? "Keep going" : "Continue") {
                 if vm.invitePath == .starting {
-                    vm.advance(to: .waiting)
+                    vm.advance(to: .coupleSetup)
                 } else {
                     _ = vm.validateAndJoin()
                 }
@@ -127,10 +127,10 @@ struct InvitePartnerScreen: View {
             .padding(.horizontal, SakinahSpacing.base)
 
             VStack(spacing: SakinahSpacing.sm) {
-                SakinahButton(title: "Share with your partner", icon: "square.and.arrow.up") {
+                SakinahButton(title: "Share code", icon: "square.and.arrow.up") {
                     showShare = true
                 }
-                SakinahButton(title: "Copy Code", icon: "doc.on.doc", variant: .secondary) {
+                SakinahButton(title: "Copy code", icon: "doc.on.doc", variant: .secondary) {
                     UIPasteboard.general.string = vm.inviteCode
                     HapticEngine.shared.fire(.success)
                 }
@@ -138,7 +138,7 @@ struct InvitePartnerScreen: View {
             .padding(.horizontal, SakinahSpacing.base)
         }
         .sheet(isPresented: $showShare) {
-            ShareSheet(items: ["Join me on Sakinah 🌙 Use code: \(vm.inviteCode)"])
+            ShareSheet(items: ["Let's use Sakinah together. Use this code: \(vm.inviteCode)"])
                 .presentationDetents([.medium])
         }
     }
@@ -170,7 +170,7 @@ struct InvitePartnerScreen: View {
                 Text("Enter your partner's code")
                     .font(SakinahFont.title2)
                     .foregroundStyle(SakinahColor.textPrimary)
-                Text("They shared this with you to pair up.")
+                Text("Use the code they shared with you.")
                     .font(SakinahFont.bodySmall)
                     .foregroundStyle(SakinahColor.textSecondary)
                     .multilineTextAlignment(.center)

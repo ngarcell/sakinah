@@ -49,11 +49,11 @@ struct WelcomeScreen: View {
 
                     // Identity-first tagline
                     VStack(spacing: SakinahSpacing.xs) {
-                        Text("Your marriage, growing daily")
+                        Text("A small daily rhythm for your marriage")
                             .font(SakinahFont.body)
                             .foregroundStyle(SakinahColor.textSecondary)
 
-                        Text("Built for Muslim couples who want more\nthan just getting by.")
+                        Text("One thoughtful question can soften the whole day.")
                             .font(SakinahFont.caption)
                             .foregroundStyle(SakinahColor.textTertiary)
                             .multilineTextAlignment(.center)
@@ -72,7 +72,7 @@ struct WelcomeScreen: View {
                         vm.advance(to: .invitePartner)
                     }
 
-                    Text("No account needed \u{00B7} Everything stays on your device")
+                    Text("Start with one question today.")
                         .font(SakinahFont.caption)
                         .foregroundStyle(SakinahColor.textTertiary)
                 }

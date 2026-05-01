@@ -282,12 +282,6 @@ struct SettingsView: View {
                     .foregroundStyle(SakinahColor.textSecondary)
             }
 
-            Button {
-                // Export data
-            } label: {
-                Label("Export My Data", systemImage: "square.and.arrow.up")
-            }
-
             Button(role: .destructive) {
                 showDeleteConfirm = true
             } label: {
@@ -306,7 +300,7 @@ struct SettingsView: View {
             HStack {
                 Text("Version")
                 Spacer()
-                Text("\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0") (\(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"))")
+                Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")
                     .foregroundStyle(SakinahColor.textTertiary)
             }
 
@@ -319,7 +313,7 @@ struct SettingsView: View {
             Button {
                 let url = URL(string: "https://apps.apple.com/app/id6762535411")!
                 let av = UIActivityViewController(activityItems: [
-                    "My partner and I use Sakinah to grow our marriage daily. You should try it!",
+                    "We've been using Sakinah for our daily check-ins. Thought you'd like it too.",
                     url
                 ], applicationActivities: nil)
                 if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,

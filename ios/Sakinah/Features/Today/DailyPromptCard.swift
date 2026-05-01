@@ -1,16 +1,10 @@
 import SwiftUI
 import SwiftData
-import StoreKit
-import UserNotifications
 
 struct DailyPromptCard: View {
     @Bindable var vm: TodayViewModel
     @Environment(\.modelContext) private var modelContext
-    @Environment(\.requestReview) private var requestReview
     @State private var wordAppeared: [Bool] = []
-    @State private var orbitAngle: Double = 0
-    @State private var dotPhase: Int = 0
-    @State private var glowPulse: Bool = false
     @State private var userBubbleScale: CGFloat = 0
     @State private var partnerBubbleScale: CGFloat = 0
 
@@ -34,16 +28,6 @@ struct DailyPromptCard: View {
             .allowsHitTesting(false)
         }
         .overlay {
-            if vm.promptState == .partnerAnswered {
-                RoundedRectangle(cornerRadius: SakinahRadius.medium)
-                    .stroke(SakinahColor.accent.opacity(glowPulse ? 0.5 : 0.15), lineWidth: 2)
-                    .glow(color: SakinahColor.accent, radius: glowPulse ? 20 : 8, opacity: glowPulse ? 0.3 : 0.1)
-                    .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: glowPulse)
-                    .onAppear { glowPulse = true }
-                    .allowsHitTesting(false)
-            }
-        }
-        .overlay {
             if vm.revealFlash {
                 RoundedRectangle(cornerRadius: SakinahRadius.medium)
                     .fill(SakinahColor.accent.opacity(0.1))
@@ -61,10 +45,6 @@ struct DailyPromptCard: View {
         switch vm.promptState {
         case .unanswered:
             unansweredState
-        case .waiting:
-            waitingState
-        case .partnerAnswered:
-            partnerAnsweredState
         case .revealed:
             revealedState
         }
@@ -147,130 +127,7 @@ struct DailyPromptCard: View {
         }
     }
 
-    // MARK: - State 2: Waiting
-
-    private var waitingState: some View {
-        VStack(spacing: SakinahSpacing.lg) {
-            SakinahBadge(
-                text: vm.promptCategory.displayLabel,
-                color: vm.promptCategory.badgeColor,
-                tintedBackground: vm.promptCategory.badgeColor.opacity(0.12)
-            )
-
-            // User's response bubble
-            HStack {
-                Spacer()
-                SpeechBubbleView(tailOnRight: true, backgroundColor: SakinahColor.primaryLight) {
-                    Text(vm.userResponse)
-                        .font(SakinahFont.bodySmall)
-                        .foregroundStyle(SakinahColor.textPrimary)
-                        .multilineTextAlignment(.trailing)
-                }
-                .frame(maxWidth: 260)
-            }
-
-            // Waiting indicator
-            VStack(spacing: SakinahSpacing.md) {
-                waitingOrbitAnimation
-                    .frame(height: 80)
-
-                HStack(spacing: 2) {
-                    Text("waiting for \(vm.partnerName)")
-                        .font(SakinahFont.bodySmall)
-                        .foregroundStyle(SakinahColor.textSecondary)
-                    waitingDots
-                }
-            }
-
-            SakinahButton(title: "Nudge \(vm.partnerName) 💌", variant: .secondary) {
-                HapticEngine.shared.fire(.tap)
-                Task {
-                    let content = UNMutableNotificationContent()
-                    content.title = "A moment is waiting for you 🌙"
-                    content.body = "\(vm.userName) has answered today's prompt. Tap to reveal together."
-                    content.sound = .default
-                    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-                    let request = UNNotificationRequest(identifier: "nudge-\(Date().timeIntervalSince1970)", content: content, trigger: trigger)
-                    try? await UNUserNotificationCenter.current().add(request)
-                }
-            }
-        }
-    }
-
-    private var waitingOrbitAnimation: some View {
-        ZStack {
-            Circle()
-                .stroke(SakinahColor.divider, lineWidth: 1)
-                .frame(width: 60, height: 60)
-            Circle()
-                .fill(SakinahColor.primary)
-                .frame(width: 12, height: 12)
-                .offset(x: 30)
-                .rotationEffect(.degrees(orbitAngle))
-                .glow(color: SakinahColor.primary, radius: 6, opacity: 0.5)
-            Circle()
-                .stroke(SakinahColor.accent, lineWidth: 2)
-                .frame(width: 12, height: 12)
-                .offset(x: 30)
-                .rotationEffect(.degrees(orbitAngle + 180))
-                .glow(color: SakinahColor.accent, radius: 6, opacity: 0.4)
-                .opacity(0.6 + 0.4 * sin(orbitAngle * .pi / 180))
-        }
-        .onAppear {
-            withAnimation(.linear(duration: 8).repeatForever(autoreverses: false)) {
-                orbitAngle = 360
-            }
-        }
-    }
-
-    private var waitingDots: some View {
-        HStack(spacing: 2) {
-            ForEach(0..<3, id: \.self) { i in
-                Text(".")
-                    .font(SakinahFont.bodySmall)
-                    .foregroundStyle(SakinahColor.textSecondary)
-                    .opacity(dotPhase == i ? 1 : 0.3)
-            }
-        }
-        .onAppear {
-            Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
-                Task { @MainActor in
-                    dotPhase = (dotPhase + 1) % 3
-                }
-            }
-        }
-    }
-
-    // MARK: - State 3: Partner Answered / Both Ready
-
-    private var partnerAnsweredState: some View {
-        VStack(spacing: SakinahSpacing.lg) {
-            SakinahBadge(
-                text: vm.promptCategory.displayLabel,
-                color: SakinahColor.accent,
-                tintedBackground: SakinahColor.accentLight
-            )
-
-            VStack(spacing: SakinahSpacing.sm) {
-                Text("You're both ready! ✨")
-                    .font(SakinahFont.title3)
-                    .foregroundStyle(SakinahColor.textPrimary)
-
-                Text("Tap to see what \(vm.partnerName) wrote")
-                    .font(SakinahFont.bodySmall)
-                    .foregroundStyle(SakinahColor.textSecondary)
-            }
-            .shimmer()
-
-            SakinahButton(title: "Reveal Together") {
-                vm.revealResponses(context: modelContext, requestReview: { requestReview() })
-            }
-            .glow(color: SakinahColor.accent, radius: 15, opacity: 0.3)
-        }
-        .padding(.vertical, SakinahSpacing.lg)
-    }
-
-    // MARK: - State 4: Revealed
+    // MARK: - State 2: Revealed
 
     private var revealedState: some View {
         VStack(spacing: SakinahSpacing.base) {

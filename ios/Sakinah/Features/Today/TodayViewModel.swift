@@ -3,8 +3,6 @@ import SwiftData
 
 enum PromptState: Equatable {
     case unanswered
-    case waiting
-    case partnerAnswered
     case revealed
 }
 
@@ -162,41 +160,6 @@ final class TodayViewModel {
             particlesActive = true
             try? await Task.sleep(for: .seconds(1.2))
             particlesActive = false
-        }
-    }
-
-    func revealResponses(context: ModelContext, requestReview: @escaping () -> Void = {}) {
-        revealFlash = true
-        HapticEngine.shared.fire(.celebration)
-
-        Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(150))
-            revealFlash = false
-
-            withAnimation(SakinahAnimation.bounce) {
-                promptState = .revealed
-            }
-
-            try? await Task.sleep(for: .milliseconds(100))
-            particlesActive = true
-
-            // Mark as revealed in SwiftData
-            let pid = promptID
-            let cid = coupleID
-            let today = Calendar.current.startOfDay(for: Date())
-            let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today)!
-            let predicate = #Predicate<PromptResponse> { r in
-                r.promptID == pid && r.coupleID == cid && r.createdAt >= today && r.createdAt < tomorrow
-            }
-            let descriptor = FetchDescriptor<PromptResponse>(predicate: predicate)
-            if let responses = try? context.fetch(descriptor) {
-                for response in responses {
-                    response.isRevealed = true
-                }
-                try? context.save()
-            }
-
-            ReviewService.shared.onPromptRevealed(requestReview: requestReview)
         }
     }
 
