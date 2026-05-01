@@ -6,7 +6,6 @@ struct LessonDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @State private var isActionCompleted = false
-    @State private var scrollOffset: CGFloat = 0
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -183,10 +182,7 @@ struct LessonDetailView: View {
 
 struct PackDetailSheet: View {
     let pack: ConversationPack
-    let isPremium: Bool
-    let onUpgrade: () -> Void
     @Environment(\.dismiss) private var dismiss
-    @State private var expandedPrompt: Int? = nil
 
     var body: some View {
         NavigationStack {
@@ -212,25 +208,7 @@ struct PackDetailSheet: View {
 
                         // Prompts list
                         ForEach(Array(pack.prompts.enumerated()), id: \.offset) { index, prompt in
-                            let isLocked = !isPremium && index >= 3
-                            promptRow(prompt: prompt, index: index, isLocked: isLocked)
-                        }
-
-                        if !isPremium {
-                            VStack(alignment: .leading, spacing: SakinahSpacing.sm) {
-                                Text("You’ve seen the first few")
-                                    .font(SakinahFont.headline)
-                                    .foregroundStyle(SakinahColor.textPrimary)
-
-                                Text("Premium opens the full pack plus every other conversation pack in Sakinah.")
-                                    .font(SakinahFont.bodySmall)
-                                    .foregroundStyle(SakinahColor.textSecondary)
-
-                                SakinahButton(title: "Open all packs", icon: "crown.fill") {
-                                    onUpgrade()
-                                }
-                            }
-                            .padding(.horizontal, SakinahSpacing.base)
+                            promptRow(prompt: prompt, index: index)
                         }
                     }
                     .padding(.vertical, SakinahSpacing.lg)
@@ -247,7 +225,7 @@ struct PackDetailSheet: View {
         }
     }
 
-    private func promptRow(prompt: String, index: Int, isLocked: Bool) -> some View {
+    private func promptRow(prompt: String, index: Int) -> some View {
         VStack(alignment: .leading, spacing: SakinahSpacing.sm) {
             HStack(alignment: .top, spacing: SakinahSpacing.md) {
                 Text("\(index + 1)")
@@ -257,13 +235,7 @@ struct PackDetailSheet: View {
                 Text(prompt)
                     .font(SakinahFont.body)
                     .foregroundStyle(SakinahColor.textPrimary)
-                    .blur(radius: isLocked ? 4 : 0)
                 Spacer()
-                if isLocked {
-                    Text("Premium")
-                        .font(SakinahFont.captionBold)
-                        .foregroundStyle(SakinahColor.accent)
-                }
             }
         }
         .padding(SakinahSpacing.base)

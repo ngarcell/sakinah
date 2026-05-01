@@ -8,13 +8,10 @@ struct SettingsView: View {
     @Environment(\.openURL) private var openURL
 
     @State private var subscriptionService = SubscriptionService.shared
-    @State private var showPaywall = false
     @State private var showCustomerCenter = false
     @State private var showDeleteConfirm = false
     @State private var deleteText = ""
-    @State private var showFinalDelete = false
     @State private var showUnlinkConfirm = false
-    @State private var showShareSheet = false
 
     // Notification preferences
     @AppStorage("dailyPromptNotif") private var dailyPromptNotif = true
@@ -39,9 +36,6 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
-            .sheet(isPresented: $showPaywall) {
-                SakinahPaywallView(entryPoint: .settings)
-            }
             .sheet(isPresented: $showCustomerCenter) {
                 CustomerCenterView()
                     .onCustomerCenterRestoreCompleted { customerInfo in
@@ -152,9 +146,9 @@ struct SettingsView: View {
     // MARK: - Subscription
 
     private var subscriptionSection: some View {
-        Section("Premium") {
+        Section("Plan") {
             HStack {
-                Text("Plan")
+                Text("Access")
                     .font(SakinahFont.body)
                 Spacer()
                 Text(subscriptionService.currentPlanName)
@@ -162,47 +156,14 @@ struct SettingsView: View {
                     .foregroundStyle(subscriptionService.isPremium ? SakinahColor.accent : SakinahColor.textSecondary)
             }
 
-            if !subscriptionService.isPremium {
-                Button {
-                    showPaywall = true
-                } label: {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Open the full version")
-                                .font(SakinahFont.headline)
-                                .foregroundStyle(.white)
-                            Text("Every pack, your shared journal, letters, goals, and wishlists.")
-                                .font(SakinahFont.caption)
-                                .foregroundStyle(.white.opacity(0.8))
-                        }
-                        Spacer()
-                        Image(systemName: "arrow.right")
-                            .foregroundStyle(.white)
-                    }
-                    .padding(SakinahSpacing.md)
-                    .background(
-                        LinearGradient(
-                            colors: [SakinahColor.accent, SakinahColor.accentWarm],
-                            startPoint: .leading, endPoint: .trailing
-                        )
-                    )
-                    .clipShape(.rect(cornerRadius: SakinahRadius.small))
-                }
-                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
-
-                Text(subscriptionUpgradeMessage)
-                    .font(SakinahFont.caption)
-                    .foregroundStyle(SakinahColor.textSecondary)
-            }
-
             if subscriptionService.canOpenCustomerCenter {
-                Button("Subscription Help") {
+                Button("Manage Plan") {
                     showCustomerCenter = true
                 }
             }
 
             if subscriptionService.isPremium || subscriptionService.managementURL != nil {
-                Button("Manage Subscription") {
+                Button("Billing & Renewal") {
                     openURL(subscriptionService.managementURL ?? Constants.manageSubscriptionsURL)
                 }
             }
@@ -226,18 +187,6 @@ struct SettingsView: View {
                     .foregroundStyle(SakinahColor.error)
             }
         }
-    }
-
-    private var subscriptionUpgradeMessage: String {
-        if subscriptionService.annualDisplayPrice != "Price unavailable" {
-            return "Best value • \(subscriptionService.annualDisplayPrice) for couples building a real rhythm together."
-        }
-
-        if let featuredUpgradePrice = subscriptionService.featuredUpgradePrice {
-            return "\(featuredUpgradePrice) • every pack plus your full shared space"
-        }
-
-        return "Every pack plus your full shared space."
     }
 
     // MARK: - Preferences
@@ -288,23 +237,16 @@ struct SettingsView: View {
                 Label("Delete All Data", systemImage: "trash")
             }
 
-            Link("Privacy Policy", destination: URL(string: "https://socialreporthq.com/sakinah/privacy")!)
-            Link("Terms of Service", destination: URL(string: "https://socialreporthq.com/sakinah/terms")!)
+            Link("Privacy", destination: URL(string: "https://socialreporthq.com/sakinah/privacy")!)
+            Link("Terms", destination: URL(string: "https://socialreporthq.com/sakinah/terms")!)
         }
     }
 
     // MARK: - About
 
     private var aboutSection: some View {
-        Section("About") {
-            HStack {
-                Text("Version")
-                Spacer()
-                Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")
-                    .foregroundStyle(SakinahColor.textTertiary)
-            }
-
-            Button("Rate Sakinah") {
+        Section("More") {
+            Button("Rate the App") {
                 if let url = URL(string: "https://apps.apple.com/app/id6762535411?action=write-review") {
                     UIApplication.shared.open(url)
                 }
@@ -313,7 +255,7 @@ struct SettingsView: View {
             Button {
                 let url = URL(string: "https://apps.apple.com/app/id6762535411")!
                 let av = UIActivityViewController(activityItems: [
-                    "We've been using Sakinah for our daily check-ins. Thought you'd like it too.",
+                    "We’ve been using this for our daily check-ins. Thought you might like it too.",
                     url
                 ], applicationActivities: nil)
                 if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
@@ -321,10 +263,10 @@ struct SettingsView: View {
                     root.present(av, animated: true)
                 }
             } label: {
-                Label("Share Sakinah", systemImage: "square.and.arrow.up")
+                Label("Share with Another Couple", systemImage: "square.and.arrow.up")
             }
 
-            Link("Contact Support", destination: URL(string: "https://socialreporthq.com/sakinah/support")!)
+            Link("Help", destination: URL(string: "https://socialreporthq.com/sakinah/support")!)
         }
     }
 

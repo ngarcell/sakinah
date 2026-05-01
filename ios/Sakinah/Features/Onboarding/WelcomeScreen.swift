@@ -69,8 +69,18 @@ struct WelcomeScreen: View {
                 VStack(spacing: SakinahSpacing.md) {
                     SakinahButton(title: "Start Growing Together") {
                         HapticEngine.shared.fire(.tap)
-                        vm.advance(to: .invitePartner)
+                        vm.advance(to: .coupleSetup)
                     }
+
+                    Button {
+                        HapticEngine.shared.fire(.tap)
+                        vm.advance(to: .invitePartner)
+                    } label: {
+                        Text("I already have a code")
+                            .font(SakinahFont.captionBold)
+                            .foregroundStyle(SakinahColor.primary)
+                    }
+                    .pressScale()
 
                     Text("Start with one question today.")
                         .font(SakinahFont.caption)

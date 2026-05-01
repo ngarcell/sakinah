@@ -2,13 +2,9 @@ import SwiftUI
 import SwiftData
 
 struct LearnView: View {
-    @Environment(AppState.self) private var appState
-    @Environment(\.modelContext) private var modelContext
     @Query private var completedLessons: [Lesson]
-    @State private var subscriptionService = SubscriptionService.shared
     @State private var selectedLesson: LessonData?
     @State private var selectedPack: ConversationPack?
-    @State private var showPaywall = false
 
     var body: some View {
         NavigationStack {
@@ -47,9 +43,6 @@ struct LearnView: View {
             }
             .sheet(item: $selectedPack) { pack in
                 packDetailSheet(pack)
-            }
-            .sheet(isPresented: $showPaywall) {
-                SakinahPaywallView(entryPoint: .conversationPacks)
             }
         }
     }
@@ -100,11 +93,6 @@ struct LearnView: View {
                 Text("Conversation Starters")
                     .font(SakinahFont.title3)
                     .foregroundStyle(SakinahColor.textPrimary)
-                if !subscriptionService.isPremium {
-                    Image(systemName: "lock.fill")
-                        .font(.system(size: 12))
-                        .foregroundStyle(SakinahColor.accent)
-                }
                 Spacer()
             }
             .padding(.horizontal, SakinahSpacing.base)
@@ -119,18 +107,6 @@ struct LearnView: View {
                 .scrollTargetLayout()
             }
             .scrollTargetBehavior(.viewAligned)
-
-            // Upgrade prompt after browsing packs
-            if !subscriptionService.isPremium {
-                UpgradePromptView(
-                    icon: "bubble.left.and.bubble.right.fill",
-                    headline: "Preview each pack for free",
-                    message: "Open the first few prompts now. Premium keeps every pack within reach when you want more.",
-                    ctaTitle: "Open all packs",
-                    onUpgrade: { showPaywall = true }
-                )
-                .padding(.horizontal, SakinahSpacing.base)
-            }
         }
     }
 
@@ -148,18 +124,6 @@ struct LearnView: View {
                     Image(systemName: pack.icon)
                         .font(.system(size: 32, weight: .medium))
                         .foregroundStyle(.white)
-
-                    if !subscriptionService.isPremium {
-                        Color.black.opacity(0.25)
-                        VStack(spacing: 6) {
-                            Image(systemName: "eye.fill")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundStyle(.white)
-                            Text("Preview")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundStyle(.white)
-                        }
-                    }
                 }
                 .frame(height: 130)
 
@@ -184,14 +148,7 @@ struct LearnView: View {
     }
 
     private func packDetailSheet(_ pack: ConversationPack) -> some View {
-        PackDetailSheet(
-            pack: pack,
-            isPremium: subscriptionService.isPremium,
-            onUpgrade: {
-                selectedPack = nil
-                showPaywall = true
-            }
-        )
+        PackDetailSheet(pack: pack)
     }
 
     private var pastLessons: some View {

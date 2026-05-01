@@ -12,7 +12,7 @@ enum InvitePath {
 @Observable
 @MainActor
 final class OnboardingViewModel {
-    var step: OnboardingStep = .coupleSetup
+    var step: OnboardingStep = .welcome
     var invitePath: InvitePath = .starting
     var inviteCode: String = ""
     var joinCode: String = ""
@@ -52,6 +52,9 @@ final class OnboardingViewModel {
     }
 
     func finish(context: ModelContext, appState: AppState) {
+        let firstPrompt = ContentService.shared.firstPrompt(
+            partnerName: partnerName.isEmpty ? "your partner" : partnerName
+        )
         let user = User(
             id: UUID().uuidString,
             name: yourName.isEmpty ? "You" : yourName,
@@ -69,6 +72,16 @@ final class OnboardingViewModel {
         user.coupleID = couple.id
         context.insert(user)
         context.insert(couple)
+
+        let response = PromptResponse(
+            promptID: firstPrompt.id,
+            coupleID: couple.id,
+            userID: user.id,
+            responseText: firstResponse.trimmingCharacters(in: .whitespacesAndNewlines),
+            isRevealed: false
+        )
+        context.insert(response)
+
         try? context.save()
         appState.completeOnboarding(user: user, couple: couple)
     }

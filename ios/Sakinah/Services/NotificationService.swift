@@ -14,7 +14,7 @@ final class NotificationService {
         let center = UNUserNotificationCenter.current()
         center.removePendingNotificationRequests(withIdentifiers: ["daily.prompt"])
         let content = UNMutableNotificationContent()
-        content.title = "Your daily Sakinah moment"
+        content.title = "Your daily moment"
         content.body = "Today's prompt is ready when you are."
         content.sound = .default
         var comp = Calendar.current.dateComponents([.hour, .minute], from: time)

@@ -138,7 +138,7 @@ struct InvitePartnerScreen: View {
             .padding(.horizontal, SakinahSpacing.base)
         }
         .sheet(isPresented: $showShare) {
-            ShareSheet(items: ["Let's use Sakinah together. Use this code: \(vm.inviteCode)"])
+            ShareSheet(items: ["I’d love to do this together. Use this code: \(vm.inviteCode)"])
                 .presentationDetents([.medium])
         }
     }

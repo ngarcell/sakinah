@@ -5,8 +5,6 @@ struct TodayView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
     @State private var vm = TodayViewModel()
-    @State private var subscriptionService = SubscriptionService.shared
-    @State private var showPaywall = false
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -45,18 +43,6 @@ struct TodayView: View {
                         // Quick Check-In Card
                         QuickCheckInCard(vm: vm)
 
-                        // Contextual upgrade — after user has experienced value
-                        if !subscriptionService.isPremium && vm.totalPromptsAnswered >= Constants.promptsBeforeUpgradeHint {
-                            UpgradePromptView(
-                                icon: "sparkles",
-                                headline: "You’ve started something worth keeping",
-                                message: "\(vm.totalPromptsAnswered) prompts saved. Premium opens every conversation pack when you want to keep going.",
-                                ctaTitle: "Open all packs",
-                                onUpgrade: { showPaywall = true }
-                            )
-                            .padding(.horizontal, SakinahSpacing.base)
-                        }
-
                         Spacer().frame(height: 100)
                     }
                     .padding(.top, SakinahSpacing.md)
@@ -71,9 +57,6 @@ struct TodayView: View {
         .onAppear {
             vm.loadContent(appState: appState)
             vm.loadExistingData(context: modelContext)
-        }
-        .sheet(isPresented: $showPaywall) {
-            SakinahPaywallView(entryPoint: .dailyHabit)
         }
     }
 

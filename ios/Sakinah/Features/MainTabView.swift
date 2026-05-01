@@ -16,7 +16,7 @@ enum MainTab: Int, CaseIterable {
         case .today: return "sun.max.fill"
         case .us: return "heart.circle.fill"
         case .learn: return "book.closed.fill"
-        case .ours: return "lock.fill"
+        case .ours: return "square.grid.2x2.fill"
         }
     }
 }

@@ -96,18 +96,24 @@ struct FirstPromptScreen: View {
                     .padding(.bottom, SakinahSpacing.xl)
                 }
 
-                SakinahButton(title: "Save our first answer", icon: "checkmark.circle.fill") {
-                    HapticEngine.shared.fire(.celebration)
-                    withAnimation(SakinahAnimation.bounce) { celebrating = true }
-                    Task { @MainActor in
-                        try? await Task.sleep(for: .milliseconds(900))
-                        onComplete()
+                VStack(spacing: SakinahSpacing.xs) {
+                    SakinahButton(title: "Save our first answer", icon: "checkmark.circle.fill") {
+                        HapticEngine.shared.fire(.celebration)
+                        withAnimation(SakinahAnimation.bounce) { celebrating = true }
+                        Task { @MainActor in
+                            try? await Task.sleep(for: .milliseconds(900))
+                            onComplete()
+                        }
                     }
+                    .disabled(vm.firstResponse.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .opacity(vm.firstResponse.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.55 : 1)
+
+                    Text("Next: choose a plan and keep this space going together.")
+                        .font(SakinahFont.caption)
+                        .foregroundStyle(SakinahColor.textTertiary)
                 }
                 .padding(.horizontal, SakinahSpacing.base)
                 .padding(.bottom, SakinahSpacing.base)
-                .disabled(vm.firstResponse.trimmingCharacters(in: .whitespaces).isEmpty)
-                .opacity(vm.firstResponse.trimmingCharacters(in: .whitespaces).isEmpty ? 0.55 : 1)
             }
 
             if celebrating {

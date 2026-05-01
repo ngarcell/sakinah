@@ -35,7 +35,7 @@ enum SakinahPaywallEntryPoint: Hashable, Sendable {
         case .sharedSpace:
             return "Premium opens your shared journal, letters, goals, and wishlists in one private space."
         case .settings:
-            return "See every plan in one place and unlock the parts of Sakinah you’ll come back to most."
+            return "See every plan in one place and unlock the parts of this space you’ll come back to most."
         }
     }
 
@@ -55,6 +55,7 @@ enum SakinahPaywallEntryPoint: Hashable, Sendable {
 
 struct SakinahPaywallView: View {
     let entryPoint: SakinahPaywallEntryPoint
+    let isMandatory: Bool
 
     @Environment(\.dismiss) private var dismiss
     @State private var subscriptionService = SubscriptionService.shared
@@ -62,8 +63,9 @@ struct SakinahPaywallView: View {
     @State private var isPreparingPaywall = true
     @State private var hasHandledUnlock = false
 
-    init(entryPoint: SakinahPaywallEntryPoint = .generic) {
+    init(entryPoint: SakinahPaywallEntryPoint = .generic, isMandatory: Bool = false) {
         self.entryPoint = entryPoint
+        self.isMandatory = isMandatory
     }
 
     var body: some View {
@@ -86,7 +88,7 @@ struct SakinahPaywallView: View {
                 dismissPaywall()
             }
         }
-        .alert("Purchases", isPresented: purchaseNoticeBinding) {
+        .alert("Unable to Update Access", isPresented: purchaseNoticeBinding) {
             Button("OK") {
                 purchaseNotice = nil
                 subscriptionService.clearError()
@@ -138,7 +140,7 @@ struct SakinahPaywallView: View {
                 .font(SakinahFont.title2)
                 .foregroundStyle(SakinahColor.textPrimary)
 
-            Text("Fetching live pricing and checking your current access.")
+            Text("Loading current options and checking your access.")
                 .font(SakinahFont.bodySmall)
                 .foregroundStyle(SakinahColor.textSecondary)
                 .multilineTextAlignment(.center)
@@ -154,7 +156,7 @@ struct SakinahPaywallView: View {
                 .font(.system(size: 40))
                 .foregroundStyle(SakinahColor.accent)
 
-            Text("Sakinah Premium")
+            Text("Premium Access")
                 .font(SakinahFont.title2)
                 .foregroundStyle(SakinahColor.textPrimary)
 
@@ -184,11 +186,13 @@ struct SakinahPaywallView: View {
             .buttonStyle(.plain)
             .padding(.horizontal, SakinahSpacing.xl)
 
-            Button("Continue for now") {
-                dismiss()
+            if !isMandatory {
+                Button("Continue for now") {
+                    dismiss()
+                }
+                .font(SakinahFont.captionBold)
+                .foregroundStyle(SakinahColor.textSecondary)
             }
-            .font(SakinahFont.captionBold)
-            .foregroundStyle(SakinahColor.textSecondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.horizontal, SakinahSpacing.base)
@@ -197,9 +201,14 @@ struct SakinahPaywallView: View {
     private func hostedPaywall(offering: Offering) -> some View {
         RevenueCatUI.PaywallView(
             offering: offering,
-            displayCloseButton: true
+            displayCloseButton: !isMandatory
         )
         .tint(SakinahColor.primary)
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if isMandatory {
+                mandatoryBanner
+            }
+        }
         .customPaywallVariables(entryPoint.revenueCatVariables)
         .onPurchaseStarted { _ in
             purchaseNotice = nil
@@ -227,7 +236,7 @@ struct SakinahPaywallView: View {
             if subscriptionService.isPremium {
                 dismissPaywall()
             } else {
-                purchaseNotice = "No active purchases were found to restore."
+                purchaseNotice = "No previous access was found to restore."
             }
         }
         .onRestoreFailure { error in
@@ -235,7 +244,45 @@ struct SakinahPaywallView: View {
             purchaseNotice = subscriptionService.purchaseError
         }
         .onRequestedDismissal {
-            dismiss()
+            if !isMandatory {
+                dismiss()
+            }
+        }
+    }
+
+    private var mandatoryBanner: some View {
+        HStack(alignment: .top, spacing: SakinahSpacing.md) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Your first answer is saved")
+                    .font(SakinahFont.headline)
+                    .foregroundStyle(SakinahColor.textPrimary)
+                Text("Continue with daily prompts, lessons, and your shared space.")
+                    .font(SakinahFont.caption)
+                    .foregroundStyle(SakinahColor.textSecondary)
+            }
+
+            Spacer()
+
+            Button {
+                Task { await subscriptionService.restorePurchases() }
+            } label: {
+                if subscriptionService.isRestoringPurchases {
+                    ProgressView()
+                        .controlSize(.small)
+                } else {
+                    Text("Restore")
+                        .font(SakinahFont.captionBold)
+                        .foregroundStyle(SakinahColor.primary)
+                }
+            }
+            .disabled(subscriptionService.isRestoringPurchases)
+        }
+        .padding(.horizontal, SakinahSpacing.base)
+        .padding(.top, SakinahSpacing.sm)
+        .padding(.bottom, SakinahSpacing.md)
+        .background(.ultraThinMaterial)
+        .overlay(alignment: .bottom) {
+            Divider()
         }
     }
 

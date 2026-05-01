@@ -1,14 +1,6 @@
 import SwiftUI
-import SwiftData
 
 struct OursView: View {
-    @Environment(AppState.self) private var appState
-    @Environment(\.modelContext) private var modelContext
-    @State private var subscriptionService = SubscriptionService.shared
-    @State private var showPaywall = false
-
-    private var isPremium: Bool { subscriptionService.isPremium }
-
     var body: some View {
         NavigationStack {
             ZStack {
@@ -18,27 +10,12 @@ struct OursView: View {
                         header
                         gridCards
 
-                        // Upgrade prompt if not premium
-                        if !isPremium {
-                            UpgradePromptView(
-                                icon: "lock.open.fill",
-                                headline: "Keep more than today's prompt",
-                                message: "Premium opens your shared journal, letters, goals, and wishlists in one place.",
-                                ctaTitle: "Open shared space",
-                                onUpgrade: { showPaywall = true }
-                            )
-                            .padding(.horizontal, SakinahSpacing.base)
-                        }
-
                         Spacer().frame(height: 100)
                     }
                     .padding(.top, SakinahSpacing.lg)
                 }
                 .scrollIndicators(.hidden)
             }
-        }
-        .sheet(isPresented: $showPaywall) {
-            SakinahPaywallView(entryPoint: .sharedSpace)
         }
     }
 
@@ -71,8 +48,7 @@ struct OursView: View {
                 title: "Journal",
                 subtitle: "Write together",
                 gradient: [SakinahColor.primary, SakinahColor.primary.opacity(0.7)],
-                destination: SharedJournalView(),
-                requiresPremium: true
+                destination: SharedJournalView()
             )
 
             oursNavCard(
@@ -80,8 +56,7 @@ struct OursView: View {
                 title: "Letters",
                 subtitle: "Send surprises",
                 gradient: [SakinahColor.accent, SakinahColor.accentWarm],
-                destination: LoveLettersView(),
-                requiresPremium: true
+                destination: LoveLettersView()
             )
 
             oursNavCard(
@@ -89,8 +64,7 @@ struct OursView: View {
                 title: "Goals",
                 subtitle: "Build together",
                 gradient: [SakinahColor.success, SakinahColor.success.opacity(0.7)],
-                destination: SharedGoalsView(),
-                requiresPremium: true
+                destination: SharedGoalsView()
             )
 
             oursNavCard(
@@ -98,8 +72,7 @@ struct OursView: View {
                 title: "Wishlists",
                 subtitle: "Drop hints",
                 gradient: [Color(hex: 0x8B5CF6), Color(hex: 0xA78BFA)],
-                destination: WishlistsView(),
-                requiresPremium: true
+                destination: WishlistsView()
             )
         }
         .padding(.horizontal, SakinahSpacing.base)
@@ -107,28 +80,17 @@ struct OursView: View {
 
     @ViewBuilder
     private func oursNavCard<Dest: View>(
-        icon: String, title: String, subtitle: String,
-        gradient: [Color], destination: Dest, requiresPremium: Bool
+        icon: String, title: String, subtitle: String, gradient: [Color], destination: Dest
     ) -> some View {
-        if requiresPremium && !isPremium {
-            Button {
-                HapticEngine.shared.fire(.tap)
-                showPaywall = true
-            } label: {
-                cardContent(icon: icon, title: title, subtitle: subtitle, gradient: gradient, locked: true)
-            }
-            .pressScale()
-        } else {
-            NavigationLink {
-                destination
-            } label: {
-                cardContent(icon: icon, title: title, subtitle: subtitle, gradient: gradient, locked: false)
-            }
-            .pressScale()
+        NavigationLink {
+            destination
+        } label: {
+            cardContent(icon: icon, title: title, subtitle: subtitle, gradient: gradient)
         }
+        .pressScale()
     }
 
-    private func cardContent(icon: String, title: String, subtitle: String, gradient: [Color], locked: Bool) -> some View {
+    private func cardContent(icon: String, title: String, subtitle: String, gradient: [Color]) -> some View {
         VStack(spacing: SakinahSpacing.md) {
             ZStack {
                 Circle()
@@ -136,7 +98,7 @@ struct OursView: View {
                         LinearGradient(colors: gradient, startPoint: .topLeading, endPoint: .bottomTrailing)
                     )
                     .frame(width: 48, height: 48)
-                Image(systemName: locked ? "lock.fill" : icon)
+                Image(systemName: icon)
                     .font(.system(size: 20, weight: .semibold))
                     .foregroundStyle(.white)
             }
@@ -149,22 +111,11 @@ struct OursView: View {
                     .font(SakinahFont.caption)
                     .foregroundStyle(SakinahColor.textSecondary)
             }
-
-            if locked {
-                Text("Premium")
-                    .font(SakinahFont.micro)
-                    .foregroundStyle(SakinahColor.accent)
-                    .padding(.horizontal, SakinahSpacing.sm)
-                    .padding(.vertical, 2)
-                    .background(SakinahColor.accentLight)
-                    .clipShape(.capsule)
-            }
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, SakinahSpacing.xl)
         .background(SakinahColor.surface)
         .clipShape(.rect(cornerRadius: SakinahRadius.large))
         .sakinahShadow(.subtle)
-        .opacity(locked ? 0.85 : 1)
     }
 }

@@ -59,7 +59,7 @@ final class SubscriptionService {
     var canOpenCustomerCenter: Bool { isRevenueCatAvailable }
     var isRevenueCatAvailable: Bool { configuration != nil && Purchases.isConfigured }
     var revenueCatUnavailableMessage: String {
-        Self.unavailableMessage(from: configurationErrorDescription ?? "RevenueCat is not configured.")
+        Self.unavailableMessage(from: configurationErrorDescription ?? "Plans are unavailable.")
     }
 
     var currentOffering: Offering? {
@@ -256,7 +256,7 @@ final class SubscriptionService {
             syncCustomerInfo(info)
 
             if currentTier == .free {
-                purchaseError = "No active purchases were found to restore."
+                purchaseError = "No previous access was found to restore."
             }
         } catch {
             purchaseError = userFacingErrorMessage(for: error)
@@ -402,11 +402,11 @@ final class SubscriptionService {
 
     private func userFacingErrorMessage(for error: Error) -> String {
         if isUserCancelledError(error) {
-            return "Purchase was cancelled."
+            return "No changes were made."
         }
 
         if isPaymentPendingError(error) {
-            return "Purchase is pending approval. Access unlocks as soon as it is confirmed."
+            return "Your access is pending confirmation. It will unlock as soon as it’s approved."
         }
 
         if let urlError = error as? URLError {
@@ -424,7 +424,7 @@ final class SubscriptionService {
     }
 
     private static func unavailableMessage(from _: String) -> String {
-        "Purchases are temporarily unavailable. Please try again soon."
+        "Plans are temporarily unavailable. Please try again soon."
     }
 
     private static func priceDescription(for package: Package?, fallbackProduct: StoreProduct?) -> String {
@@ -481,11 +481,11 @@ final class SubscriptionService {
     private static func planDisplayName(for productIdentifier: String) -> String? {
         switch productIdentifier {
         case ProductCatalog.monthly:
-            return "Premium Monthly"
+            return "Monthly"
         case ProductCatalog.annual:
-            return "Premium Annual"
+            return "Annual"
         case ProductCatalog.lifetime:
-            return "Premium Lifetime"
+            return "Lifetime"
         default:
             return nil
         }
@@ -496,7 +496,7 @@ private extension SubscriptionTier {
     var displayName: String {
         switch self {
         case .free:
-            return "Free"
+            return "Access required"
         case .premium:
             return "Premium"
         }

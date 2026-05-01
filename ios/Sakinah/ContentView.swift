@@ -4,28 +4,36 @@ import SwiftData
 struct ContentView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
+    @State private var subscriptionService = SubscriptionService.shared
 
     var body: some View {
         ZStack {
             SakinahColor.background.ignoresSafeArea()
             Group {
-                switch appState.route {
-                case .onboarding, .waitingForPartner:
+                if appState.currentUser == nil {
                     OnboardingView()
                         .transition(.asymmetric(
                             insertion: .opacity,
                             removal: .opacity.combined(with: .scale(scale: 0.98))
                         ))
-                case .main:
+                } else if appState.isSubscribed || subscriptionService.isPremium {
                     MainTabView()
                         .transition(.asymmetric(
                             insertion: .opacity.combined(with: .scale(scale: 1.02)),
                             removal: .opacity
                         ))
+                } else {
+                    SakinahPaywallView(entryPoint: .generic, isMandatory: true)
+                        .transition(.asymmetric(
+                            insertion: .opacity,
+                            removal: .opacity
+                        ))
                 }
             }
         }
-        .animation(SakinahAnimation.gentle, value: appState.route)
+        .animation(SakinahAnimation.gentle, value: appState.currentUser?.id)
+        .animation(SakinahAnimation.gentle, value: appState.isSubscribed)
+        .animation(SakinahAnimation.gentle, value: subscriptionService.currentTier)
         .onAppear {
             restoreSession()
         }
