@@ -34,9 +34,22 @@
 		105FC5932E9EAD3200EA8BCF /* SakinahUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SakinahUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		30B000000000000000000003 /* Exceptions for "Sakinah" folder in "Sakinah" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 105FC5792E9EAD3100EA8BCF /* Sakinah */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		105FC57C2E9EAD3100EA8BCF /* Sakinah */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				30B000000000000000000003 /* Exceptions for "Sakinah" folder in "Sakinah" target */,
+			);
 			path = Sakinah;
 			sourceTree = "<group>";
 		};
