@@ -22,9 +22,9 @@ struct OursView: View {
                         if !isPremium {
                             UpgradePromptView(
                                 icon: "lock.open.fill",
-                                headline: "Your private space awaits",
-                                message: "Journal, letters, goals \u{2014} encrypted and shared only between you two.",
-                                ctaTitle: "Unlock Ours",
+                                headline: "Keep more than today's prompt",
+                                message: "Premium opens your shared journal, letters, goals, and wishlists in one place.",
+                                ctaTitle: "Open shared space",
                                 onUpgrade: { showPaywall = true }
                             )
                             .padding(.horizontal, SakinahSpacing.base)

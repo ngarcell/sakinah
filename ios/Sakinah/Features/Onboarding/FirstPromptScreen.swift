@@ -46,9 +46,13 @@ struct FirstPromptScreen: View {
                                 .font(.system(size: 44))
                                 .scaleEffect(appeared ? 1 : 0.3)
                                 .opacity(appeared ? 1 : 0)
-                            Text("Your first moment together")
+                            Text("Start with this")
                                 .font(SakinahFont.title2)
                                 .foregroundStyle(SakinahColor.accent)
+                                .multilineTextAlignment(.center)
+                            Text("Answer one question now. The rhythm starts here.")
+                                .font(SakinahFont.bodySmall)
+                                .foregroundStyle(SakinahColor.textSecondary)
                                 .multilineTextAlignment(.center)
                         }
                         .padding(.top, SakinahSpacing.lg)
@@ -69,7 +73,7 @@ struct FirstPromptScreen: View {
 
                                 ZStack(alignment: .topLeading) {
                                     if vm.firstResponse.isEmpty {
-                                        Text("Write freely — your partner will see it when they're ready…")
+                                        Text("Write the answer you want to bring into your next conversation.")
                                             .font(SakinahFont.body)
                                             .foregroundStyle(SakinahColor.textTertiary)
                                             .padding(.horizontal, SakinahSpacing.sm)
@@ -92,7 +96,7 @@ struct FirstPromptScreen: View {
                     .padding(.bottom, SakinahSpacing.xl)
                 }
 
-                SakinahButton(title: "Share", icon: "paperplane.fill") {
+                SakinahButton(title: "Save our first answer", icon: "checkmark.circle.fill") {
                     HapticEngine.shared.fire(.celebration)
                     withAnimation(SakinahAnimation.bounce) { celebrating = true }
                     Task { @MainActor in

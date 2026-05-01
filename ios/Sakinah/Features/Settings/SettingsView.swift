@@ -168,10 +168,10 @@ struct SettingsView: View {
                 } label: {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Upgrade to Premium")
+                            Text("Open the full version")
                                 .font(SakinahFont.headline)
                                 .foregroundStyle(.white)
-                            Text("Deeper conversations, letters, goals")
+                            Text("Every pack, your shared journal, letters, goals, and wishlists.")
                                 .font(SakinahFont.caption)
                                 .foregroundStyle(.white.opacity(0.8))
                         }
@@ -229,11 +229,15 @@ struct SettingsView: View {
     }
 
     private var subscriptionUpgradeMessage: String {
-        if let featuredUpgradePrice = subscriptionService.featuredUpgradePrice {
-            return "\(featuredUpgradePrice) • all packs, shared journal, letters, goals, and wishlists"
+        if subscriptionService.annualDisplayPrice != "Price unavailable" {
+            return "Best value • \(subscriptionService.annualDisplayPrice) for couples building a real rhythm together."
         }
 
-        return "All packs, shared journal, letters, goals, and wishlists."
+        if let featuredUpgradePrice = subscriptionService.featuredUpgradePrice {
+            return "\(featuredUpgradePrice) • every pack plus your full shared space"
+        }
+
+        return "Every pack plus your full shared space."
     }
 
     // MARK: - Preferences

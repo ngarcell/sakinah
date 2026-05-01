@@ -13,7 +13,7 @@ enum Constants {
     static let freeLessonCount = 2
 
     // Upgrade triggers: tied to real usage moments
-    static let promptsBeforeUpgradeHint = 5
+    static let promptsBeforeUpgradeHint = 2
     static let checkInsBeforeUpgradeHint = 7
     static let journalEntriesBeforeUpgradeHint = 3
 }

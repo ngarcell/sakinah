@@ -124,9 +124,9 @@ struct LearnView: View {
             if !subscriptionService.isPremium {
                 UpgradePromptView(
                     icon: "bubble.left.and.bubble.right.fill",
-                    headline: "100+ conversation prompts",
-                    message: "Go beyond surface-level with themed packs.",
-                    ctaTitle: "Unlock all packs",
+                    headline: "Preview each pack for free",
+                    message: "Open the first few prompts now. Premium keeps every pack within reach when you want more.",
+                    ctaTitle: "Open all packs",
                     onUpgrade: { showPaywall = true }
                 )
                 .padding(.horizontal, SakinahSpacing.base)
@@ -137,11 +137,7 @@ struct LearnView: View {
     private func packCard(_ pack: ConversationPack) -> some View {
         Button {
             HapticEngine.shared.fire(.tap)
-            if subscriptionService.isPremium {
-                selectedPack = pack
-            } else {
-                showPaywall = true
-            }
+            selectedPack = pack
         } label: {
             VStack(spacing: 0) {
                 ZStack {
@@ -155,9 +151,14 @@ struct LearnView: View {
 
                     if !subscriptionService.isPremium {
                         Color.black.opacity(0.25)
-                        Image(systemName: "lock.fill")
-                            .font(.system(size: 18))
-                            .foregroundStyle(.white)
+                        VStack(spacing: 6) {
+                            Image(systemName: "eye.fill")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(.white)
+                            Text("Preview")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(.white)
+                        }
                     }
                 }
                 .frame(height: 130)
@@ -183,18 +184,14 @@ struct LearnView: View {
     }
 
     private func packDetailSheet(_ pack: ConversationPack) -> some View {
-        NavigationStack {
-            List {
-                ForEach(pack.prompts, id: \.self) { prompt in
-                    Text(prompt)
-                        .font(SakinahFont.body)
-                        .foregroundStyle(SakinahColor.textPrimary)
-                        .listRowBackground(SakinahColor.surface)
-                }
+        PackDetailSheet(
+            pack: pack,
+            isPremium: subscriptionService.isPremium,
+            onUpgrade: {
+                selectedPack = nil
+                showPaywall = true
             }
-            .navigationTitle(pack.name)
-            .navigationBarTitleDisplayMode(.inline)
-        }
+        )
     }
 
     private var pastLessons: some View {

@@ -184,6 +184,7 @@ struct LessonDetailView: View {
 struct PackDetailSheet: View {
     let pack: ConversationPack
     let isPremium: Bool
+    let onUpgrade: () -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var expandedPrompt: Int? = nil
 
@@ -216,8 +217,18 @@ struct PackDetailSheet: View {
                         }
 
                         if !isPremium {
-                            SakinahButton(title: "Upgrade to Premium", icon: "crown.fill") {
-                                dismiss()
+                            VStack(alignment: .leading, spacing: SakinahSpacing.sm) {
+                                Text("You’ve seen the first few")
+                                    .font(SakinahFont.headline)
+                                    .foregroundStyle(SakinahColor.textPrimary)
+
+                                Text("Premium opens the full pack plus every other conversation pack in Sakinah.")
+                                    .font(SakinahFont.bodySmall)
+                                    .foregroundStyle(SakinahColor.textSecondary)
+
+                                SakinahButton(title: "Open all packs", icon: "crown.fill") {
+                                    onUpgrade()
+                                }
                             }
                             .padding(.horizontal, SakinahSpacing.base)
                         }
@@ -249,9 +260,9 @@ struct PackDetailSheet: View {
                     .blur(radius: isLocked ? 4 : 0)
                 Spacer()
                 if isLocked {
-                    Image(systemName: "lock.fill")
-                        .font(.system(size: 12))
-                        .foregroundStyle(SakinahColor.textTertiary)
+                    Text("Premium")
+                        .font(SakinahFont.captionBold)
+                        .foregroundStyle(SakinahColor.accent)
                 }
             }
         }

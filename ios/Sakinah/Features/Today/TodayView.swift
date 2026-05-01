@@ -49,9 +49,9 @@ struct TodayView: View {
                         if !subscriptionService.isPremium && vm.totalPromptsAnswered >= Constants.promptsBeforeUpgradeHint {
                             UpgradePromptView(
                                 icon: "sparkles",
-                                headline: "You're building a habit",
-                                message: "\(vm.totalPromptsAnswered) prompts answered. Unlock deeper conversation packs.",
-                                ctaTitle: "See Premium",
+                                headline: "You’ve started something worth keeping",
+                                message: "\(vm.totalPromptsAnswered) prompts saved. Premium opens every conversation pack when you want to keep going.",
+                                ctaTitle: "Open all packs",
                                 onUpgrade: { showPaywall = true }
                             )
                             .padding(.horizontal, SakinahSpacing.base)

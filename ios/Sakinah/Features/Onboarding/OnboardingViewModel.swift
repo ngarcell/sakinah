@@ -12,7 +12,7 @@ enum InvitePath {
 @Observable
 @MainActor
 final class OnboardingViewModel {
-    var step: OnboardingStep = .welcome
+    var step: OnboardingStep = .coupleSetup
     var invitePath: InvitePath = .starting
     var inviteCode: String = ""
     var joinCode: String = ""

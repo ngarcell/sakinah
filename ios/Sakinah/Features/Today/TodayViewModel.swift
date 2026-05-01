@@ -91,11 +91,7 @@ final class TodayViewModel {
         let responseDescriptor = FetchDescriptor<PromptResponse>(predicate: responsePredicate)
         if let existing = try? context.fetch(responseDescriptor).first {
             userResponse = existing.responseText
-            if existing.isRevealed {
-                promptState = .revealed
-            } else {
-                promptState = .waiting
-            }
+            promptState = .revealed
         }
 
         // Check existing check-in
@@ -144,16 +140,28 @@ final class TodayViewModel {
             promptID: promptID,
             coupleID: coupleID,
             userID: userID,
-            responseText: userResponse.trimmingCharacters(in: .whitespacesAndNewlines)
+            responseText: userResponse.trimmingCharacters(in: .whitespacesAndNewlines),
+            isRevealed: true
         )
         context.insert(response)
         try? context.save()
 
         HapticEngine.shared.fire(.success)
         totalPromptsAnswered += 1
+        revealFlash = true
 
-        withAnimation(SakinahAnimation.gentle) {
-            promptState = .waiting
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(150))
+            revealFlash = false
+
+            withAnimation(SakinahAnimation.gentle) {
+                promptState = .revealed
+            }
+
+            try? await Task.sleep(for: .milliseconds(100))
+            particlesActive = true
+            try? await Task.sleep(for: .seconds(1.2))
+            particlesActive = false
         }
     }
 

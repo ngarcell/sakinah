@@ -9,16 +9,16 @@ struct CoupleSetupScreen: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: SakinahSpacing.xl) {
                     VStack(alignment: .leading, spacing: SakinahSpacing.xs) {
-                        Text("Tell us about you two")
+                        Text("Make this feel like you two")
                             .font(SakinahFont.title1)
                             .foregroundStyle(SakinahColor.textPrimary)
-                        Text("A few details help us personalize your journey.")
+                        Text("A few quick details, then your first prompt.")
                             .font(SakinahFont.bodySmall)
                             .foregroundStyle(SakinahColor.textSecondary)
                     }
 
                     SakinahTextField(label: "Your name", placeholder: "e.g. Yusuf", text: $vm.yourName)
-                    SakinahTextField(label: "Partner's name", placeholder: "e.g. Aisha", text: $vm.partnerName)
+                    SakinahTextField(label: "Partner's name (optional)", placeholder: "e.g. Aisha", text: $vm.partnerName)
 
                     VStack(alignment: .leading, spacing: SakinahSpacing.sm) {
                         Text("Relationship Stage")
@@ -98,20 +98,26 @@ struct CoupleSetupScreen: View {
                 .padding(.vertical, SakinahSpacing.xl)
             }
 
-            SakinahButton(title: "Continue") {
-                vm.advance(to: .firstPrompt)
+            VStack(spacing: SakinahSpacing.sm) {
+                SakinahButton(title: "See today's prompt") {
+                    vm.advance(to: .firstPrompt)
+                }
+                .disabled(vm.yourName.isEmpty)
+                .opacity(vm.yourName.isEmpty ? 0.55 : 1)
+
+                Text("You can change these details later in Settings.")
+                    .font(SakinahFont.caption)
+                    .foregroundStyle(SakinahColor.textTertiary)
             }
             .padding(.horizontal, SakinahSpacing.base)
             .padding(.bottom, SakinahSpacing.base)
-            .disabled(vm.yourName.isEmpty || vm.partnerName.isEmpty)
-            .opacity(vm.yourName.isEmpty || vm.partnerName.isEmpty ? 0.55 : 1)
         }
     }
 
     private var header: some View {
         HStack {
             Spacer()
-            SakinahBadge(text: "Step 4 of 5", color: SakinahColor.accent, tintedBackground: SakinahColor.accentLight)
+            SakinahBadge(text: "Quick setup", color: SakinahColor.accent, tintedBackground: SakinahColor.accentLight)
             Spacer()
         }
         .padding(.top, SakinahSpacing.base)

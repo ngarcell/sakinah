@@ -21,7 +21,7 @@ struct WishlistsView: View {
                             .foregroundStyle(SakinahColor.textPrimary)
 
                         if myWishes.isEmpty && !showAddField {
-                            Text("No wishes yet")
+                            Text("Start with one little hint.")
                                 .font(SakinahFont.bodySmall)
                                 .foregroundStyle(SakinahColor.textTertiary)
                                 .padding(.vertical, SakinahSpacing.xl)
@@ -79,7 +79,7 @@ struct WishlistsView: View {
                             .foregroundStyle(SakinahColor.textPrimary)
 
                         if partnerWishes.isEmpty {
-                            Text("No wishes yet")
+                            Text("\(appState.partnerName) hasn't dropped a hint yet.")
                                 .font(SakinahFont.bodySmall)
                                 .foregroundStyle(SakinahColor.textTertiary)
                                 .padding(.vertical, SakinahSpacing.xl)

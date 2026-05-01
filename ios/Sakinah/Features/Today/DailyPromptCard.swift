@@ -91,7 +91,7 @@ struct DailyPromptCard: View {
             VStack(alignment: .trailing, spacing: SakinahSpacing.xs) {
                 ZStack(alignment: .topLeading) {
                     if vm.userResponse.isEmpty {
-                        Text("Share your thoughts...")
+                        Text("Write the answer you want to bring into your next conversation.")
                             .font(SakinahFont.body)
                             .foregroundStyle(SakinahColor.textTertiary)
                             .padding(.horizontal, SakinahSpacing.md)
@@ -122,7 +122,7 @@ struct DailyPromptCard: View {
                     )
             }
 
-            SakinahButton(title: "Share with \(vm.partnerName)") {
+            SakinahButton(title: "Save my answer") {
                 vm.submitResponse(context: modelContext)
             }
             .disabled(!vm.isResponseValid)
@@ -280,27 +280,16 @@ struct DailyPromptCard: View {
                 tintedBackground: SakinahColor.accentLight
             )
 
-            Text(vm.promptText)
-                .font(SakinahFont.bodySmall)
-                .foregroundStyle(SakinahColor.textSecondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, SakinahSpacing.sm)
+            VStack(spacing: SakinahSpacing.xs) {
+                Text("Saved for today")
+                    .font(SakinahFont.title3)
+                    .foregroundStyle(SakinahColor.textPrimary)
 
-            // Partner's bubble (left)
-            HStack {
-                VStack(alignment: .leading, spacing: SakinahSpacing.xs) {
-                    Text(vm.partnerName)
-                        .font(SakinahFont.captionBold)
-                        .foregroundStyle(SakinahColor.textSecondary)
-                    SpeechBubbleView(tailOnRight: false, backgroundColor: SakinahColor.accentLight) {
-                        Text(vm.partnerResponse)
-                            .font(SakinahFont.bodySmall)
-                            .foregroundStyle(SakinahColor.textPrimary)
-                    }
-                }
-                .frame(maxWidth: 260)
-                .scaleEffect(partnerBubbleScale)
-                Spacer()
+                Text(vm.promptText)
+                    .font(SakinahFont.bodySmall)
+                    .foregroundStyle(SakinahColor.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, SakinahSpacing.sm)
             }
 
             // User's bubble (right)
@@ -321,15 +310,46 @@ struct DailyPromptCard: View {
                 .scaleEffect(userBubbleScale)
             }
 
-            // Reaction bar
-            reactionBar
+            if !vm.partnerResponse.isEmpty {
+                HStack {
+                    VStack(alignment: .leading, spacing: SakinahSpacing.xs) {
+                        Text(vm.partnerName)
+                            .font(SakinahFont.captionBold)
+                            .foregroundStyle(SakinahColor.textSecondary)
+                        SpeechBubbleView(tailOnRight: false, backgroundColor: SakinahColor.accentLight) {
+                            Text(vm.partnerResponse)
+                                .font(SakinahFont.bodySmall)
+                                .foregroundStyle(SakinahColor.textPrimary)
+                        }
+                    }
+                    .frame(maxWidth: 260)
+                    .scaleEffect(partnerBubbleScale)
+                    Spacer()
+                }
+
+                reactionBar
+            } else {
+                HStack(spacing: SakinahSpacing.sm) {
+                    Image(systemName: "sparkles")
+                        .foregroundStyle(SakinahColor.accent)
+                    Text("Bring this into your next conversation together.")
+                        .font(SakinahFont.bodySmall)
+                        .foregroundStyle(SakinahColor.textSecondary)
+                    Spacer()
+                }
+                .padding(SakinahSpacing.md)
+                .background(SakinahColor.backgroundSecondary)
+                .clipShape(.rect(cornerRadius: SakinahRadius.medium))
+            }
         }
         .onAppear {
             withAnimation(SakinahAnimation.bounce.delay(0.1)) {
                 userBubbleScale = 1
             }
-            withAnimation(SakinahAnimation.bounce.delay(0.25)) {
-                partnerBubbleScale = 1
+            if !vm.partnerResponse.isEmpty {
+                withAnimation(SakinahAnimation.bounce.delay(0.25)) {
+                    partnerBubbleScale = 1
+                }
             }
         }
     }
