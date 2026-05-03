@@ -178,6 +178,10 @@ struct ComposeJournalSheet: View {
         modelContext.insert(entry)
         try? modelContext.save()
         HapticEngine.shared.fire(.success)
+
+        Task {
+            await CloudKitService.shared.syncIfPossible(appState: appState, context: modelContext)
+        }
         dismiss()
     }
 }

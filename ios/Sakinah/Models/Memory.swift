@@ -9,6 +9,7 @@ final class Memory {
     var photoData: Data?
     var date: Date
     var createdAt: Date
+    var updatedAt: Date
 
     init(id: String = UUID().uuidString,
          coupleID: String,
@@ -22,5 +23,10 @@ final class Memory {
         self.photoData = photoData
         self.date = date
         self.createdAt = createdAt
+        self.updatedAt = createdAt
+    }
+
+    func touch(_ date: Date = Date()) {
+        updatedAt = date
     }
 }

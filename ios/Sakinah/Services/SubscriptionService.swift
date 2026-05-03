@@ -92,6 +92,26 @@ final class SubscriptionService {
         Self.priceDescription(for: lifetimePackage, fallbackProduct: lifetimeProduct)
     }
 
+    var annualTrialDurationText: String? {
+        Self.freeTrialDuration(for: annualPackage?.storeProduct ?? annualProduct)
+    }
+
+    var annualTrialHeadline: String? {
+        annualTrialDurationText.map { "\($0) free trial on annual" }
+    }
+
+    var featuredPlanSummary: String {
+        if let trial = annualTrialDurationText {
+            return "Start with a \(trial) free trial, then continue on annual for \(annualDisplayPrice)."
+        }
+
+        return "Annual is the best value at \(annualDisplayPrice)."
+    }
+
+    var premiumAccessSummary: String {
+        "Daily prompts, guided lessons, and your shared space stay unlocked as long as your plan is active."
+    }
+
     var featuredUpgradePrice: String? {
         if annualDisplayPrice != Self.unavailablePriceText {
             return annualDisplayPrice
@@ -437,6 +457,12 @@ final class SubscriptionService {
         }
 
         return unavailablePriceText
+    }
+
+    private static func freeTrialDuration(for product: StoreProduct?) -> String? {
+        guard let introductoryDiscount = product?.introductoryDiscount else { return nil }
+        guard introductoryDiscount.paymentMode == .freeTrial else { return nil }
+        return compactSubscriptionPeriod(introductoryDiscount.subscriptionPeriod)
     }
 
     private static func formatPrice(_ localizedPrice: String, period: SubscriptionPeriod?) -> String {

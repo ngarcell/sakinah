@@ -4,6 +4,7 @@ import SwiftData
 struct SharedGoalsView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.requestReview) private var requestReview
     @Query(sort: \SharedGoal.createdAt, order: .reverse) private var allGoals: [SharedGoal]
     @State private var showAddGoal = false
     @State private var celebratingGoalID: String? = nil
@@ -145,16 +146,22 @@ struct SharedGoalsView: View {
     private func incrementGoal(_ goal: SharedGoal) {
         HapticEngine.shared.fire(.tap)
         goal.currentCount += 1
+        goal.touch()
         if goal.currentCount >= goal.targetCount {
             goal.isCompleted = true
+            goal.touch()
             HapticEngine.shared.fire(.celebration)
             celebratingGoalID = goal.id
+            ReviewService.shared.onGoalCompleted(requestReview: { requestReview() })
             Task { @MainActor in
                 try? await Task.sleep(for: .seconds(2))
                 celebratingGoalID = nil
             }
         }
         try? modelContext.save()
+        Task {
+            await CloudKitService.shared.syncIfPossible(appState: appState, context: modelContext)
+        }
     }
 }
 
@@ -221,6 +228,9 @@ struct AddGoalSheet: View {
         modelContext.insert(goal)
         try? modelContext.save()
         HapticEngine.shared.fire(.success)
+        Task {
+            await CloudKitService.shared.syncIfPossible(appState: appState, context: modelContext)
+        }
         dismiss()
     }
 }

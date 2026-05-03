@@ -22,14 +22,27 @@ enum MainTab: Int, CaseIterable {
 }
 
 struct MainTabView: View {
-    @State private var selected: MainTab = .today
     @State private var showSettings = false
     @Environment(AppState.self) private var appState
+
+    private var selectedBinding: Binding<MainTab> {
+        Binding(
+            get: { appState.selectedTab },
+            set: { appState.selectedTab = $0 }
+        )
+    }
+
+    private var invitePromptBinding: Binding<Bool> {
+        Binding(
+            get: { appState.showPartnerInvitePrompt },
+            set: { appState.showPartnerInvitePrompt = $0 }
+        )
+    }
 
     var body: some View {
         ZStack(alignment: .bottom) {
             Group {
-                switch selected {
+                switch appState.selectedTab {
                 case .today: TodayView()
                 case .us: UsView()
                 case .learn: LearnView()
@@ -39,12 +52,15 @@ struct MainTabView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(SakinahColor.background.ignoresSafeArea())
 
-            CustomTabBar(selected: $selected, showSettings: $showSettings)
+            CustomTabBar(selected: selectedBinding, showSettings: $showSettings)
                 .padding(.horizontal, SakinahSpacing.base)
                 .padding(.bottom, SakinahSpacing.sm)
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()
+        }
+        .sheet(isPresented: invitePromptBinding) {
+            PartnerInvitePromptView()
         }
     }
 }

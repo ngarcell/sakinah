@@ -2,21 +2,15 @@ import SwiftUI
 import SwiftData
 
 enum OnboardingStep: Int, CaseIterable {
-    case welcome, invitePartner, waiting, coupleSetup, firstPrompt
-}
-
-enum InvitePath {
-    case starting, joining
+    case welcome, coupleSetup, firstPrompt
 }
 
 @Observable
 @MainActor
 final class OnboardingViewModel {
     var step: OnboardingStep = .welcome
-    var invitePath: InvitePath = .starting
     var inviteCode: String = ""
-    var joinCode: String = ""
-    var joinError: String?
+    let hasPendingShareInvitation: Bool
 
     var yourName: String = ""
     var partnerName: String = ""
@@ -29,6 +23,7 @@ final class OnboardingViewModel {
     var firstResponse: String = ""
 
     init() {
+        hasPendingShareInvitation = CloudKitService.shared.hasPendingAcceptedShare
         self.inviteCode = PairingService.shared.generateInviteCode()
     }
 
@@ -38,22 +33,9 @@ final class OnboardingViewModel {
         }
     }
 
-    func validateAndJoin() -> Bool {
-        let code = joinCode.uppercased()
-        guard PairingService.shared.validateFormat(code) else {
-            joinError = "Enter the full code to continue."
-            HapticEngine.shared.fire(.error)
-            return false
-        }
-        joinError = nil
-        HapticEngine.shared.fire(.success)
-        advance(to: .coupleSetup)
-        return true
-    }
-
     func finish(context: ModelContext, appState: AppState) {
         let firstPrompt = ContentService.shared.firstPrompt(
-            partnerName: partnerName.isEmpty ? "your partner" : partnerName
+            partnerName: partnerName.isEmpty ? "your spouse" : partnerName
         )
         let user = User(
             id: UUID().uuidString,
@@ -63,7 +45,7 @@ final class OnboardingViewModel {
         let couple = Couple(
             user1ID: user.id,
             user1Name: user.name,
-            user2Name: partnerName.isEmpty ? "Partner" : partnerName,
+            user2Name: partnerName.isEmpty ? "Spouse" : partnerName,
             inviteCode: inviteCode,
             relationshipStage: relationshipStage,
             anniversaryDate: hasAnniversary ? anniversaryDate : nil,

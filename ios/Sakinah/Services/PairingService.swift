@@ -29,7 +29,7 @@ final class PairingService {
         // Search local SwiftData for a couple with this invite code
         let predicate = #Predicate<Couple> { c in c.inviteCode == cleaned }
         let descriptor = FetchDescriptor<Couple>(predicate: predicate)
-        guard let couple = try? context.fetch(descriptor).first else { return nil }
+        guard let couple = (try? context.fetch(descriptor))?.first else { return nil }
 
         // Link user as partner
         couple.user2ID = user.id
@@ -48,7 +48,7 @@ final class PairingService {
         let predicate = #Predicate<Couple> { c in c.id == coupleID }
         let descriptor = FetchDescriptor<Couple>(predicate: predicate)
 
-        if let couple = try? context.fetch(descriptor).first {
+        if let couple = (try? context.fetch(descriptor))?.first {
             // Clear partner fields
             couple.user2ID = ""
             couple.user2Name = ""

@@ -9,6 +9,7 @@ final class PromptResponse {
     var userID: String
     var responseText: String
     var createdAt: Date
+    var updatedAt: Date
     var isRevealed: Bool
 
     init(id: String = UUID().uuidString, promptID: String, coupleID: String, userID: String, responseText: String, createdAt: Date = Date(), isRevealed: Bool = false) {
@@ -18,6 +19,11 @@ final class PromptResponse {
         self.userID = userID
         self.responseText = responseText
         self.createdAt = createdAt
+        self.updatedAt = createdAt
         self.isRevealed = isRevealed
+    }
+
+    func touch(_ date: Date = Date()) {
+        updatedAt = date
     }
 }

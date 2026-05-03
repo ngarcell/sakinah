@@ -8,15 +8,13 @@ struct WelcomeScreen: View {
 
     var body: some View {
         ZStack {
-            // Layered background
             SakinahColor.background.ignoresSafeArea()
-            
-            // Subtle radial warmth
+
             RadialGradient(
-                colors: [SakinahColor.accent.opacity(0.08), .clear],
-                center: .center,
+                colors: [SakinahColor.accent.opacity(0.1), .clear],
+                center: .top,
                 startRadius: 0,
-                endRadius: 300
+                endRadius: 360
             )
             .ignoresSafeArea()
 
@@ -31,7 +29,6 @@ struct WelcomeScreen: View {
 
                 Spacer(minLength: SakinahSpacing.lg)
 
-                // Brand mark
                 VStack(spacing: SakinahSpacing.lg) {
                     HStack(spacing: 2) {
                         Text("sakinah")
@@ -47,13 +44,21 @@ struct WelcomeScreen: View {
                     .opacity(appeared ? 1 : 0)
                     .offset(y: appeared ? 0 : 20)
 
-                    // Identity-first tagline
                     VStack(spacing: SakinahSpacing.xs) {
-                        Text("A small daily rhythm for your marriage")
+                        if vm.hasPendingShareInvitation {
+                            SakinahBadge(
+                                text: "Shared space ready",
+                                color: SakinahColor.accent,
+                                tintedBackground: SakinahColor.accentLight
+                            )
+                        }
+
+                        Text(vm.hasPendingShareInvitation ? "Your spouse has already opened your shared space." : "A quiet daily ritual for your marriage")
                             .font(SakinahFont.body)
                             .foregroundStyle(SakinahColor.textSecondary)
+                            .multilineTextAlignment(.center)
 
-                        Text("One thoughtful question can soften the whole day.")
+                        Text(vm.hasPendingShareInvitation ? "Set up your side, answer one real question, then unlock the space together." : "One thoughtful question, one shared reflection, one place that feels like the two of you.")
                             .font(SakinahFont.caption)
                             .foregroundStyle(SakinahColor.textTertiary)
                             .multilineTextAlignment(.center)
@@ -65,24 +70,13 @@ struct WelcomeScreen: View {
 
                 Spacer()
 
-                // CTA
                 VStack(spacing: SakinahSpacing.md) {
-                    SakinahButton(title: "Start Growing Together") {
+                    SakinahButton(title: vm.hasPendingShareInvitation ? "Set Up My Space" : "Begin") {
                         HapticEngine.shared.fire(.tap)
                         vm.advance(to: .coupleSetup)
                     }
 
-                    Button {
-                        HapticEngine.shared.fire(.tap)
-                        vm.advance(to: .invitePartner)
-                    } label: {
-                        Text("I already have a code")
-                            .font(SakinahFont.captionBold)
-                            .foregroundStyle(SakinahColor.primary)
-                    }
-                    .pressScale()
-
-                    Text("Start with one question today.")
+                    Text("Your first answer is saved before the plan screen.")
                         .font(SakinahFont.caption)
                         .foregroundStyle(SakinahColor.textTertiary)
                 }

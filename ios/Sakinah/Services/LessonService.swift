@@ -36,7 +36,7 @@ struct ConversationPack: Identifiable {
     let prompts: [String]
 
     static let allPacks: [ConversationPack] = [
-        ConversationPack(id: "baby", name: "Before Baby 👶", icon: "figure.and.child.holdinghands", promptCount: 20,
+        ConversationPack(id: "baby", name: "Before Baby", icon: "figure.and.child.holdinghands", promptCount: 20,
             gradientStart: 0xFDE68A, gradientEnd: 0xF59E0B, prompts: [
                 "What kind of parent do you imagine yourself being?",
                 "What value from your upbringing do you most want to pass on?",
@@ -59,7 +59,7 @@ struct ConversationPack: Identifiable {
                 "What name meanings are important to you?",
                 "What does a 'good childhood' mean to you?"
             ]),
-        ConversationPack(id: "money", name: "Money & Us 💰", icon: "banknote", promptCount: 20,
+        ConversationPack(id: "money", name: "Money & Us", icon: "banknote", promptCount: 20,
             gradientStart: 0x34D399, gradientEnd: 0x059669, prompts: [
                 "What's your earliest memory about money?",
                 "How did your family handle finances growing up?",
@@ -82,7 +82,7 @@ struct ConversationPack: Identifiable {
                 "What's one financial worry you haven't shared?",
                 "How can we better support each other financially?"
             ]),
-        ConversationPack(id: "dreams", name: "Our Dreams ✨", icon: "sparkles", promptCount: 20,
+        ConversationPack(id: "dreams", name: "Our Dreams", icon: "sparkles", promptCount: 20,
             gradientStart: 0x818CF8, gradientEnd: 0x6366F1, prompts: [
                 "Where do you see us in 10 years?",
                 "What's a dream you've never told anyone?",
@@ -105,7 +105,7 @@ struct ConversationPack: Identifiable {
                 "What's something adventurous you want to try?",
                 "What does 'growing old together' look like to you?"
             ]),
-        ConversationPack(id: "difficult", name: "Difficult Conversations 🌊", icon: "waveform", promptCount: 20,
+        ConversationPack(id: "difficult", name: "Difficult Conversations", icon: "waveform", promptCount: 20,
             gradientStart: 0x67E8F9, gradientEnd: 0x0891B2, prompts: [
                 "What's something I do that unintentionally hurts you?",
                 "How do you feel about how we handle conflict?",
@@ -128,7 +128,7 @@ struct ConversationPack: Identifiable {
                 "How can we argue more constructively?",
                 "What does healing look like for us?"
             ]),
-        ConversationPack(id: "intimacy", name: "Intimacy & Closeness 🤍", icon: "heart.circle", promptCount: 20,
+        ConversationPack(id: "intimacy", name: "Intimacy & Closeness", icon: "heart.circle", promptCount: 20,
             gradientStart: 0xFDA4AF, gradientEnd: 0xE11D48, prompts: [
                 "What makes you feel most connected to me?",
                 "What's your favorite way to spend time together?",

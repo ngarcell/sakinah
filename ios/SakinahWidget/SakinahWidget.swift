@@ -89,28 +89,28 @@ struct SakinahSmallWidgetView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text("sakinah")
                 .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(Color(hex: 0x0D5C63))
+                .foregroundStyle(Color(hex: 0x0F6266))
 
             Spacer()
 
             Text(entry.promptText)
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(Color(hex: 0x1A1A2E))
+                .foregroundStyle(Color(hex: 0x16211F))
                 .lineLimit(3)
 
             Spacer()
 
             Text(entry.promptCategory.capitalized)
                 .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(Color(hex: 0x0D5C63))
+                .foregroundStyle(Color(hex: 0x0F6266))
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
-                .background(Color(hex: 0xE8F5F6))
+                .background(Color(hex: 0xE4F1F0))
                 .clipShape(Capsule())
         }
         .padding(12)
         .containerBackground(for: .widget) {
-            Color(hex: 0xFDF6EC)
+            Color(hex: 0xF6F1E8)
         }
         .widgetURL(URL(string: "sakinah://today/prompt"))
     }
@@ -127,19 +127,19 @@ struct SakinahMediumWidgetView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text("sakinah")
                     .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(Color(hex: 0x0D5C63))
+                    .foregroundStyle(Color(hex: 0x0F6266))
                 Spacer()
                 Text(entry.promptText)
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(Color(hex: 0x1A1A2E))
+                    .foregroundStyle(Color(hex: 0x16211F))
                     .lineLimit(4)
                 Spacer()
                 Text(entry.promptCategory.capitalized)
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(Color(hex: 0x0D5C63))
+                    .foregroundStyle(Color(hex: 0x0F6266))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
-                    .background(Color(hex: 0xE8F5F6))
+                    .background(Color(hex: 0xE4F1F0))
                     .clipShape(Capsule())
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -147,7 +147,7 @@ struct SakinahMediumWidgetView: View {
 
             // Divider
             Rectangle()
-                .fill(Color(hex: 0xE5E7EB).opacity(0.6))
+                .fill(Color(hex: 0xD6D0C7).opacity(0.6))
                 .frame(width: 1)
                 .padding(.vertical, 12)
 
@@ -155,13 +155,13 @@ struct SakinahMediumWidgetView: View {
             VStack(spacing: 6) {
                 Text(entry.duaArabic)
                     .font(.system(size: 16, weight: .regular, design: .serif))
-                    .foregroundStyle(Color(hex: 0x1A1A2E))
+                    .foregroundStyle(Color(hex: 0x16211F))
                     .multilineTextAlignment(.center)
                     .lineLimit(3)
                     .environment(\.layoutDirection, .rightToLeft)
                 Text(entry.duaTranslation)
                     .font(.system(size: 10))
-                    .foregroundStyle(Color(hex: 0x6B7280))
+                    .foregroundStyle(Color(hex: 0x5F6C68))
                     .multilineTextAlignment(.center)
                     .lineLimit(3)
             }
@@ -169,7 +169,7 @@ struct SakinahMediumWidgetView: View {
             .padding(12)
         }
         .containerBackground(for: .widget) {
-            Color(hex: 0xFDF6EC)
+            Color(hex: 0xF6F1E8)
         }
     }
 }

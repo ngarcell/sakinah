@@ -4,12 +4,11 @@ struct FirstPromptScreen: View {
     @Bindable var vm: OnboardingViewModel
     let onComplete: () -> Void
     @State private var appeared = false
-    @State private var celebrating = false
     @FocusState private var focused: Bool
 
     @MainActor
     private var prompt: (id: String, text: String, category: PromptCategory) {
-        ContentService.shared.firstPrompt(partnerName: vm.partnerName.isEmpty ? "your partner" : vm.partnerName)
+        ContentService.shared.firstPrompt(partnerName: vm.partnerName.isEmpty ? "your spouse" : vm.partnerName)
     }
 
     var body: some View {
@@ -42,15 +41,16 @@ struct FirstPromptScreen: View {
                 ScrollView {
                     VStack(spacing: SakinahSpacing.xl) {
                         VStack(spacing: SakinahSpacing.sm) {
-                            Text("✨")
-                                .font(.system(size: 44))
-                                .scaleEffect(appeared ? 1 : 0.3)
-                                .opacity(appeared ? 1 : 0)
-                            Text("Start with this")
-                                .font(SakinahFont.title2)
+                            Image(systemName: "checkmark.seal.fill")
+                                .font(.system(size: 34, weight: .regular))
                                 .foregroundStyle(SakinahColor.accent)
+                                .scaleEffect(appeared ? 1 : 0.85)
+                                .opacity(appeared ? 1 : 0)
+                            Text("Begin with something real")
+                                .font(SakinahFont.title2)
+                                .foregroundStyle(SakinahColor.textPrimary)
                                 .multilineTextAlignment(.center)
-                            Text("Answer one question now. The rhythm starts here.")
+                            Text("Write one honest answer now. We’ll save it first, then unlock the full experience.")
                                 .font(SakinahFont.bodySmall)
                                 .foregroundStyle(SakinahColor.textSecondary)
                                 .multilineTextAlignment(.center)
@@ -97,11 +97,10 @@ struct FirstPromptScreen: View {
                 }
 
                 VStack(spacing: SakinahSpacing.xs) {
-                    SakinahButton(title: "Save our first answer", icon: "checkmark.circle.fill") {
-                        HapticEngine.shared.fire(.celebration)
-                        withAnimation(SakinahAnimation.bounce) { celebrating = true }
+                    SakinahButton(title: "Save my first answer", icon: "checkmark.circle.fill") {
+                        HapticEngine.shared.fire(.success)
                         Task { @MainActor in
-                            try? await Task.sleep(for: .milliseconds(900))
+                            try? await Task.sleep(for: .milliseconds(250))
                             onComplete()
                         }
                     }
@@ -115,46 +114,9 @@ struct FirstPromptScreen: View {
                 .padding(.horizontal, SakinahSpacing.base)
                 .padding(.bottom, SakinahSpacing.base)
             }
-
-            if celebrating {
-                ConfettiBurst()
-                    .allowsHitTesting(false)
-                    .transition(.opacity)
-            }
         }
         .onAppear {
             withAnimation(SakinahAnimation.bounce.delay(0.1)) { appeared = true }
         }
-    }
-}
-
-struct ConfettiBurst: View {
-    @State private var particles: [Particle] = (0..<40).map { _ in Particle() }
-    @State private var animate = false
-
-    struct Particle: Identifiable {
-        let id = UUID()
-        let angle: Double = Double.random(in: 0..<360)
-        let distance: CGFloat = CGFloat.random(in: 120...260)
-        let size: CGFloat = CGFloat.random(in: 4...9)
-        let delay: Double = Double.random(in: 0...0.15)
-        let hue: Color = [SakinahColor.accent, SakinahColor.primary, Color(hex: 0xF4C77D)].randomElement()!
-    }
-
-    var body: some View {
-        ZStack {
-            ForEach(particles) { p in
-                Circle()
-                    .fill(p.hue)
-                    .frame(width: p.size, height: p.size)
-                    .offset(
-                        x: animate ? cos(p.angle * .pi / 180) * p.distance : 0,
-                        y: animate ? sin(p.angle * .pi / 180) * p.distance : 0
-                    )
-                    .opacity(animate ? 0 : 1)
-                    .animation(.easeOut(duration: 1.1).delay(p.delay), value: animate)
-            }
-        }
-        .onAppear { animate = true }
     }
 }

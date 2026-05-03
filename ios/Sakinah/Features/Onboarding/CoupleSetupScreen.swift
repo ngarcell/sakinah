@@ -9,16 +9,16 @@ struct CoupleSetupScreen: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: SakinahSpacing.xl) {
                     VStack(alignment: .leading, spacing: SakinahSpacing.xs) {
-                        Text("Make this feel like you two")
+                        Text("Set the tone")
                             .font(SakinahFont.title1)
                             .foregroundStyle(SakinahColor.textPrimary)
-                        Text("A few quick details, then your first prompt.")
+                        Text(vm.hasPendingShareInvitation ? "A few details, then we’ll connect you to the shared space already waiting." : "A few details, then your first prompt and plan selection.")
                             .font(SakinahFont.bodySmall)
                             .foregroundStyle(SakinahColor.textSecondary)
                     }
 
                     SakinahTextField(label: "Your name", placeholder: "e.g. Yusuf", text: $vm.yourName)
-                    SakinahTextField(label: "Partner's name (optional)", placeholder: "e.g. Aisha", text: $vm.partnerName)
+                    SakinahTextField(label: "Spouse's name", placeholder: "e.g. Aisha", text: $vm.partnerName)
 
                     VStack(alignment: .leading, spacing: SakinahSpacing.sm) {
                         Text("Relationship Stage")
@@ -99,7 +99,7 @@ struct CoupleSetupScreen: View {
             }
 
             VStack(spacing: SakinahSpacing.sm) {
-                SakinahButton(title: "See today's prompt") {
+                SakinahButton(title: "Continue") {
                     vm.advance(to: .firstPrompt)
                 }
                 .disabled(vm.yourName.isEmpty)
@@ -129,12 +129,9 @@ struct CoupleSetupScreen: View {
             HapticEngine.shared.fire(.select)
             vm.relationshipStage = stage
         } label: {
-            VStack(spacing: 6) {
-                Text(stage.emoji).font(.system(size: 22))
-                Text(stage.label)
-                    .font(SakinahFont.captionBold)
-                    .foregroundStyle(selected ? .white : SakinahColor.textPrimary)
-            }
+            Text(stage.label)
+                .font(SakinahFont.captionBold)
+                .foregroundStyle(selected ? .white : SakinahColor.textPrimary)
             .frame(maxWidth: .infinity)
             .padding(.vertical, SakinahSpacing.md)
             .background(selected ? SakinahColor.primary : SakinahColor.backgroundSecondary)

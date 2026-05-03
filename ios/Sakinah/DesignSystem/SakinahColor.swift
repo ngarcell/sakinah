@@ -2,33 +2,33 @@ import SwiftUI
 
 enum SakinahColor {
     // Core brand
-    static let primary = Color(light: Color(hex: 0x0D5C63), dark: Color(hex: 0x14919B))
-    static let primaryLight = Color(light: Color(hex: 0xE8F5F6), dark: Color(hex: 0x0D3D42))
-    static let accent = Color(light: Color(hex: 0xC4923A), dark: Color(hex: 0xD4A84B))
-    static let accentLight = Color(light: Color(hex: 0xFFF3E0), dark: Color(hex: 0x3D2E14))
-    static let accentWarm = Color(light: Color(hex: 0xE8A84C), dark: Color(hex: 0xF0C060))
+    static let primary = Color(light: Color(hex: 0x0F6266), dark: Color(hex: 0x54B6AF))
+    static let primaryLight = Color(light: Color(hex: 0xE4F1F0), dark: Color(hex: 0x183231))
+    static let accent = Color(light: Color(hex: 0xB9893B), dark: Color(hex: 0xD8B06A))
+    static let accentLight = Color(light: Color(hex: 0xF7EBD8), dark: Color(hex: 0x392A18))
+    static let accentWarm = Color(light: Color(hex: 0xD6A25A), dark: Color(hex: 0xE2BF86))
 
     // Surfaces
-    static let surface = Color(light: .white, dark: Color(hex: 0x1A1A2E))
-    static let surfaceElevated = Color(light: .white, dark: Color(hex: 0x222244))
-    static let background = Color(light: Color(hex: 0xFDF6EC), dark: Color(hex: 0x0A0A1A))
-    static let backgroundSecondary = Color(light: Color(hex: 0xF5EFE4), dark: Color(hex: 0x141428))
+    static let surface = Color(light: Color(hex: 0xFEFBF6), dark: Color(hex: 0x16201E))
+    static let surfaceElevated = Color(light: .white, dark: Color(hex: 0x1D2927))
+    static let background = Color(light: Color(hex: 0xF6F1E8), dark: Color(hex: 0x0E1514))
+    static let backgroundSecondary = Color(light: Color(hex: 0xEEE6D9), dark: Color(hex: 0x131D1C))
 
     // Text
-    static let textPrimary = Color(light: Color(hex: 0x1A1A2E), dark: Color(hex: 0xF2F0ED))
-    static let textSecondary = Color(light: Color(hex: 0x6B7280), dark: Color(hex: 0x9CA3AF))
-    static let textTertiary = Color(light: Color(hex: 0x9CA3AF), dark: Color(hex: 0x6B7280))
+    static let textPrimary = Color(light: Color(hex: 0x16211F), dark: Color(hex: 0xF1ECE4))
+    static let textSecondary = Color(light: Color(hex: 0x5F6C68), dark: Color(hex: 0xA9B2AD))
+    static let textTertiary = Color(light: Color(hex: 0x8A928F), dark: Color(hex: 0x7A8580))
 
     // Semantic
-    static let success = Color(light: Color(hex: 0x2D8A4E), dark: Color(hex: 0x34D399))
-    static let warning = Color(light: Color(hex: 0xD97706), dark: Color(hex: 0xFBBF24))
-    static let error = Color(light: Color(hex: 0xDC2626), dark: Color(hex: 0xF87171))
-    static let divider = Color(light: Color(hex: 0xE5E7EB).opacity(0.6), dark: Color(hex: 0x374151).opacity(0.6))
+    static let success = Color(light: Color(hex: 0x387E58), dark: Color(hex: 0x5FBC8C))
+    static let warning = Color(light: Color(hex: 0xB9771A), dark: Color(hex: 0xD7A44E))
+    static let error = Color(light: Color(hex: 0xBE4B42), dark: Color(hex: 0xDE8178))
+    static let divider = Color(light: Color(hex: 0xD6D0C7).opacity(0.65), dark: Color(hex: 0x2B3634).opacity(0.7))
 
     // Signature gradients
-    static let heroGradient: [Color] = [Color(hex: 0x0D5C63), Color(hex: 0x14919B), Color(hex: 0xC4923A).opacity(0.3)]
-    static let premiumGradient: [Color] = [Color(hex: 0xC4923A), Color(hex: 0xE8A84C), Color(hex: 0xF4D9A0)]
-    static let cardGlow = Color(light: Color(hex: 0x0D5C63).opacity(0.06), dark: Color(hex: 0x14919B).opacity(0.08))
+    static let heroGradient: [Color] = [Color(hex: 0x0F6266), Color(hex: 0x327D7E), Color(hex: 0xCFB07C).opacity(0.35)]
+    static let premiumGradient: [Color] = [Color(hex: 0xB9893B), Color(hex: 0xD7A45D), Color(hex: 0xF0DDAB)]
+    static let cardGlow = Color(light: Color(hex: 0x0F6266).opacity(0.05), dark: Color(hex: 0x54B6AF).opacity(0.08))
 }
 
 extension Color {

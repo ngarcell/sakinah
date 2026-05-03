@@ -28,10 +28,12 @@ struct OursView: View {
             HStack(spacing: SakinahSpacing.xs) {
                 Image(systemName: "lock.shield.fill")
                     .font(.system(size: 11))
-                Text("End-to-end encrypted, just for you two")
+                Text("Private to your account and shared through iCloud only with the spouse you invite.")
                     .font(SakinahFont.caption)
             }
             .foregroundStyle(SakinahColor.textTertiary)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, SakinahSpacing.xl)
         }
     }
 
@@ -70,8 +72,8 @@ struct OursView: View {
             oursNavCard(
                 icon: "gift.fill",
                 title: "Wishlists",
-                subtitle: "Drop hints",
-                gradient: [Color(hex: 0x8B5CF6), Color(hex: 0xA78BFA)],
+                subtitle: "Keep thoughtful notes",
+                gradient: [SakinahColor.accentWarm, SakinahColor.accent],
                 destination: WishlistsView()
             )
         }

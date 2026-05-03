@@ -17,7 +17,7 @@ struct LoveLettersView: View {
                 SakinahEmptyState(
                     icon: "envelope.fill",
                     title: "Love letters",
-                    message: "Write a letter now, deliver it later. A surprise for an anniversary, birthday, or just a random Tuesday.",
+                    message: "Write a letter now and let it arrive later, whether for an anniversary, a birthday, or an ordinary day that matters.",
                     actionTitle: "Write a Letter",
                     action: { showCompose = true }
                 )
@@ -82,11 +82,11 @@ struct LoveLettersView: View {
                         .font(.system(size: 20))
                         .foregroundStyle(isReceived ? SakinahColor.accent : SakinahColor.primary)
                     if isReceived {
-                        Text("💌 From \(letter.senderName)")
+                        Text("From \(letter.senderName)")
                             .font(SakinahFont.headline)
                             .foregroundStyle(SakinahColor.accent)
                     } else {
-                        Text(letter.title.isEmpty ? "Love Letter" : letter.title)
+                        Text(letter.title.isEmpty ? "Letter" : letter.title)
                             .font(SakinahFont.headline)
                             .foregroundStyle(SakinahColor.textPrimary)
                     }
@@ -183,7 +183,7 @@ struct ComposeLetterView: View {
                             .font(SakinahFont.body)
                             .tint(SakinahColor.primary)
 
-                        SakinahButton(title: "Seal & Schedule 💌") {
+                        SakinahButton(title: "Seal & Schedule") {
                             sealLetter()
                         }
                         .disabled(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -219,12 +219,15 @@ struct ComposeLetterView: View {
         try? modelContext.save()
         HapticEngine.shared.fire(.success)
         scheduleDeliveryNotification(letter)
+        Task {
+            await CloudKitService.shared.syncIfPossible(appState: appState, context: modelContext)
+        }
         dismiss()
     }
 
     private func scheduleDeliveryNotification(_ letter: LoveLetter) {
         let content = UNMutableNotificationContent()
-        content.title = "💌 You have a letter!"
+        content.title = "A letter is ready"
         content.body = "A love letter from \(letter.senderName) has arrived."
         content.sound = .default
         let trigger = UNCalendarNotificationTrigger(

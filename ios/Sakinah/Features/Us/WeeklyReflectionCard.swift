@@ -35,8 +35,6 @@ struct WeeklyReflectionCard: View {
                             Text("Weekly Reflection")
                                 .font(SakinahFont.title3)
                                 .foregroundStyle(SakinahColor.textPrimary)
-                            Text("🪞")
-                                .font(.system(size: 20))
                             Spacer()
                         }
                         Text("Take a quiet moment to reflect on your week together.")
@@ -46,7 +44,7 @@ struct WeeklyReflectionCard: View {
 
                     // Privacy toggle
                     HStack {
-                        Text("Share with \(appState.currentCouple?.user2Name ?? "partner")")
+                        Text("Share with \(appState.partnerName)")
                             .font(SakinahFont.bodySmall)
                             .foregroundStyle(SakinahColor.textSecondary)
                         Spacer()
@@ -159,9 +157,10 @@ struct WeeklyReflectionCard: View {
 
     private var celebrationOverlay: some View {
         VStack(spacing: SakinahSpacing.base) {
-            Text("✨")
-                .font(.system(size: 48))
-            Text("Beautiful week together!")
+            Image(systemName: "heart.text.square.fill")
+                .font(.system(size: 34))
+                .foregroundStyle(SakinahColor.accent)
+            Text("A beautiful week together")
                 .font(SakinahFont.title3)
                 .foregroundStyle(SakinahColor.textPrimary)
         }
@@ -191,9 +190,13 @@ struct WeeklyReflectionCard: View {
             var garden = couple.gardenState
             garden.applyReflectionScores(reflection.scores)
             couple.gardenState = garden
+            couple.touch()
         }
 
         try? modelContext.save()
+        Task {
+            await CloudKitService.shared.syncIfPossible(appState: appState, context: modelContext)
+        }
 
         // Celebration if all scores ≥ 4
         if scores.allSatisfy({ $0 >= 4 }) {

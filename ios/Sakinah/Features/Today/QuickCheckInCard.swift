@@ -4,6 +4,7 @@ import StoreKit
 
 struct QuickCheckInCard: View {
     @Bindable var vm: TodayViewModel
+    @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
     @Environment(\.requestReview) private var requestReview
 
@@ -47,6 +48,9 @@ struct QuickCheckInCard: View {
                             .lineLimit(3...5)
                             .onSubmit {
                                 vm.saveCheckIn(context: modelContext, requestReview: { requestReview() })
+                                Task {
+                                    await CloudKitService.shared.syncIfPossible(appState: appState, context: modelContext)
+                                }
                             }
                     }
                     .transition(.opacity.combined(with: .move(edge: .top)))
@@ -80,6 +84,9 @@ struct QuickCheckInCard: View {
         let isSelected = vm.selectedMood == mood
         return Button {
             vm.selectMood(mood, context: modelContext)
+            Task {
+                await CloudKitService.shared.syncIfPossible(appState: appState, context: modelContext)
+            }
         } label: {
             VStack(spacing: SakinahSpacing.xs) {
                 ZStack {

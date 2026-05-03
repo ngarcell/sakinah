@@ -119,8 +119,9 @@ struct WellnessGardenView: View {
 
     private func legendItem(_ dim: GardenDimension) -> some View {
         HStack(spacing: 4) {
-            Text(dim.plantEmoji)
-                .font(.system(size: 12))
+            Image(systemName: dim.icon)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(SakinahColor.primary)
             Text(dim.label)
                 .font(SakinahFont.caption)
                 .foregroundStyle(SakinahColor.textTertiary)

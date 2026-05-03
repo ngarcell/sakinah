@@ -3,7 +3,9 @@ import SwiftData
 
 struct DailyPromptCard: View {
     @Bindable var vm: TodayViewModel
+    @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.requestReview) private var requestReview
     @State private var wordAppeared: [Bool] = []
     @State private var userBubbleScale: CGFloat = 0
     @State private var partnerBubbleScale: CGFloat = 0
@@ -104,6 +106,10 @@ struct DailyPromptCard: View {
 
             SakinahButton(title: "Save my answer") {
                 vm.submitResponse(context: modelContext)
+                ReviewService.shared.onPromptRevealed(requestReview: { requestReview() })
+                Task {
+                    await CloudKitService.shared.syncIfPossible(appState: appState, context: modelContext)
+                }
             }
             .disabled(!vm.isResponseValid)
             .opacity(vm.isResponseValid ? 1 : 0.55)

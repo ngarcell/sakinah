@@ -10,6 +10,7 @@ final class User {
     var duaLanguagePreferenceRaw: String
     var notificationTime: Date
     var createdAt: Date
+    var updatedAt: Date
     var subscriptionTierRaw: String
 
     var duaLanguagePreference: DuaLanguage {
@@ -34,6 +35,11 @@ final class User {
         self.duaLanguagePreferenceRaw = duaLanguagePreference.rawValue
         self.notificationTime = notificationTime
         self.createdAt = createdAt
+        self.updatedAt = createdAt
         self.subscriptionTierRaw = subscriptionTier.rawValue
+    }
+
+    func touch(_ date: Date = Date()) {
+        updatedAt = date
     }
 }

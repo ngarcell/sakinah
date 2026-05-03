@@ -1,4 +1,5 @@
 import Foundation
+import CloudKit
 import SwiftData
 
 @Model
@@ -13,6 +14,12 @@ final class Couple {
     var anniversaryDate: Date?
     var useHijriCalendar: Bool
     var createdAt: Date
+    var updatedAt: Date
+    var lastCloudSyncAt: Date?
+    var cloudZoneName: String?
+    var cloudZoneOwnerName: String?
+    var cloudShareRecordName: String?
+    var cloudShareURLString: String?
     var gardenStateData: Data?
 
     var relationshipStage: RelationshipStage {
@@ -54,6 +61,16 @@ final class Couple {
         self.anniversaryDate = anniversaryDate
         self.useHijriCalendar = useHijriCalendar
         self.createdAt = createdAt
+        self.updatedAt = createdAt
+        self.lastCloudSyncAt = nil
+        self.cloudZoneName = "couple.\(id)"
+        self.cloudZoneOwnerName = CKCurrentUserDefaultName
+        self.cloudShareRecordName = nil
+        self.cloudShareURLString = nil
         self.gardenStateData = try? JSONEncoder().encode(GardenState())
+    }
+
+    func touch(_ date: Date = Date()) {
+        updatedAt = date
     }
 }

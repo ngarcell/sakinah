@@ -27,15 +27,15 @@ enum SakinahPaywallEntryPoint: Hashable, Sendable {
     var contextMessage: String? {
         switch self {
         case .generic:
-            return "Open every conversation pack plus your private shared space in one place."
+            return "Unlock the full ritual: daily prompts, guided lessons, and one shared space for the two of you."
         case .dailyHabit:
-            return "You’ve already built a rhythm together. Premium opens every pack and your private space."
+            return "Keep the daily rhythm going with the full prompt library and your shared space."
         case .conversationPacks:
-            return "Premium opens the full prompt library so the next conversation is always within reach."
+            return "Unlock the full conversation library so the next meaningful question is always close."
         case .sharedSpace:
-            return "Premium opens your shared journal, letters, goals, and wishlists in one private space."
+            return "Unlock your journal, letters, goals, and wishlists in one private shared space."
         case .settings:
-            return "See every plan in one place and unlock the parts of this space you’ll come back to most."
+            return "Choose the plan that keeps your private space, daily prompts, and guided lessons available."
         }
     }
 
@@ -57,6 +57,7 @@ struct SakinahPaywallView: View {
     let entryPoint: SakinahPaywallEntryPoint
     let isMandatory: Bool
 
+    @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
     @State private var subscriptionService = SubscriptionService.shared
     @State private var purchaseNotice: String?
@@ -140,7 +141,7 @@ struct SakinahPaywallView: View {
                 .font(SakinahFont.title2)
                 .foregroundStyle(SakinahColor.textPrimary)
 
-            Text("Loading current options and checking your access.")
+            Text("Loading current access and available plans.")
                 .font(SakinahFont.bodySmall)
                 .foregroundStyle(SakinahColor.textSecondary)
                 .multilineTextAlignment(.center)
@@ -156,7 +157,7 @@ struct SakinahPaywallView: View {
                 .font(.system(size: 40))
                 .foregroundStyle(SakinahColor.accent)
 
-            Text("Premium Access")
+            Text("Premium access")
                 .font(SakinahFont.title2)
                 .foregroundStyle(SakinahColor.textPrimary)
 
@@ -205,9 +206,7 @@ struct SakinahPaywallView: View {
         )
         .tint(SakinahColor.primary)
         .safeAreaInset(edge: .top, spacing: 0) {
-            if isMandatory {
-                mandatoryBanner
-            }
+            headerBanner
         }
         .customPaywallVariables(entryPoint.revenueCatVariables)
         .onPurchaseStarted { _ in
@@ -250,32 +249,53 @@ struct SakinahPaywallView: View {
         }
     }
 
-    private var mandatoryBanner: some View {
-        HStack(alignment: .top, spacing: SakinahSpacing.md) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Your first answer is saved")
-                    .font(SakinahFont.headline)
-                    .foregroundStyle(SakinahColor.textPrimary)
-                Text("Continue with daily prompts, lessons, and your shared space.")
-                    .font(SakinahFont.caption)
-                    .foregroundStyle(SakinahColor.textSecondary)
-            }
+    private var headerBanner: some View {
+        VStack(spacing: 0) {
+            if let contextMessage = entryPoint.contextMessage {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(isMandatory ? "Your first answer is saved" : "Premium access")
+                        .font(SakinahFont.headline)
+                        .foregroundStyle(SakinahColor.textPrimary)
 
-            Spacer()
+                    Text(contextMessage)
+                        .font(SakinahFont.caption)
+                        .foregroundStyle(SakinahColor.textSecondary)
 
-            Button {
-                Task { await subscriptionService.restorePurchases() }
-            } label: {
-                if subscriptionService.isRestoringPurchases {
-                    ProgressView()
-                        .controlSize(.small)
-                } else {
-                    Text("Restore")
-                        .font(SakinahFont.captionBold)
-                        .foregroundStyle(SakinahColor.primary)
+                    if let trialHeadline = subscriptionService.annualTrialHeadline {
+                        Text(trialHeadline)
+                            .font(SakinahFont.captionBold)
+                            .foregroundStyle(SakinahColor.accent)
+                    }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .disabled(subscriptionService.isRestoringPurchases)
+
+            HStack(alignment: .top, spacing: SakinahSpacing.md) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(subscriptionService.featuredPlanSummary)
+                        .font(SakinahFont.caption)
+                        .foregroundStyle(SakinahColor.textSecondary)
+
+                    Text(subscriptionService.premiumAccessSummary)
+                        .font(SakinahFont.caption)
+                        .foregroundStyle(SakinahColor.textTertiary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                Button {
+                    Task { await subscriptionService.restorePurchases() }
+                } label: {
+                    if subscriptionService.isRestoringPurchases {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else {
+                        Text("Restore")
+                            .font(SakinahFont.captionBold)
+                            .foregroundStyle(SakinahColor.primary)
+                    }
+                }
+                .disabled(subscriptionService.isRestoringPurchases)
+            }
         }
         .padding(.horizontal, SakinahSpacing.base)
         .padding(.top, SakinahSpacing.sm)
@@ -289,6 +309,9 @@ struct SakinahPaywallView: View {
     private func dismissPaywall() {
         guard !hasHandledUnlock else { return }
         hasHandledUnlock = true
+
+        appState.handleSubscriptionState(isPremium: true)
+        appState.preparePostPurchaseExperience()
         dismiss()
     }
 }

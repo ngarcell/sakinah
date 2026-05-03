@@ -19,13 +19,7 @@ struct OnboardingView: View {
         switch vm.step {
         case .welcome:
             WelcomeScreen(vm: vm)
-                .transition(screenTransition)
-        case .invitePartner:
-            InvitePartnerScreen(vm: vm)
-                .transition(screenTransition)
-        case .waiting:
-            WaitingForPartnerScreen(vm: vm)
-                .transition(screenTransition)
+            .transition(screenTransition)
         case .coupleSetup:
             CoupleSetupScreen(vm: vm)
                 .transition(screenTransition)

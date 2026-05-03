@@ -29,10 +29,12 @@ struct TodayView: View {
 
                 ScrollView {
                     VStack(spacing: SakinahSpacing.xl) {
-                        // Daily Prompt Card
+                        if appState.pairingStatus != .paired {
+                            inviteBanner
+                        }
+
                         DailyPromptCard(vm: vm)
 
-                        // Daily Du'a Card
                         if let dua = vm.todaysDua {
                             DailyDuaCard(
                                 dua: dua,
@@ -40,7 +42,6 @@ struct TodayView: View {
                             )
                         }
 
-                        // Quick Check-In Card
                         QuickCheckInCard(vm: vm)
 
                         Spacer().frame(height: 100)
@@ -66,7 +67,7 @@ struct TodayView: View {
         VStack(alignment: .leading, spacing: SakinahSpacing.sm) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("\(Theme.greeting), \(firstName) \(Theme.greetingEmoji)")
+                    Text("\(Theme.greeting), \(firstName)")
                         .font(SakinahFont.title2)
                         .foregroundStyle(SakinahColor.textPrimary)
 
@@ -98,7 +99,7 @@ struct TodayView: View {
     }
 
     private var firstName: String {
-        let name = appState.currentUser?.name ?? "Friend"
+        let name = appState.currentUser?.name ?? "You"
         return name.components(separatedBy: " ").first ?? name
     }
 
@@ -112,7 +113,7 @@ struct TodayView: View {
     }
 
     private var partnerAvatar: some View {
-        let partnerName = appState.currentCouple?.user2Name ?? "P"
+        let partnerName = appState.partnerName
         let initials = String(partnerName.prefix(1)).uppercased()
 
         return ZStack {
@@ -135,5 +136,44 @@ struct TodayView: View {
                     .offset(x: 2, y: 2)
             }
         }
+    }
+
+    private var inviteBanner: some View {
+        Button {
+            appState.showPartnerInvitePrompt = true
+        } label: {
+            HStack(alignment: .top, spacing: SakinahSpacing.md) {
+                ZStack {
+                    Circle()
+                        .fill(SakinahColor.accentLight)
+                        .frame(width: 38, height: 38)
+                    Image(systemName: "person.2.fill")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(SakinahColor.accent)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Invite your spouse into this space")
+                        .font(SakinahFont.headline)
+                        .foregroundStyle(SakinahColor.textPrimary)
+                    Text("Send one private link so prompts, journal entries, goals, and reflections stay in sync.")
+                        .font(SakinahFont.bodySmall)
+                        .foregroundStyle(SakinahColor.textSecondary)
+                        .multilineTextAlignment(.leading)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(SakinahColor.textTertiary)
+            }
+            .padding(SakinahSpacing.base)
+            .background(SakinahColor.surface)
+            .clipShape(.rect(cornerRadius: SakinahRadius.large))
+            .sakinahShadow(.subtle)
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, SakinahSpacing.base)
     }
 }

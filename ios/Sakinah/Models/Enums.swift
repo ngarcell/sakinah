@@ -48,12 +48,12 @@ nonisolated enum PromptCategory: String, Codable, CaseIterable, Sendable {
 
     var displayLabel: String {
         switch self {
-        case .gratitude: return "Gratitude ✨"
-        case .dreams: return "Dreams 💭"
-        case .memories: return "Memories 📸"
-        case .faith: return "Faith 🤲"
-        case .intimacy: return "Connection 💞"
-        case .fun: return "Fun 😄"
+        case .gratitude: return "Gratitude"
+        case .dreams: return "Dreams"
+        case .memories: return "Memories"
+        case .faith: return "Faith"
+        case .intimacy: return "Connection"
+        case .fun: return "Lightness"
         }
     }
 

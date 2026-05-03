@@ -23,6 +23,7 @@ final class JournalEntry {
     var content: String
     var isShared: Bool
     var createdAt: Date
+    var updatedAt: Date
 
     init(id: String = UUID().uuidString, coupleID: String, userID: String, authorName: String, content: String, isShared: Bool = true, createdAt: Date = Date()) {
         self.id = id
@@ -32,6 +33,11 @@ final class JournalEntry {
         self.content = content
         self.isShared = isShared
         self.createdAt = createdAt
+        self.updatedAt = createdAt
+    }
+
+    func touch(_ date: Date = Date()) {
+        updatedAt = date
     }
 }
 
@@ -48,6 +54,7 @@ final class LoveLetter {
     var isDelivered: Bool
     var isRead: Bool
     var createdAt: Date
+    var updatedAt: Date
 
     init(id: String = UUID().uuidString, coupleID: String, senderID: String, senderName: String, recipientName: String, title: String = "", content: String, deliveryDate: Date, isDelivered: Bool = false, isRead: Bool = false, createdAt: Date = Date()) {
         self.id = id
@@ -61,6 +68,11 @@ final class LoveLetter {
         self.isDelivered = isDelivered
         self.isRead = isRead
         self.createdAt = createdAt
+        self.updatedAt = createdAt
+    }
+
+    func touch(_ date: Date = Date()) {
+        updatedAt = date
     }
 }
 
@@ -75,6 +87,7 @@ final class SharedGoal {
     var deadline: Date
     var isCompleted: Bool
     var createdAt: Date
+    var updatedAt: Date
 
     var progress: Double {
         guard targetCount > 0 else { return 0 }
@@ -96,6 +109,11 @@ final class SharedGoal {
         self.deadline = deadline
         self.isCompleted = isCompleted
         self.createdAt = createdAt
+        self.updatedAt = createdAt
+    }
+
+    func touch(_ date: Date = Date()) {
+        updatedAt = date
     }
 }
 
@@ -104,11 +122,11 @@ nonisolated enum GoalCategory: String, Codable, CaseIterable, Sendable {
 
     var label: String {
         switch self {
-        case .spiritual: return "Spiritual 🤲"
-        case .qualityTime: return "Quality Time 💑"
-        case .health: return "Health 🌿"
-        case .financial: return "Financial 💰"
-        case .other: return "Other ✨"
+        case .spiritual: return "Spiritual"
+        case .qualityTime: return "Quality Time"
+        case .health: return "Health"
+        case .financial: return "Financial"
+        case .other: return "Other"
         }
     }
 }
@@ -122,6 +140,7 @@ final class WishItem {
     var note: String?
     var link: String?
     var createdAt: Date
+    var updatedAt: Date
 
     init(id: String = UUID().uuidString, coupleID: String, userID: String, text: String, note: String? = nil, link: String? = nil, createdAt: Date = Date()) {
         self.id = id
@@ -131,5 +150,10 @@ final class WishItem {
         self.note = note
         self.link = link
         self.createdAt = createdAt
+        self.updatedAt = createdAt
+    }
+
+    func touch(_ date: Date = Date()) {
+        updatedAt = date
     }
 }

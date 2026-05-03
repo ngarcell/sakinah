@@ -14,6 +14,7 @@ final class WeeklyReflection {
     var growthScore: Int
     var isSharedWithPartner: Bool
     var createdAt: Date
+    var updatedAt: Date
 
     var scores: [GardenDimension: Int] {
         [
@@ -51,5 +52,10 @@ final class WeeklyReflection {
         self.growthScore = growthScore
         self.isSharedWithPartner = isSharedWithPartner
         self.createdAt = createdAt
+        self.updatedAt = createdAt
+    }
+
+    func touch(_ date: Date = Date()) {
+        updatedAt = date
     }
 }

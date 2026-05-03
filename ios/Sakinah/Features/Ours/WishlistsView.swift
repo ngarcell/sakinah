@@ -148,6 +148,9 @@ struct WishlistsView: View {
                 Button(role: .destructive) {
                     modelContext.delete(wish)
                     try? modelContext.save()
+                    Task {
+                        await CloudKitService.shared.syncIfPossible(appState: appState, context: modelContext)
+                    }
                 } label: {
                     Image(systemName: "trash")
                 }
@@ -166,6 +169,9 @@ struct WishlistsView: View {
         modelContext.insert(wish)
         try? modelContext.save()
         HapticEngine.shared.fire(.tap)
+        Task {
+            await CloudKitService.shared.syncIfPossible(appState: appState, context: modelContext)
+        }
         newWishText = ""
         showAddField = false
     }

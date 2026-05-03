@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import RevenueCatUI
+import UIKit
 
 struct SettingsView: View {
     @Environment(AppState.self) private var appState
@@ -11,7 +12,6 @@ struct SettingsView: View {
     @State private var showCustomerCenter = false
     @State private var showDeleteConfirm = false
     @State private var deleteText = ""
-    @State private var showUnlinkConfirm = false
 
     // Notification preferences
     @AppStorage("dailyPromptNotif") private var dailyPromptNotif = true
@@ -45,16 +45,6 @@ struct SettingsView: View {
                         subscriptionService.setError(from: error)
                     }
             }
-            .alert("Unlink Partner", isPresented: $showUnlinkConfirm) {
-                Button("Unlink", role: .destructive) {
-                    appState.currentCouple?.user2ID = ""
-                    appState.currentCouple?.user2Name = "Partner"
-                    try? modelContext.save()
-                }
-                Button("Cancel", role: .cancel) {}
-            } message: {
-                Text("This will remove the partner link. Your data stays safe.")
-            }
             .alert("Delete All Data", isPresented: $showDeleteConfirm) {
                 TextField("Type DELETE to confirm", text: $deleteText)
                 Button("Delete Everything", role: .destructive) {
@@ -65,6 +55,9 @@ struct SettingsView: View {
                 Button("Cancel", role: .cancel) { deleteText = "" }
             } message: {
                 Text("This will permanently erase all your data. This cannot be undone.")
+            }
+            .sheet(isPresented: invitePromptBinding) {
+                PartnerInvitePromptView()
             }
         }
     }
@@ -92,6 +85,15 @@ struct SettingsView: View {
                 }
             }
 
+            HStack {
+                Text("Shared space")
+                    .font(SakinahFont.body)
+                Spacer()
+                Text(sharedSpaceStatusText)
+                    .font(SakinahFont.bodySmall)
+                    .foregroundStyle(sharedSpaceStatusColor)
+            }
+
             if appState.daysTogether > 0 {
                 HStack {
                     Text("Days together")
@@ -103,10 +105,14 @@ struct SettingsView: View {
                 }
             }
 
-            Button(role: .destructive) {
-                showUnlinkConfirm = true
-            } label: {
-                Text("Unlink Partner")
+            if appState.pairingStatus != .paired {
+                Button("Invite Spouse") {
+                    appState.showPartnerInvitePrompt = true
+                }
+            } else if let syncStatusText {
+                Text(syncStatusText)
+                    .font(SakinahFont.caption)
+                    .foregroundStyle(SakinahColor.textTertiary)
             }
         }
     }
@@ -195,7 +201,12 @@ struct SettingsView: View {
         Section("Preferences") {
             Picker("Du'a language", selection: Binding(
                 get: { appState.currentUser?.duaLanguagePreference ?? .all },
-                set: { newVal in appState.currentUser?.duaLanguagePreference = newVal; try? modelContext.save() }
+                set: { newVal in
+                    appState.currentUser?.duaLanguagePreference = newVal
+                    appState.currentUser?.touch()
+                    try? modelContext.save()
+                    Task { await CloudKitService.shared.syncIfPossible(appState: appState, context: modelContext) }
+                }
             )) {
                 ForEach(DuaLanguage.allCases, id: \.self) { lang in
                     Text(lang.label).tag(lang)
@@ -204,14 +215,19 @@ struct SettingsView: View {
 
             Toggle("Hijri calendar", isOn: Binding(
                 get: { appState.currentCouple?.useHijriCalendar ?? false },
-                set: { newVal in appState.currentCouple?.useHijriCalendar = newVal; try? modelContext.save() }
+                set: { newVal in
+                    appState.currentCouple?.useHijriCalendar = newVal
+                    appState.currentCouple?.touch()
+                    try? modelContext.save()
+                    Task { await CloudKitService.shared.syncIfPossible(appState: appState, context: modelContext) }
+                }
             ))
             .tint(SakinahColor.primary)
 
             Picker("Appearance", selection: $selectedAppearance) {
-                Text("System").tag(0)
-                Text("Light").tag(1)
-                Text("Dark").tag(2)
+                ForEach(AppAppearanceMode.allCases) { appearance in
+                    Text(appearance.title).tag(appearance.rawValue)
+                }
             }
 
             Toggle("Haptic feedback", isOn: $hapticEnabled)
@@ -226,7 +242,7 @@ struct SettingsView: View {
             HStack(spacing: SakinahSpacing.sm) {
                 Image(systemName: "lock.shield.fill")
                     .foregroundStyle(SakinahColor.success)
-                Text("You control what stays private and what gets shared with your partner.")
+                Text("Your entries stay on your device and in your iCloud-shared space. Only the spouse you invite can access the shared items.")
                     .font(SakinahFont.bodySmall)
                     .foregroundStyle(SakinahColor.textSecondary)
             }
@@ -255,7 +271,7 @@ struct SettingsView: View {
             Button {
                 let url = URL(string: "https://apps.apple.com/app/id6762535411")!
                 let av = UIActivityViewController(activityItems: [
-                    "We’ve been using this for our daily check-ins. Thought you might like it too.",
+                    "We’ve been using Sakinah for a calmer daily marriage ritual. Thought you might like it too.",
                     url
                 ], applicationActivities: nil)
                 if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
@@ -263,14 +279,66 @@ struct SettingsView: View {
                     root.present(av, animated: true)
                 }
             } label: {
-                Label("Share with Another Couple", systemImage: "square.and.arrow.up")
+                Label("Share Sakinah", systemImage: "square.and.arrow.up")
             }
 
             Link("Help", destination: URL(string: "https://socialreporthq.com/sakinah/support")!)
         }
     }
 
+    private var invitePromptBinding: Binding<Bool> {
+        Binding(
+            get: { appState.showPartnerInvitePrompt },
+            set: { appState.showPartnerInvitePrompt = $0 }
+        )
+    }
+
+    private var sharedSpaceStatusText: String {
+        switch appState.pairingStatus {
+        case .solo:
+            return "Not set up"
+        case .readyToInvite:
+            return "Ready to invite"
+        case .invitationSent:
+            return "Invite sent"
+        case .invitationWaiting:
+            return "Waiting to connect"
+        case .paired:
+            return "Connected"
+        }
+    }
+
+    private var sharedSpaceStatusColor: Color {
+        switch appState.pairingStatus {
+        case .paired:
+            return SakinahColor.success
+        case .invitationSent, .invitationWaiting:
+            return SakinahColor.accent
+        default:
+            return SakinahColor.textSecondary
+        }
+    }
+
+    private var syncStatusText: String? {
+        switch appState.syncStatus {
+        case .upToDate(let date):
+            return "Last synced \(DateFormatting.timeAgo(date))"
+        case .syncing:
+            return "Syncing shared space"
+        case .failed(let message):
+            return message
+        case .idle:
+            return nil
+        }
+    }
+
     private func deleteAllData() {
+        if let couple = appState.currentCouple {
+            Task {
+                await CloudKitService.shared.deleteRemoteDataIfOwned(couple: couple)
+            }
+        }
+
         do {
             try modelContext.delete(model: User.self)
             try modelContext.delete(model: Couple.self)
@@ -289,6 +357,9 @@ struct SettingsView: View {
 
         appState.currentUser = nil
         appState.currentCouple = nil
+        appState.pendingShareDetected = false
+        appState.showPartnerInvitePrompt = false
+        appState.handleSubscriptionState(isPremium: false)
         appState.route = .onboarding
     }
 }

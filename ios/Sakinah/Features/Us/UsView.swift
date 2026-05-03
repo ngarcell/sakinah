@@ -95,7 +95,7 @@ struct UsView: View {
                     .font(SakinahFont.headline)
                     .foregroundStyle(SakinahColor.accent)
                     .contentTransition(.numericText())
-                Text("days growing together")
+                Text("days together")
                     .font(SakinahFont.bodySmall)
                     .foregroundStyle(SakinahColor.textSecondary)
             }

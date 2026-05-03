@@ -16,8 +16,9 @@ struct PlantDetailSheet: View {
 
             // Header
             VStack(spacing: SakinahSpacing.sm) {
-                Text(dimension.plantEmoji)
-                    .font(.system(size: 40))
+                Image(systemName: dimension.icon)
+                    .font(.system(size: 28, weight: .semibold))
+                    .foregroundStyle(SakinahColor.primary)
                 Text(dimension.label)
                     .font(SakinahFont.title3)
                     .foregroundStyle(SakinahColor.textPrimary)
@@ -78,11 +79,11 @@ struct PlantDetailSheet: View {
     private var levelDescription: String {
         let name = dimension.label.lowercased()
         switch Int(level.rounded()) {
-        case 1: return "Your \(name) needs some attention 🌱"
-        case 2: return "Your \(name) is emerging — keep going"
-        case 3: return "Your \(name) is growing nicely 🌿"
-        case 4: return "Your \(name) is thriving 🌸"
-        case 5: return "Your \(name) is blooming beautifully ✨"
+        case 1: return "Your \(name) needs more care right now."
+        case 2: return "Your \(name) is starting to recover."
+        case 3: return "Your \(name) is steady."
+        case 4: return "Your \(name) is strong."
+        case 5: return "Your \(name) is flourishing."
         default: return "Your \(name) is on its way"
         }
     }

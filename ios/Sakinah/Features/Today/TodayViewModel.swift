@@ -57,8 +57,8 @@ final class TodayViewModel {
     }
 
     func loadContent(appState: AppState) {
-        userName = appState.currentUser?.name ?? "Friend"
-        partnerName = appState.currentCouple?.user2Name ?? "Partner"
+        userName = appState.currentUser?.name ?? "You"
+        partnerName = appState.partnerName
         coupleID = appState.currentCouple?.id ?? ""
         userID = appState.currentUser?.id ?? ""
         useHijri = appState.currentCouple?.useHijriCalendar ?? false
@@ -79,35 +79,56 @@ final class TodayViewModel {
     func loadExistingData(context: ModelContext) {
         let today = Calendar.current.startOfDay(for: Date())
         let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today)!
+        promptState = .unanswered
+        userResponse = ""
+        selectedMood = nil
+        checkInNote = ""
+        hasCheckedInToday = false
+        partnerResponse = ""
+        partnerMood = nil
+        partnerNote = nil
 
-        // Check existing prompt response
         let pid = promptID
         let uid = userID
         let responsePredicate = #Predicate<PromptResponse> { r in
             r.promptID == pid && r.userID == uid && r.createdAt >= today && r.createdAt < tomorrow
         }
         let responseDescriptor = FetchDescriptor<PromptResponse>(predicate: responsePredicate)
-        if let existing = try? context.fetch(responseDescriptor).first {
+        if let existing = (try? context.fetch(responseDescriptor))?.first {
             userResponse = existing.responseText
             promptState = .revealed
         }
 
-        // Check existing check-in
         let cid = coupleID
+        let partnerResponsePredicate = #Predicate<PromptResponse> { r in
+            r.promptID == pid && r.coupleID == cid && r.userID != uid && r.createdAt >= today && r.createdAt < tomorrow
+        }
+        let partnerResponseDescriptor = FetchDescriptor<PromptResponse>(predicate: partnerResponsePredicate)
+        if let existingPartnerResponse = (try? context.fetch(partnerResponseDescriptor))?.first {
+            partnerResponse = existingPartnerResponse.responseText
+        }
+
         let checkInPredicate = #Predicate<CheckIn> { c in
             c.coupleID == cid && c.userID == uid && c.date >= today && c.date < tomorrow
         }
         let checkInDescriptor = FetchDescriptor<CheckIn>(predicate: checkInPredicate)
-        if let existing = try? context.fetch(checkInDescriptor).first {
+        if let existing = (try? context.fetch(checkInDescriptor))?.first {
             selectedMood = existing.mood
             checkInNote = existing.note ?? ""
             hasCheckedInToday = true
         }
 
-        // Calculate streak
+        let partnerCheckInPredicate = #Predicate<CheckIn> { c in
+            c.coupleID == cid && c.userID != uid && c.date >= today && c.date < tomorrow
+        }
+        let partnerCheckInDescriptor = FetchDescriptor<CheckIn>(predicate: partnerCheckInPredicate)
+        if let partnerCheckIn = (try? context.fetch(partnerCheckInDescriptor))?.first {
+            partnerMood = partnerCheckIn.mood
+            partnerNote = partnerCheckIn.note
+        }
+
         calculateStreak(context: context)
 
-        // Count total prompts answered
         let allResponsePredicate = #Predicate<PromptResponse> { r in r.userID == uid }
         let allResponseDescriptor = FetchDescriptor<PromptResponse>(predicate: allResponsePredicate)
         totalPromptsAnswered = (try? context.fetchCount(allResponseDescriptor)) ?? 0
@@ -134,18 +155,40 @@ final class TodayViewModel {
 
     func submitResponse(context: ModelContext) {
         guard isResponseValid else { return }
-        let response = PromptResponse(
-            promptID: promptID,
-            coupleID: coupleID,
-            userID: userID,
-            responseText: userResponse.trimmingCharacters(in: .whitespacesAndNewlines),
-            isRevealed: true
-        )
-        context.insert(response)
+        let today = Calendar.current.startOfDay(for: Date())
+        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today)!
+        let trimmed = userResponse.trimmingCharacters(in: .whitespacesAndNewlines)
+        let pid = promptID
+        let uid = userID
+        let predicate = #Predicate<PromptResponse> { r in
+            r.promptID == pid && r.userID == uid && r.createdAt >= today && r.createdAt < tomorrow
+        }
+        let descriptor = FetchDescriptor<PromptResponse>(predicate: predicate)
+
+        let didCreateNewResponse: Bool
+
+        if let existing = (try? context.fetch(descriptor))?.first {
+            existing.responseText = trimmed
+            existing.isRevealed = true
+            existing.touch()
+            didCreateNewResponse = false
+        } else {
+            let response = PromptResponse(
+                promptID: promptID,
+                coupleID: coupleID,
+                userID: userID,
+                responseText: trimmed,
+                isRevealed: true
+            )
+            context.insert(response)
+            didCreateNewResponse = true
+        }
         try? context.save()
 
         HapticEngine.shared.fire(.success)
-        totalPromptsAnswered += 1
+        if didCreateNewResponse {
+            totalPromptsAnswered += 1
+        }
         revealFlash = true
 
         Task { @MainActor in
@@ -189,9 +232,10 @@ final class TodayViewModel {
         }
         let descriptor = FetchDescriptor<CheckIn>(predicate: predicate)
 
-        if let existing = try? context.fetch(descriptor).first {
+        if let existing = (try? context.fetch(descriptor))?.first {
             existing.mood = mood
             existing.note = checkInNote.isEmpty ? nil : checkInNote
+            existing.touch()
         } else {
             let checkIn = CheckIn(
                 coupleID: coupleID,

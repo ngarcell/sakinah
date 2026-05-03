@@ -9,6 +9,7 @@ final class CheckIn {
     var moodRaw: Int
     var note: String?
     var date: Date
+    var updatedAt: Date
 
     var mood: Mood {
         get { Mood(rawValue: moodRaw) ?? .okay }
@@ -22,5 +23,10 @@ final class CheckIn {
         self.moodRaw = mood.rawValue
         self.note = note
         self.date = date
+        self.updatedAt = date
+    }
+
+    func touch(_ date: Date = Date()) {
+        updatedAt = date
     }
 }

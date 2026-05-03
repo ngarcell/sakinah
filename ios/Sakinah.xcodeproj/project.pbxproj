@@ -452,6 +452,7 @@
 				CFRevenueCatPremiumEntitlementID = "Sakinah Premium";
 				CFRevenueCatRequireAppleKey = NO;
 				CFRevenueCatTestAPIKey = test_uMjDbsOgwWFKjqUFhUDgiJAnBnj;
+				CODE_SIGN_ENTITLEMENTS = Sakinah/Sakinah.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
@@ -488,6 +489,7 @@
 				CFRevenueCatPremiumEntitlementID = "Sakinah Premium";
 				CFRevenueCatRequireAppleKey = YES;
 				CFRevenueCatTestAPIKey = "";
+				CODE_SIGN_ENTITLEMENTS = Sakinah/Sakinah.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";

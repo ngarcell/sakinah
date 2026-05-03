@@ -18,9 +18,10 @@ struct LearnView: View {
                             Text("Learn")
                                 .font(SakinahFont.title1)
                                 .foregroundStyle(SakinahColor.textPrimary)
-                            Text("Strengthen what matters most")
+                            Text("Thoughtful guidance for the parts of marriage that need care, language, and ritual.")
                                 .font(SakinahFont.bodySmall)
                                 .foregroundStyle(SakinahColor.textSecondary)
+                                .multilineTextAlignment(.center)
                         }
                         .padding(.top, SakinahSpacing.lg)
 
