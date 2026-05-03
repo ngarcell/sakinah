@@ -107,7 +107,7 @@ struct FirstPromptScreen: View {
                     .disabled(vm.firstResponse.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     .opacity(vm.firstResponse.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.55 : 1)
 
-                    Text("Next: choose a plan and keep this space going together.")
+                    Text("Next: a short handoff, then the hosted plan screen.")
                         .font(SakinahFont.caption)
                         .foregroundStyle(SakinahColor.textTertiary)
                 }

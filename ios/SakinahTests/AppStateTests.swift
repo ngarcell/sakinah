@@ -19,9 +19,30 @@ struct AppStateTests {
         appState.completeOnboarding(user: user, couple: couple)
 
         #expect(appState.route == .main)
-        #expect(appState.paywallState == .requiredAfterOnboarding)
-        #expect(appState.shouldShowMandatoryPaywall)
+        #expect(appState.paywallState == .handoffAfterOnboarding)
+        #expect(appState.shouldShowPaywallHandoff)
+        #expect(!appState.shouldShowMandatoryPaywall)
         #expect(appState.pairingStatus == .readyToInvite)
+    }
+
+    @Test
+    @MainActor
+    func onboardingHandoffAdvancesToHostedPaywall() {
+        let appState = AppState()
+        let user = User(id: "user-1", name: "Yusuf")
+        let couple = Couple(
+            user1ID: user.id,
+            user1Name: user.name,
+            user2Name: "Aisha",
+            inviteCode: "ABC123"
+        )
+
+        appState.completeOnboarding(user: user, couple: couple)
+        appState.advanceToHostedPaywall()
+
+        #expect(appState.paywallState == .requiredAfterOnboarding)
+        #expect(!appState.shouldShowPaywallHandoff)
+        #expect(appState.shouldShowMandatoryPaywall)
     }
 
     @Test

@@ -73,13 +73,14 @@ struct SakinahPaywallView: View {
         Group {
             if subscriptionService.currentOffering == nil && (subscriptionService.isLoadingProducts || isPreparingPaywall) {
                 loadingState
+                    .background(paywallBackground.ignoresSafeArea())
             } else if let offering = subscriptionService.currentOffering {
                 hostedPaywall(offering: offering)
             } else {
                 unavailableState
+                    .background(paywallBackground.ignoresSafeArea())
             }
         }
-        .background(paywallBackground.ignoresSafeArea())
         .task {
             isPreparingPaywall = true
             _ = await subscriptionService.preparePaywall(forceRefresh: false)
@@ -205,9 +206,6 @@ struct SakinahPaywallView: View {
             displayCloseButton: !isMandatory
         )
         .tint(SakinahColor.primary)
-        .safeAreaInset(edge: .top, spacing: 0) {
-            headerBanner
-        }
         .customPaywallVariables(entryPoint.revenueCatVariables)
         .onPurchaseStarted { _ in
             purchaseNotice = nil
@@ -246,63 +244,6 @@ struct SakinahPaywallView: View {
             if !isMandatory {
                 dismiss()
             }
-        }
-    }
-
-    private var headerBanner: some View {
-        VStack(spacing: 0) {
-            if let contextMessage = entryPoint.contextMessage {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(isMandatory ? "Your first answer is saved" : "Premium access")
-                        .font(SakinahFont.headline)
-                        .foregroundStyle(SakinahColor.textPrimary)
-
-                    Text(contextMessage)
-                        .font(SakinahFont.caption)
-                        .foregroundStyle(SakinahColor.textSecondary)
-
-                    if let trialHeadline = subscriptionService.annualTrialHeadline {
-                        Text(trialHeadline)
-                            .font(SakinahFont.captionBold)
-                            .foregroundStyle(SakinahColor.accent)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-
-            HStack(alignment: .top, spacing: SakinahSpacing.md) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(subscriptionService.featuredPlanSummary)
-                        .font(SakinahFont.caption)
-                        .foregroundStyle(SakinahColor.textSecondary)
-
-                    Text(subscriptionService.premiumAccessSummary)
-                        .font(SakinahFont.caption)
-                        .foregroundStyle(SakinahColor.textTertiary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-                Button {
-                    Task { await subscriptionService.restorePurchases() }
-                } label: {
-                    if subscriptionService.isRestoringPurchases {
-                        ProgressView()
-                            .controlSize(.small)
-                    } else {
-                        Text("Restore")
-                            .font(SakinahFont.captionBold)
-                            .foregroundStyle(SakinahColor.primary)
-                    }
-                }
-                .disabled(subscriptionService.isRestoringPurchases)
-            }
-        }
-        .padding(.horizontal, SakinahSpacing.base)
-        .padding(.top, SakinahSpacing.sm)
-        .padding(.bottom, SakinahSpacing.md)
-        .background(.ultraThinMaterial)
-        .overlay(alignment: .bottom) {
-            Divider()
         }
     }
 

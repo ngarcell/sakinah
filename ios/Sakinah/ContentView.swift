@@ -16,6 +16,12 @@ struct ContentView: View {
                             insertion: .opacity,
                             removal: .opacity.combined(with: .scale(scale: 0.98))
                         ))
+                } else if appState.shouldShowPaywallHandoff {
+                    PaywallHandoffView()
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .move(edge: .trailing)),
+                            removal: .opacity
+                        ))
                 } else if appState.shouldShowMandatoryPaywall {
                     SakinahPaywallView(entryPoint: .generic, isMandatory: true)
                         .transition(.asymmetric(

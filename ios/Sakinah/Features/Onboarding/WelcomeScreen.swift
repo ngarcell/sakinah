@@ -76,7 +76,7 @@ struct WelcomeScreen: View {
                         vm.advance(to: .coupleSetup)
                     }
 
-                    Text("Your first answer is saved before the plan screen.")
+                    Text("Your first answer is saved before the hosted plan screen.")
                         .font(SakinahFont.caption)
                         .foregroundStyle(SakinahColor.textTertiary)
                 }

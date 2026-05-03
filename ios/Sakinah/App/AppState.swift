@@ -8,6 +8,7 @@ enum AppRoute: Equatable {
 
 enum AppPaywallState: Equatable {
     case none
+    case handoffAfterOnboarding
     case requiredAfterOnboarding
     case requiredForLapsedAccess
 }
@@ -78,7 +79,7 @@ final class AppState {
         withAnimation(SakinahAnimation.gentle) {
             self.route = .main
         }
-        paywallState = .requiredAfterOnboarding
+        paywallState = .handoffAfterOnboarding
         refreshPairingStatus()
     }
 
@@ -116,7 +117,13 @@ final class AppState {
     }
 
     var shouldShowMandatoryPaywall: Bool {
-        currentUser != nil && paywallState != .none && !hasPremiumAccess
+        currentUser != nil
+            && (paywallState == .requiredAfterOnboarding || paywallState == .requiredForLapsedAccess)
+            && !hasPremiumAccess
+    }
+
+    var shouldShowPaywallHandoff: Bool {
+        currentUser != nil && paywallState == .handoffAfterOnboarding && !hasPremiumAccess
     }
 
     func restoreSession(user: User?, couple: Couple?) {
@@ -129,6 +136,11 @@ final class AppState {
     func handleSubscriptionState(isPremium: Bool) {
         isSubscribed = isPremium
         refreshRoutingState()
+    }
+
+    func advanceToHostedPaywall() {
+        guard currentUser != nil, !hasPremiumAccess else { return }
+        paywallState = .requiredAfterOnboarding
     }
 
     func preparePostPurchaseExperience() {
