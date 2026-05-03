@@ -1181,7 +1181,7 @@ final class CloudKitService {
     }
 
     private func ensureZoneExists(_ zoneID: CKRecordZone.ID) async throws {
-        try await withCheckedThrowingContinuation { continuation in
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             let zone = CKRecordZone(zoneID: zoneID)
             let operation = CKModifyRecordZonesOperation(
                 recordZonesToSave: [zone],
@@ -1199,7 +1199,7 @@ final class CloudKitService {
     }
 
     private func deleteZone(_ zoneID: CKRecordZone.ID) async throws {
-        try await withCheckedThrowingContinuation { continuation in
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             let operation = CKModifyRecordZonesOperation(
                 recordZonesToSave: nil,
                 recordZoneIDsToDelete: [zoneID]
@@ -1267,7 +1267,7 @@ final class CloudKitService {
     }
 
     private func acceptPendingShare(_ metadata: CKShare.Metadata) async throws {
-        try await withCheckedThrowingContinuation { continuation in
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             let operation = CKAcceptSharesOperation(shareMetadatas: [metadata])
             operation.acceptSharesCompletionBlock = { error in
                 if let error {

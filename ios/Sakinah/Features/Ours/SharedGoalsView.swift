@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import StoreKit
 
 struct SharedGoalsView: View {
     @Environment(AppState.self) private var appState
