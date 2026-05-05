@@ -23,6 +23,7 @@ struct MilestonesView: View {
     let milestones: [MilestoneItem]
     let memories: [Memory]
     let coupleID: String
+    @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
     @State private var showAddMemory = false
 
@@ -135,7 +136,11 @@ struct MilestonesView: View {
     private var addMemoryCard: some View {
         Button {
             HapticEngine.shared.fire(.tap)
-            showAddMemory = true
+            if appState.hasPremiumAccess {
+                showAddMemory = true
+            } else {
+                appState.presentPaywall(for: .sharedSpace)
+            }
         } label: {
             VStack(spacing: SakinahSpacing.md) {
                 Image(systemName: "camera.fill")
@@ -240,6 +245,11 @@ struct AddMemorySheet: View {
     }
 
     private func saveMemory() {
+        guard appState.hasPremiumAccess else {
+            appState.presentPaywall(for: .sharedSpace)
+            dismiss()
+            return
+        }
         let memory = Memory(
             coupleID: coupleID,
             caption: caption,

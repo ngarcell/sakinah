@@ -67,6 +67,65 @@ struct AppStateTests {
 
     @Test
     @MainActor
+    func lapsedUsersStayInMainAppReadOnly() {
+        let appState = AppState()
+        let user = User(id: "user-1", name: "Yusuf")
+        let couple = Couple(
+            user1ID: user.id,
+            user1Name: user.name,
+            user2Name: "Aisha",
+            inviteCode: "ABC123"
+        )
+
+        appState.restoreSession(user: user, couple: couple)
+        appState.handleSubscriptionState(isPremium: false)
+
+        #expect(appState.route == .main)
+        #expect(appState.paywallState == .none)
+        #expect(appState.hasLapsedAccess)
+        #expect(!appState.shouldShowMandatoryPaywall)
+    }
+
+    @Test
+    @MainActor
+    func initialUnlockRequirementRestoresHandoffAfterRelaunch() {
+        let appState = AppState()
+        let user = User(id: "user-1", name: "Yusuf")
+        user.requiresInitialSubscriptionUnlock = true
+        let couple = Couple(
+            user1ID: user.id,
+            user1Name: user.name,
+            user2Name: "Aisha",
+            inviteCode: "ABC123"
+        )
+
+        appState.restoreSession(user: user, couple: couple)
+        appState.handleSubscriptionState(isPremium: false)
+
+        #expect(appState.paywallState == .handoffAfterOnboarding)
+        #expect(appState.shouldShowPaywallHandoff)
+    }
+
+    @Test
+    @MainActor
+    func contextualPaywallPresentationTracksEntryPoint() {
+        let appState = AppState()
+        let user = User(id: "user-1", name: "Yusuf")
+        let couple = Couple(
+            user1ID: user.id,
+            user1Name: user.name,
+            user2Name: "Aisha",
+            inviteCode: "ABC123"
+        )
+
+        appState.restoreSession(user: user, couple: couple)
+        appState.presentPaywall(for: .sharedSpace)
+
+        #expect(appState.presentedPaywallEntryPoint == .sharedSpace)
+    }
+
+    @Test
+    @MainActor
     func partnerNameReflectsOtherMemberOfCouple() {
         let user = User(id: "user-2", name: "Aisha")
         let couple = Couple(
@@ -88,5 +147,19 @@ struct AppStateTests {
         #expect(AppAppearanceMode.system.colorScheme == nil)
         #expect(AppAppearanceMode.light.colorScheme == .light)
         #expect(AppAppearanceMode.dark.colorScheme == .dark)
+    }
+
+    @Test
+    func relationshipDurationOnlyExistsWhenAnniversaryIsKnown() {
+        let unknownDurationCouple = Couple(
+            user1ID: "user-1",
+            user1Name: "Yusuf",
+            user2Name: "Aisha",
+            inviteCode: "ABC123",
+            anniversaryDate: nil
+        )
+
+        #expect(unknownDurationCouple.relationshipDurationDays == nil)
+        #expect(unknownDurationCouple.daysTogether == 0)
     }
 }

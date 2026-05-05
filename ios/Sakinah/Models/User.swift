@@ -12,6 +12,13 @@ final class User {
     var createdAt: Date
     var updatedAt: Date
     var subscriptionTierRaw: String
+    var relationshipFocusRaw: String?
+    var relationshipUrgencyRaw: String?
+    var relationshipFrictionRaw: String?
+    var starterPlanData: Data?
+    var starterPlanCreatedAt: Date?
+    var starterPlanDismissedAt: Date?
+    var requiresInitialSubscriptionUnlockFlag: Bool?
 
     var duaLanguagePreference: DuaLanguage {
         get { DuaLanguage(rawValue: duaLanguagePreferenceRaw) ?? .arabicEnglish }
@@ -21,6 +28,57 @@ final class User {
     var subscriptionTier: SubscriptionTier {
         get { SubscriptionTier(rawValue: subscriptionTierRaw) ?? .free }
         set { subscriptionTierRaw = newValue.rawValue }
+    }
+
+    var relationshipFocus: RelationshipFocus? {
+        get {
+            guard let relationshipFocusRaw else { return nil }
+            return RelationshipFocus(rawValue: relationshipFocusRaw)
+        }
+        set { relationshipFocusRaw = newValue?.rawValue }
+    }
+
+    var relationshipUrgency: RelationshipUrgency? {
+        get {
+            guard let relationshipUrgencyRaw else { return nil }
+            return RelationshipUrgency(rawValue: relationshipUrgencyRaw)
+        }
+        set { relationshipUrgencyRaw = newValue?.rawValue }
+    }
+
+    var relationshipFriction: RelationshipFriction? {
+        get {
+            guard let relationshipFrictionRaw else { return nil }
+            return RelationshipFriction(rawValue: relationshipFrictionRaw)
+        }
+        set { relationshipFrictionRaw = newValue?.rawValue }
+    }
+
+    var starterPlan: StarterPlan? {
+        get {
+            guard let starterPlanData else { return nil }
+            return try? JSONDecoder().decode(StarterPlan.self, from: starterPlanData)
+        }
+        set { starterPlanData = try? JSONEncoder().encode(newValue) }
+    }
+
+    var shouldShowStarterPlan: Bool {
+        guard starterPlan != nil,
+              starterPlanDismissedAt == nil,
+              let starterPlanCreatedAt else { return false }
+
+        let visibleDays = Calendar.current.dateComponents(
+            [.day],
+            from: Calendar.current.startOfDay(for: starterPlanCreatedAt),
+            to: Calendar.current.startOfDay(for: Date())
+        ).day ?? 0
+
+        return visibleDays < 7
+    }
+
+    var requiresInitialSubscriptionUnlock: Bool {
+        get { requiresInitialSubscriptionUnlockFlag ?? false }
+        set { requiresInitialSubscriptionUnlockFlag = newValue }
     }
 
     init(id: String, name: String, partnerID: String? = nil, coupleID: String? = nil,
@@ -37,9 +95,38 @@ final class User {
         self.createdAt = createdAt
         self.updatedAt = createdAt
         self.subscriptionTierRaw = subscriptionTier.rawValue
+        self.relationshipFocusRaw = nil
+        self.relationshipUrgencyRaw = nil
+        self.relationshipFrictionRaw = nil
+        self.starterPlanData = nil
+        self.starterPlanCreatedAt = nil
+        self.starterPlanDismissedAt = nil
+        self.requiresInitialSubscriptionUnlockFlag = false
     }
 
     func touch(_ date: Date = Date()) {
         updatedAt = date
+    }
+
+    func storeStarterPlan(
+        _ plan: StarterPlan,
+        focus: RelationshipFocus,
+        urgency: RelationshipUrgency,
+        friction: RelationshipFriction,
+        date: Date = Date()
+    ) {
+        starterPlan = plan
+        relationshipFocus = focus
+        relationshipUrgency = urgency
+        relationshipFriction = friction
+        starterPlanCreatedAt = date
+        starterPlanDismissedAt = nil
+        requiresInitialSubscriptionUnlock = true
+        touch(date)
+    }
+
+    func dismissStarterPlan(_ date: Date = Date()) {
+        starterPlanDismissedAt = date
+        touch(date)
     }
 }

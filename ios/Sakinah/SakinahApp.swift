@@ -26,6 +26,7 @@ struct SakinahApp: App {
             LoveLetter.self,
             SharedGoal.self,
             WishItem.self,
+            OnboardingDraft.self,
         ])
     }
 
@@ -51,6 +52,7 @@ struct SakinahApp: App {
                         appState.handleSubscriptionState(isPremium: tier == .premium)
 
                         if tier == .premium {
+                            persistPremiumUnlockStateIfNeeded()
                             await CloudKitService.shared.syncIfPossible(
                                 appState: appState,
                                 context: sharedModelContainer.mainContext
@@ -150,6 +152,7 @@ struct SakinahApp: App {
     private func bootstrapApp() async {
         subscriptionService.loadSubscriptionState()
         appState.handleSubscriptionState(isPremium: subscriptionService.isPremium)
+        persistPremiumUnlockStateIfNeeded()
 
         if CloudKitService.shared.hasPendingAcceptedShare {
             appState.notePendingShareDetected()
@@ -165,6 +168,7 @@ struct SakinahApp: App {
         ContentService.shared.checkDateRollover()
         await subscriptionService.refreshEntitlements()
         appState.handleSubscriptionState(isPremium: subscriptionService.isPremium)
+        persistPremiumUnlockStateIfNeeded()
 
         if CloudKitService.shared.hasPendingAcceptedShare {
             appState.notePendingShareDetected()
@@ -174,5 +178,14 @@ struct SakinahApp: App {
             appState: appState,
             context: sharedModelContainer.mainContext
         )
+    }
+
+    private func persistPremiumUnlockStateIfNeeded() {
+        guard subscriptionService.isPremium,
+              appState.currentUser?.requiresInitialSubscriptionUnlock == true else { return }
+
+        appState.currentUser?.requiresInitialSubscriptionUnlock = false
+        appState.currentUser?.touch()
+        try? sharedModelContainer.mainContext.save()
     }
 }

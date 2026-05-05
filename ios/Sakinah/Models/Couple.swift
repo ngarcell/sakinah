@@ -37,8 +37,17 @@ final class Couple {
         }
     }
 
+    var relationshipDurationDays: Int? {
+        guard let anniversaryDate else { return nil }
+
+        let start = Calendar.current.startOfDay(for: anniversaryDate)
+        let today = Calendar.current.startOfDay(for: Date())
+        let days = Calendar.current.dateComponents([.day], from: start, to: today).day ?? 0
+        return max(days, 0)
+    }
+
     var daysTogether: Int {
-        Calendar.current.dateComponents([.day], from: createdAt, to: Date()).day ?? 0
+        relationshipDurationDays ?? 0
     }
 
     init(id: String = UUID().uuidString,

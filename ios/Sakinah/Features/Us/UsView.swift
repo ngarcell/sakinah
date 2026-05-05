@@ -35,7 +35,7 @@ struct UsView: View {
                         HStack(spacing: SakinahSpacing.sm) {
                             Image(systemName: "leaf.fill")
                                 .foregroundStyle(SakinahColor.primary)
-                            Text("Complete check-ins and reflections to help your garden grow")
+                            Text("Daily care and weekly reflection help this garden feel more alive over time.")
                                 .font(SakinahFont.caption)
                                 .foregroundStyle(SakinahColor.textSecondary)
                         }
@@ -46,13 +46,22 @@ struct UsView: View {
                     }
 
                     // Weekly Reflection
-                    if vm.showReflection {
+                    if vm.showReflection && appState.hasPremiumAccess {
                         WeeklyReflectionCard {
                             withAnimation(SakinahAnimation.gentle) {
                                 vm.showReflection = false
                                 vm.gardenState = appState.currentCouple?.gardenState ?? GardenState()
                             }
                         }
+                    } else if vm.showReflection {
+                        UpgradePromptView(
+                            icon: "heart.text.square.fill",
+                            headline: "Unlock weekly reflections",
+                            message: "Keep turning your week together into a clearer picture of what needs care."
+                        ) {
+                            appState.presentPaywall(for: .weeklyReflection)
+                        }
+                        .padding(.horizontal, SakinahSpacing.base)
                     }
 
                     // Milestones & Memories
@@ -90,14 +99,16 @@ struct UsView: View {
                 .font(SakinahFont.title1)
                 .foregroundStyle(SakinahColor.textPrimary)
 
-            HStack(spacing: 4) {
-                Text("\(vm.daysTogether)")
-                    .font(SakinahFont.headline)
-                    .foregroundStyle(SakinahColor.accent)
-                    .contentTransition(.numericText())
-                Text("days together")
-                    .font(SakinahFont.bodySmall)
-                    .foregroundStyle(SakinahColor.textSecondary)
+            if let relationshipDurationDays = appState.relationshipDurationDays, relationshipDurationDays > 0 {
+                HStack(spacing: 4) {
+                    Text("\(relationshipDurationDays)")
+                        .font(SakinahFont.headline)
+                        .foregroundStyle(SakinahColor.accent)
+                        .contentTransition(.numericText())
+                    Text("days together")
+                        .font(SakinahFont.bodySmall)
+                        .foregroundStyle(SakinahColor.textSecondary)
+                }
             }
         }
     }

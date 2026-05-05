@@ -10,7 +10,6 @@ enum AppPaywallState: Equatable {
     case none
     case handoffAfterOnboarding
     case requiredAfterOnboarding
-    case requiredForLapsedAccess
 }
 
 enum PairingStatus: Equatable {
@@ -66,6 +65,8 @@ final class AppState {
     var currentCouple: Couple?
     var isSubscribed: Bool = false
     var paywallState: AppPaywallState = .none
+    var requiredPaywallEntryPoint: SakinahPaywallEntryPoint = .starterPlan
+    var presentedPaywallEntryPoint: SakinahPaywallEntryPoint?
     var pairingStatus: PairingStatus = .solo
     var syncStatus: SyncStatus = .idle
     var onboardingStep: OnboardingStep = .welcome
@@ -108,6 +109,10 @@ final class AppState {
         currentCouple?.daysTogether ?? 0
     }
 
+    var relationshipDurationDays: Int? {
+        currentCouple?.relationshipDurationDays
+    }
+
     var isPremium: Bool {
         isSubscribed
     }
@@ -118,7 +123,7 @@ final class AppState {
 
     var shouldShowMandatoryPaywall: Bool {
         currentUser != nil
-            && (paywallState == .requiredAfterOnboarding || paywallState == .requiredForLapsedAccess)
+            && paywallState == .requiredAfterOnboarding
             && !hasPremiumAccess
     }
 
@@ -138,23 +143,28 @@ final class AppState {
         refreshRoutingState()
     }
 
-    func advanceToHostedPaywall() {
+    func advanceToHostedPaywall(entryPoint: SakinahPaywallEntryPoint = .starterPlan) {
         guard currentUser != nil, !hasPremiumAccess else { return }
+        requiredPaywallEntryPoint = entryPoint
+        presentedPaywallEntryPoint = nil
         paywallState = .requiredAfterOnboarding
+    }
+
+    func presentPaywall(for entryPoint: SakinahPaywallEntryPoint) {
+        guard currentUser != nil, !hasPremiumAccess else { return }
+        presentedPaywallEntryPoint = entryPoint
+    }
+
+    func dismissPresentedPaywall() {
+        presentedPaywallEntryPoint = nil
     }
 
     func preparePostPurchaseExperience() {
         paywallState = .none
-
-        guard let couple = currentCouple else { return }
-        let needsInvite = couple.user2ID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            || pairingStatus == .readyToInvite
-            || pairingStatus == .invitationWaiting
-
-        if needsInvite {
-            pairingStatus = couple.cloudShareURLString == nil ? .readyToInvite : .invitationSent
-            showPartnerInvitePrompt = true
-        }
+        presentedPaywallEntryPoint = nil
+        selectedTab = .today
+        showPartnerInvitePrompt = pendingShareDetected
+        refreshPairingStatus()
     }
 
     func notePendingShareDetected() {
@@ -194,14 +204,28 @@ final class AppState {
 
         if currentUser == nil {
             paywallState = .none
+            presentedPaywallEntryPoint = nil
             showPartnerInvitePrompt = false
+        } else if currentUser?.requiresInitialSubscriptionUnlock == true && !hasPremiumAccess {
+            paywallState = .handoffAfterOnboarding
         } else if hasPremiumAccess {
             paywallState = .none
-        } else if paywallState == .none {
-            paywallState = .requiredForLapsedAccess
+            currentUser?.requiresInitialSubscriptionUnlock = false
         }
 
         refreshPairingStatus()
+    }
+
+    var hasLapsedAccess: Bool {
+        currentUser != nil && !hasPremiumAccess && paywallState == .none
+    }
+
+    var currentStarterPlan: StarterPlan? {
+        currentUser?.starterPlan
+    }
+
+    var shouldShowStarterPlanCard: Bool {
+        hasPremiumAccess && currentUser?.shouldShowStarterPlan == true
     }
 
     private func refreshPairingStatus() {

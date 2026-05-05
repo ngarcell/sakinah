@@ -21,7 +21,7 @@ struct WishlistsView: View {
                             .foregroundStyle(SakinahColor.textPrimary)
 
                         if myWishes.isEmpty && !showAddField {
-                            Text("Start with one little hint.")
+                            Text(appState.hasPremiumAccess ? "Start with one thoughtful hint." : "Unlock this space to keep the little details that make giving more intentional.")
                                 .font(SakinahFont.bodySmall)
                                 .foregroundStyle(SakinahColor.textTertiary)
                                 .padding(.vertical, SakinahSpacing.xl)
@@ -51,14 +51,18 @@ struct WishlistsView: View {
                         }
 
                         Button {
-                            withAnimation(SakinahAnimation.spring) {
-                                showAddField = true
+                            if appState.hasPremiumAccess {
+                                withAnimation(SakinahAnimation.spring) {
+                                    showAddField = true
+                                }
+                            } else {
+                                appState.presentPaywall(for: .sharedSpace)
                             }
                         } label: {
                             HStack {
                                 Image(systemName: "plus")
                                     .font(.system(size: 14, weight: .semibold))
-                                Text("Add wish")
+                                Text(appState.hasPremiumAccess ? "Add wish" : "Unlock wishes")
                                     .font(SakinahFont.captionBold)
                             }
                             .foregroundStyle(SakinahColor.primary)
@@ -144,7 +148,7 @@ struct WishlistsView: View {
         .background(SakinahColor.backgroundSecondary.opacity(0.5))
         .clipShape(.rect(cornerRadius: SakinahRadius.small))
         .swipeActions(edge: .trailing) {
-            if editable {
+            if editable && appState.hasPremiumAccess {
                 Button(role: .destructive) {
                     modelContext.delete(wish)
                     try? modelContext.save()
@@ -159,6 +163,10 @@ struct WishlistsView: View {
     }
 
     private func addWish() {
+        guard appState.hasPremiumAccess else {
+            appState.presentPaywall(for: .sharedSpace)
+            return
+        }
         let trimmed = newWishText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
         let wish = WishItem(

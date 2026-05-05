@@ -2,6 +2,7 @@ import SwiftUI
 
 struct WelcomeScreen: View {
     @Bindable var vm: OnboardingViewModel
+    @Environment(\.modelContext) private var modelContext
     @State private var appeared = false
     @State private var taglineVisible = false
     @State private var ctaVisible = false
@@ -47,18 +48,18 @@ struct WelcomeScreen: View {
                     VStack(spacing: SakinahSpacing.xs) {
                         if vm.hasPendingShareInvitation {
                             SakinahBadge(
-                                text: "Shared space ready",
+                                text: "Shared space waiting",
                                 color: SakinahColor.accent,
                                 tintedBackground: SakinahColor.accentLight
                             )
                         }
 
-                        Text(vm.hasPendingShareInvitation ? "Your spouse has already opened your shared space." : "A quiet daily ritual for your marriage")
+                        Text(vm.hasPendingShareInvitation ? "Your spouse already opened the shared space." : "A private ritual for Muslim marriages")
                             .font(SakinahFont.body)
                             .foregroundStyle(SakinahColor.textSecondary)
                             .multilineTextAlignment(.center)
 
-                        Text(vm.hasPendingShareInvitation ? "Set up your side, answer one real question, then unlock the space together." : "One thoughtful question, one shared reflection, one place that feels like the two of you.")
+                        Text(vm.hasPendingShareInvitation ? "Finish your side, save one honest answer, and step back into the same space together." : "Begin with one honest answer, shape a calmer first week, and keep the parts of your marriage that matter in one quiet place.")
                             .font(SakinahFont.caption)
                             .foregroundStyle(SakinahColor.textTertiary)
                             .multilineTextAlignment(.center)
@@ -71,12 +72,12 @@ struct WelcomeScreen: View {
                 Spacer()
 
                 VStack(spacing: SakinahSpacing.md) {
-                    SakinahButton(title: vm.hasPendingShareInvitation ? "Set Up My Space" : "Begin") {
+                    SakinahButton(title: vm.hasPendingShareInvitation ? "Continue My Setup" : "Begin") {
                         HapticEngine.shared.fire(.tap)
-                        vm.advance(to: .coupleSetup)
+                        vm.advance(to: .context, context: modelContext)
                     }
 
-                    Text("Your first answer is saved before the hosted plan screen.")
+                    Text("You will save your first answer before choosing a plan.")
                         .font(SakinahFont.caption)
                         .foregroundStyle(SakinahColor.textTertiary)
                 }

@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import UserNotifications
 
 struct LoveLettersView: View {
     @Environment(AppState.self) private var appState
@@ -17,9 +18,15 @@ struct LoveLettersView: View {
                 SakinahEmptyState(
                     icon: "envelope.fill",
                     title: "Love letters",
-                    message: "Write a letter now and let it arrive later, whether for an anniversary, a birthday, or an ordinary day that matters.",
-                    actionTitle: "Write a Letter",
-                    action: { showCompose = true }
+                    message: "Save words that deserve more intention than a passing text and let them arrive when the day matters most.",
+                    actionTitle: appState.hasPremiumAccess ? "Write a Letter" : "Unlock Letters",
+                    action: {
+                        if appState.hasPremiumAccess {
+                            showCompose = true
+                        } else {
+                            appState.presentPaywall(for: .sharedSpace)
+                        }
+                    }
                 )
             } else {
                 ScrollView {
@@ -41,7 +48,11 @@ struct LoveLettersView: View {
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     HapticEngine.shared.fire(.tap)
-                    showCompose = true
+                    if appState.hasPremiumAccess {
+                        showCompose = true
+                    } else {
+                        appState.presentPaywall(for: .sharedSpace)
+                    }
                 } label: {
                     Image(systemName: "square.and.pencil")
                         .foregroundStyle(SakinahColor.primary)
@@ -128,70 +139,79 @@ struct ComposeLetterView: View {
         NavigationStack {
             ZStack {
                 SakinahColor.background.ignoresSafeArea()
-                ScrollView {
-                    VStack(alignment: .leading, spacing: SakinahSpacing.lg) {
-                        Text("Write a Love Letter")
-                            .font(SakinahFont.title2)
-                            .foregroundStyle(SakinahColor.textPrimary)
+                if appState.hasPremiumAccess {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: SakinahSpacing.lg) {
+                            Text("Write a Love Letter")
+                                .font(SakinahFont.title2)
+                                .foregroundStyle(SakinahColor.textPrimary)
 
-                        Text("To: \(appState.partnerName)")
-                            .font(SakinahFont.headline)
-                            .foregroundStyle(SakinahColor.accent)
+                            Text("To: \(appState.partnerName)")
+                                .font(SakinahFont.headline)
+                                .foregroundStyle(SakinahColor.accent)
 
-                        // Title
-                        TextField("Add a title (optional)", text: $title)
-                            .font(SakinahFont.body)
-                            .padding(SakinahSpacing.md)
+                            TextField("Add a title (optional)", text: $title)
+                                .font(SakinahFont.body)
+                                .padding(SakinahSpacing.md)
+                                .background(SakinahColor.backgroundSecondary)
+                                .clipShape(.rect(cornerRadius: SakinahRadius.medium))
+
+                            ZStack(alignment: .topLeading) {
+                                GeometryReader { geo in
+                                    let lineCount = Int(geo.size.height / 28)
+                                    Path { path in
+                                        for i in 1...max(1, lineCount) {
+                                            let y = CGFloat(i) * 28
+                                            path.move(to: CGPoint(x: 0, y: y))
+                                            path.addLine(to: CGPoint(x: geo.size.width, y: y))
+                                        }
+                                    }
+                                    .stroke(SakinahColor.divider, lineWidth: 0.5)
+                                }
+
+                                if content.isEmpty {
+                                    Text("Dear \(appState.partnerName)...")
+                                        .font(SakinahFont.body)
+                                        .foregroundStyle(SakinahColor.textTertiary)
+                                        .padding(.horizontal, SakinahSpacing.md)
+                                        .padding(.top, SakinahSpacing.md)
+                                }
+                                TextEditor(text: $content)
+                                    .font(SakinahFont.body)
+                                    .foregroundStyle(SakinahColor.textPrimary)
+                                    .scrollContentBackground(.hidden)
+                                    .padding(.horizontal, SakinahSpacing.sm)
+                                    .padding(.vertical, SakinahSpacing.sm)
+                                    .lineSpacing(10)
+                            }
+                            .frame(minHeight: 280)
                             .background(SakinahColor.backgroundSecondary)
                             .clipShape(.rect(cornerRadius: SakinahRadius.medium))
 
-                        // Lined paper text editor
-                        ZStack(alignment: .topLeading) {
-                            // Lines
-                            GeometryReader { geo in
-                                let lineCount = Int(geo.size.height / 28)
-                                Path { path in
-                                    for i in 1...max(1, lineCount) {
-                                        let y = CGFloat(i) * 28
-                                        path.move(to: CGPoint(x: 0, y: y))
-                                        path.addLine(to: CGPoint(x: geo.size.width, y: y))
-                                    }
-                                }
-                                .stroke(SakinahColor.divider, lineWidth: 0.5)
-                            }
-
-                            if content.isEmpty {
-                                Text("Dear \(appState.partnerName)...")
-                                    .font(SakinahFont.body)
-                                    .foregroundStyle(SakinahColor.textTertiary)
-                                    .padding(.horizontal, SakinahSpacing.md)
-                                    .padding(.top, SakinahSpacing.md)
-                            }
-                            TextEditor(text: $content)
+                            DatePicker("Deliver on", selection: $deliveryDate, in: Calendar.current.date(byAdding: .day, value: 1, to: Date())!..., displayedComponents: .date)
                                 .font(SakinahFont.body)
-                                .foregroundStyle(SakinahColor.textPrimary)
-                                .scrollContentBackground(.hidden)
-                                .padding(.horizontal, SakinahSpacing.sm)
-                                .padding(.vertical, SakinahSpacing.sm)
-                                .lineSpacing(10)
-                        }
-                        .frame(minHeight: 280)
-                        .background(SakinahColor.backgroundSecondary)
-                        .clipShape(.rect(cornerRadius: SakinahRadius.medium))
+                                .tint(SakinahColor.primary)
 
-                        DatePicker("Deliver on", selection: $deliveryDate, in: Calendar.current.date(byAdding: .day, value: 1, to: Date())!..., displayedComponents: .date)
-                            .font(SakinahFont.body)
-                            .tint(SakinahColor.primary)
-
-                        SakinahButton(title: "Seal & Schedule") {
-                            sealLetter()
+                            SakinahButton(title: "Seal & Schedule") {
+                                sealLetter()
+                            }
+                            .disabled(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                            .opacity(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.55 : 1)
                         }
-                        .disabled(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                        .opacity(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.55 : 1)
+                        .padding(SakinahSpacing.base)
+                    }
+                    .scrollIndicators(.hidden)
+                } else {
+                    UpgradePromptView(
+                        icon: "envelope.fill",
+                        headline: "Keep private letters unlocked",
+                        message: "Your scheduled letters stay here. Unlock new ones with an active plan."
+                    ) {
+                        appState.presentPaywall(for: .sharedSpace)
+                        dismiss()
                     }
                     .padding(SakinahSpacing.base)
                 }
-                .scrollIndicators(.hidden)
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -206,6 +226,11 @@ struct ComposeLetterView: View {
     }
 
     private func sealLetter() {
+        guard appState.hasPremiumAccess else {
+            appState.presentPaywall(for: .sharedSpace)
+            dismiss()
+            return
+        }
         let letter = LoveLetter(
             coupleID: appState.currentCouple?.id ?? "",
             senderID: appState.currentUser?.id ?? "",
@@ -286,5 +311,3 @@ struct LetterReadView: View {
         }
     }
 }
-
-import UserNotifications

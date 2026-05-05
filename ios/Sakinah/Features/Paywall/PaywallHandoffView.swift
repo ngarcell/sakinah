@@ -3,6 +3,10 @@ import SwiftUI
 struct PaywallHandoffView: View {
     @Environment(AppState.self) private var appState
 
+    private var starterPlan: StarterPlan? {
+        appState.currentStarterPlan
+    }
+
     var body: some View {
         ZStack {
             SakinahColor.background.ignoresSafeArea()
@@ -20,7 +24,7 @@ struct PaywallHandoffView: View {
                         .foregroundStyle(SakinahColor.textPrimary)
                         .multilineTextAlignment(.center)
 
-                    Text("Next is the hosted plan screen. Choose the plan that keeps your private space, daily rituals, and shared history open.")
+                    Text("You already started the work. The next step simply keeps that private rhythm, your saved answer, and the shared space open.")
                         .font(SakinahFont.body)
                         .foregroundStyle(SakinahColor.textSecondary)
                         .multilineTextAlignment(.center)
@@ -29,17 +33,19 @@ struct PaywallHandoffView: View {
 
                 SakinahCard(elevated: true) {
                     VStack(alignment: .leading, spacing: SakinahSpacing.sm) {
-                        Text("What happens next")
+                        Text("What unlocks next")
                             .font(SakinahFont.headline)
                             .foregroundStyle(SakinahColor.textPrimary)
 
-                        Text("The plan screen is fully hosted by RevenueCat, so pricing, trials, and restore stay in one dedicated place.")
+                        Text("Daily prompts, guided lessons, and your shared space stay available in the same calm flow you already started.")
                             .font(SakinahFont.bodySmall)
                             .foregroundStyle(SakinahColor.textSecondary)
 
-                        Text("After purchase, you’ll return here and can invite your spouse into the shared space.")
-                            .font(SakinahFont.bodySmall)
-                            .foregroundStyle(SakinahColor.textSecondary)
+                        if let starterPlan {
+                            Text(starterPlan.firstWeekAction)
+                                .font(SakinahFont.bodySmall)
+                                .foregroundStyle(SakinahColor.accent)
+                        }
                     }
                 }
                 .padding(.horizontal, SakinahSpacing.base)
@@ -48,7 +54,7 @@ struct PaywallHandoffView: View {
 
                 VStack(spacing: SakinahSpacing.sm) {
                     SakinahButton(title: "Continue to Plans") {
-                        appState.advanceToHostedPaywall()
+                        appState.advanceToHostedPaywall(entryPoint: .starterPlan)
                     }
 
                     Text("If you already have access, you can restore it on the next screen.")

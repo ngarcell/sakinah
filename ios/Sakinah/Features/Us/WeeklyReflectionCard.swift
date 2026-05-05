@@ -170,6 +170,10 @@ struct WeeklyReflectionCard: View {
     }
 
     private func submitReflection() {
+        guard appState.hasPremiumAccess else {
+            appState.presentPaywall(for: .weeklyReflection)
+            return
+        }
         HapticEngine.shared.fire(.success)
 
         let reflection = WeeklyReflection(

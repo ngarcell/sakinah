@@ -39,6 +39,13 @@ struct MainTabView: View {
         )
     }
 
+    private var paywallBinding: Binding<SakinahPaywallEntryPoint?> {
+        Binding(
+            get: { appState.presentedPaywallEntryPoint },
+            set: { appState.presentedPaywallEntryPoint = $0 }
+        )
+    }
+
     var body: some View {
         ZStack(alignment: .bottom) {
             Group {
@@ -61,6 +68,9 @@ struct MainTabView: View {
         }
         .sheet(isPresented: invitePromptBinding) {
             PartnerInvitePromptView()
+        }
+        .sheet(item: paywallBinding) { entryPoint in
+            SakinahPaywallView(entryPoint: entryPoint, isMandatory: false)
         }
     }
 }

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CoupleSetupScreen: View {
     @Bindable var vm: OnboardingViewModel
+    @Environment(\.modelContext) private var modelContext
 
     var body: some View {
         VStack(spacing: 0) {
@@ -9,10 +10,10 @@ struct CoupleSetupScreen: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: SakinahSpacing.xl) {
                     VStack(alignment: .leading, spacing: SakinahSpacing.xs) {
-                        Text("Set the tone")
+                        Text("Set up your space")
                             .font(SakinahFont.title1)
                             .foregroundStyle(SakinahColor.textPrimary)
-                        Text(vm.hasPendingShareInvitation ? "A few details, then we’ll connect you to the shared space already waiting." : "A few details, then your first prompt and plan selection.")
+                        Text("Only the details that help Sakinah sound like your marriage, not someone else’s.")
                             .font(SakinahFont.bodySmall)
                             .foregroundStyle(SakinahColor.textSecondary)
                     }
@@ -21,30 +22,18 @@ struct CoupleSetupScreen: View {
                     SakinahTextField(label: "Spouse's name", placeholder: "e.g. Aisha", text: $vm.partnerName)
 
                     VStack(alignment: .leading, spacing: SakinahSpacing.sm) {
-                        Text("Relationship Stage")
+                        Text("Relationship date")
                             .font(SakinahFont.captionBold)
                             .foregroundStyle(SakinahColor.textSecondary)
                             .tracking(0.1)
                             .textCase(.uppercase)
-                        HStack(spacing: SakinahSpacing.sm) {
-                            ForEach(RelationshipStage.allCases, id: \.self) { stage in
-                                stageChip(stage)
-                            }
-                        }
-                    }
 
-                    VStack(alignment: .leading, spacing: SakinahSpacing.sm) {
-                        HStack {
-                            Text("Anniversary / Special Date")
-                                .font(SakinahFont.captionBold)
-                                .foregroundStyle(SakinahColor.textSecondary)
-                                .tracking(0.1)
-                                .textCase(.uppercase)
-                            Spacer()
-                            Toggle("", isOn: $vm.hasAnniversary)
-                                .labelsHidden()
-                                .tint(SakinahColor.primary)
-                        }
+                        Text("Add it if you want Sakinah to reflect your real timeline. Skip it if you would rather not.")
+                            .font(SakinahFont.caption)
+                            .foregroundStyle(SakinahColor.textTertiary)
+
+                        Toggle("Use an anniversary or special date", isOn: $vm.hasAnniversary)
+                            .tint(SakinahColor.primary)
 
                         if vm.hasAnniversary {
                             VStack(spacing: SakinahSpacing.sm) {
@@ -79,7 +68,7 @@ struct CoupleSetupScreen: View {
                     .animation(SakinahAnimation.spring, value: vm.useHijri)
 
                     VStack(alignment: .leading, spacing: SakinahSpacing.sm) {
-                        Text("Du'a language preference")
+                        Text("Du'a language")
                             .font(SakinahFont.captionBold)
                             .foregroundStyle(SakinahColor.textSecondary)
                             .tracking(0.1)
@@ -100,14 +89,16 @@ struct CoupleSetupScreen: View {
 
             VStack(spacing: SakinahSpacing.sm) {
                 SakinahButton(title: "Continue") {
-                    vm.advance(to: .firstPrompt)
+                    vm.advance(to: .clarify, context: modelContext)
                 }
-                .disabled(vm.yourName.isEmpty)
-                .opacity(vm.yourName.isEmpty ? 0.55 : 1)
+                .disabled(!vm.canContinueFromSetup)
+                .opacity(vm.canContinueFromSetup ? 1 : 0.55)
 
-                Text("You can change these details later in Settings.")
-                    .font(SakinahFont.caption)
-                    .foregroundStyle(SakinahColor.textTertiary)
+                Button("Back") {
+                    vm.goBack(context: modelContext)
+                }
+                .font(SakinahFont.captionBold)
+                .foregroundStyle(SakinahColor.primary)
             }
             .padding(.horizontal, SakinahSpacing.base)
             .padding(.bottom, SakinahSpacing.base)
@@ -116,33 +107,28 @@ struct CoupleSetupScreen: View {
 
     private var header: some View {
         HStack {
+            Button {
+                vm.goBack(context: modelContext)
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(SakinahColor.textPrimary)
+                    .frame(width: 40, height: 40)
+                    .background(SakinahColor.surface)
+                    .clipShape(Circle())
+            }
+            .buttonStyle(.plain)
+
             Spacer()
-            SakinahBadge(text: "Quick setup", color: SakinahColor.accent, tintedBackground: SakinahColor.accentLight)
+
+            SakinahBadge(text: "Step 3 of 5", color: SakinahColor.accent, tintedBackground: SakinahColor.accentLight)
+
             Spacer()
+
+            Color.clear
+                .frame(width: 40, height: 40)
         }
         .padding(.top, SakinahSpacing.base)
-    }
-
-    private func stageChip(_ stage: RelationshipStage) -> some View {
-        let selected = vm.relationshipStage == stage
-        return Button {
-            HapticEngine.shared.fire(.select)
-            vm.relationshipStage = stage
-        } label: {
-            Text(stage.label)
-                .font(SakinahFont.captionBold)
-                .foregroundStyle(selected ? .white : SakinahColor.textPrimary)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, SakinahSpacing.md)
-            .background(selected ? SakinahColor.primary : SakinahColor.backgroundSecondary)
-            .clipShape(.rect(cornerRadius: SakinahRadius.medium))
-            .overlay(
-                RoundedRectangle(cornerRadius: SakinahRadius.medium)
-                    .stroke(selected ? SakinahColor.primary : Color.clear, lineWidth: 2)
-            )
-        }
-        .pressScale()
-        .animation(SakinahAnimation.spring, value: selected)
     }
 
     private func langChip(_ lang: DuaLanguage) -> some View {

@@ -70,50 +70,60 @@ struct DailyPromptCard: View {
                 Spacer()
             }
 
-            // Text editor
-            VStack(alignment: .trailing, spacing: SakinahSpacing.xs) {
-                ZStack(alignment: .topLeading) {
-                    if vm.userResponse.isEmpty {
-                        Text("Write the answer you want to bring into your next conversation.")
-                            .font(SakinahFont.body)
-                            .foregroundStyle(SakinahColor.textTertiary)
-                            .padding(.horizontal, SakinahSpacing.md)
-                            .padding(.vertical, SakinahSpacing.md)
-                    }
-                    TextEditor(text: $vm.userResponse)
-                        .font(SakinahFont.body)
-                        .foregroundStyle(SakinahColor.textPrimary)
-                        .scrollContentBackground(.hidden)
-                        .padding(.horizontal, SakinahSpacing.sm)
-                        .padding(.vertical, SakinahSpacing.sm)
-                        .onChange(of: vm.userResponse) { _, new in
-                            if new.count > vm.maxResponseLength {
-                                vm.userResponse = String(new.prefix(vm.maxResponseLength))
-                            }
+            if appState.hasPremiumAccess {
+                VStack(alignment: .trailing, spacing: SakinahSpacing.xs) {
+                    ZStack(alignment: .topLeading) {
+                        if vm.userResponse.isEmpty {
+                            Text("Write the answer you want to bring into your next conversation.")
+                                .font(SakinahFont.body)
+                                .foregroundStyle(SakinahColor.textTertiary)
+                                .padding(.horizontal, SakinahSpacing.md)
+                                .padding(.vertical, SakinahSpacing.md)
                         }
-                }
-                .frame(minHeight: 100)
-                .background(SakinahColor.backgroundSecondary)
-                .clipShape(.rect(cornerRadius: SakinahRadius.medium))
+                        TextEditor(text: $vm.userResponse)
+                            .font(SakinahFont.body)
+                            .foregroundStyle(SakinahColor.textPrimary)
+                            .scrollContentBackground(.hidden)
+                            .padding(.horizontal, SakinahSpacing.sm)
+                            .padding(.vertical, SakinahSpacing.sm)
+                            .onChange(of: vm.userResponse) { _, new in
+                                if new.count > vm.maxResponseLength {
+                                    vm.userResponse = String(new.prefix(vm.maxResponseLength))
+                                }
+                            }
+                    }
+                    .frame(minHeight: 100)
+                    .background(SakinahColor.backgroundSecondary)
+                    .clipShape(.rect(cornerRadius: SakinahRadius.medium))
 
-                Text(vm.characterCount)
-                    .font(SakinahFont.caption)
-                    .foregroundStyle(
-                        vm.userResponse.count > vm.maxResponseLength - 50
-                        ? SakinahColor.warning
-                        : SakinahColor.textTertiary
-                    )
-            }
+                    Text(vm.characterCount)
+                        .font(SakinahFont.caption)
+                        .foregroundStyle(
+                            vm.userResponse.count > vm.maxResponseLength - 50
+                            ? SakinahColor.warning
+                            : SakinahColor.textTertiary
+                        )
+                }
 
-            SakinahButton(title: "Save my answer") {
-                vm.submitResponse(context: modelContext)
-                ReviewService.shared.onPromptRevealed(requestReview: { requestReview() })
-                Task {
-                    await CloudKitService.shared.syncIfPossible(appState: appState, context: modelContext)
+                SakinahButton(title: "Save my answer") {
+                    vm.submitResponse(context: modelContext)
+                    ReviewService.shared.onPromptRevealed(requestReview: { requestReview() })
+                    Task {
+                        await CloudKitService.shared.syncIfPossible(appState: appState, context: modelContext)
+                    }
+                }
+                .disabled(!vm.isResponseValid)
+                .opacity(vm.isResponseValid ? 1 : 0.55)
+            } else {
+                UpgradePromptView(
+                    icon: "moon.stars.fill",
+                    headline: "Keep the daily ritual open",
+                    message: "Your earlier answers stay here. Upgrade to answer new prompts and keep your shared rhythm moving.",
+                    ctaTitle: "See plans"
+                ) {
+                    appState.presentPaywall(for: .dailyHabit)
                 }
             }
-            .disabled(!vm.isResponseValid)
-            .opacity(vm.isResponseValid ? 1 : 0.55)
         }
     }
 

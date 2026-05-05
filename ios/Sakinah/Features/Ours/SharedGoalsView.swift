@@ -18,9 +18,15 @@ struct SharedGoalsView: View {
                 SakinahEmptyState(
                     icon: "target",
                     title: "Shared goals",
-                    message: "Set goals together and track your progress. Whether it's spiritual, financial, or quality time — grow side by side.",
-                    actionTitle: "Create a Goal",
-                    action: { showAddGoal = true }
+                    message: "Keep the practical parts of your marriage moving in the same direction, one goal at a time.",
+                    actionTitle: appState.hasPremiumAccess ? "Create a Goal" : "Unlock Goals",
+                    action: {
+                        if appState.hasPremiumAccess {
+                            showAddGoal = true
+                        } else {
+                            appState.presentPaywall(for: .sharedSpace)
+                        }
+                    }
                 )
             } else {
                 ScrollView {
@@ -62,7 +68,11 @@ struct SharedGoalsView: View {
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     HapticEngine.shared.fire(.tap)
-                    showAddGoal = true
+                    if appState.hasPremiumAccess {
+                        showAddGoal = true
+                    } else {
+                        appState.presentPaywall(for: .sharedSpace)
+                    }
                 } label: {
                     Image(systemName: "plus")
                         .foregroundStyle(SakinahColor.primary)
@@ -145,6 +155,10 @@ struct SharedGoalsView: View {
     }
 
     private func incrementGoal(_ goal: SharedGoal) {
+        guard appState.hasPremiumAccess else {
+            appState.presentPaywall(for: .sharedSpace)
+            return
+        }
         HapticEngine.shared.fire(.tap)
         goal.currentCount += 1
         goal.touch()
@@ -219,6 +233,11 @@ struct AddGoalSheet: View {
     }
 
     private func save() {
+        guard appState.hasPremiumAccess else {
+            appState.presentPaywall(for: .sharedSpace)
+            dismiss()
+            return
+        }
         let goal = SharedGoal(
             coupleID: appState.currentCouple?.id ?? "",
             title: title.trimmingCharacters(in: .whitespacesAndNewlines),

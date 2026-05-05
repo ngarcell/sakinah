@@ -2,23 +2,34 @@ import RevenueCat
 import RevenueCatUI
 import SwiftUI
 
-enum SakinahPaywallEntryPoint: Hashable, Sendable {
+enum SakinahPaywallEntryPoint: Hashable, Sendable, Identifiable {
+    case starterPlan
     case generic
     case dailyHabit
+    case guidedLesson
     case conversationPacks
     case sharedSpace
+    case weeklyReflection
     case settings
+
+    var id: String { identifier }
 
     var identifier: String {
         switch self {
+        case .starterPlan:
+            return "starter_plan"
         case .generic:
             return "generic"
         case .dailyHabit:
             return "daily_habit"
+        case .guidedLesson:
+            return "guided_lesson"
         case .conversationPacks:
             return "conversation_packs"
         case .sharedSpace:
             return "shared_space"
+        case .weeklyReflection:
+            return "weekly_reflection"
         case .settings:
             return "settings"
         }
@@ -26,14 +37,20 @@ enum SakinahPaywallEntryPoint: Hashable, Sendable {
 
     var contextMessage: String? {
         switch self {
+        case .starterPlan:
+            return "Continue the first week you already started and keep your saved answer, daily prompts, and shared space open."
         case .generic:
-            return "Unlock the full ritual: daily prompts, guided lessons, and one shared space for the two of you."
+            return "Keep your private ritual, guided reflection, and shared space available in one place."
         case .dailyHabit:
-            return "Keep the daily rhythm going with the full prompt library and your shared space."
+            return "Keep the daily rhythm going with tomorrow’s prompt and the space you are building together."
+        case .guidedLesson:
+            return "Unlock the lesson that matches what you want more care and clarity around right now."
         case .conversationPacks:
-            return "Unlock the full conversation library so the next meaningful question is always close."
+            return "Unlock the deeper conversation packs so you can keep the right question close."
         case .sharedSpace:
-            return "Unlock your journal, letters, goals, and wishlists in one private shared space."
+            return "Unlock the shared journal, letters, goals, wishes, and memories you keep together."
+        case .weeklyReflection:
+            return "Unlock the weekly reflection so your shared rhythm keeps turning into real progress."
         case .settings:
             return "Choose the plan that keeps your private space, daily prompts, and guided lessons available."
         }
@@ -58,6 +75,7 @@ struct SakinahPaywallView: View {
     let isMandatory: Bool
 
     @Environment(AppState.self) private var appState
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @State private var subscriptionService = SubscriptionService.shared
     @State private var purchaseNotice: String?
@@ -87,7 +105,7 @@ struct SakinahPaywallView: View {
             isPreparingPaywall = false
 
             if subscriptionService.isPremium {
-                dismissPaywall()
+                finalizeUnlockAndDismiss()
             }
         }
         .alert("Unable to Update Access", isPresented: purchaseNoticeBinding) {
@@ -100,7 +118,7 @@ struct SakinahPaywallView: View {
         }
         .onChange(of: subscriptionService.currentTier) { _, tier in
             if tier == .premium {
-                dismissPaywall()
+                finalizeUnlockAndDismiss()
             }
         }
     }
@@ -206,7 +224,7 @@ struct SakinahPaywallView: View {
             displayCloseButton: !isMandatory
         )
         .tint(SakinahColor.primary)
-        .customPaywallVariables(entryPoint.revenueCatVariables)
+        .customPaywallVariables(paywallVariables)
         .onPurchaseStarted { _ in
             purchaseNotice = nil
             subscriptionService.clearError()
@@ -214,7 +232,7 @@ struct SakinahPaywallView: View {
         .onPurchaseCompleted { customerInfo in
             subscriptionService.syncCustomerInfo(customerInfo)
             HapticEngine.shared.fire(.celebration)
-            dismissPaywall()
+            finalizeUnlockAndDismiss()
         }
         .onPurchaseCancelled {
             purchaseNotice = nil
@@ -231,7 +249,7 @@ struct SakinahPaywallView: View {
             subscriptionService.syncCustomerInfo(customerInfo)
 
             if subscriptionService.isPremium {
-                dismissPaywall()
+                finalizeUnlockAndDismiss()
             } else {
                 purchaseNotice = "No previous access was found to restore."
             }
@@ -242,17 +260,43 @@ struct SakinahPaywallView: View {
         }
         .onRequestedDismissal {
             if !isMandatory {
+                appState.dismissPresentedPaywall()
                 dismiss()
             }
         }
     }
 
-    private func dismissPaywall() {
+    private var paywallVariables: [String: CustomVariableValue] {
+        var variables = entryPoint.revenueCatVariables
+        variables["recommended_plan"] = .string("annual")
+        variables["saved_answer_present"] = .bool(appState.currentStarterPlan != nil)
+
+        if let relationshipStage = appState.currentCouple?.relationshipStage.rawValue {
+            variables["relationship_stage"] = .string(relationshipStage)
+        }
+        if let focus = appState.currentUser?.relationshipFocus?.rawValue {
+            variables["focus"] = .string(focus)
+        }
+        if let urgency = appState.currentUser?.relationshipUrgency?.rawValue {
+            variables["urgency"] = .string(urgency)
+        }
+        if let friction = appState.currentUser?.relationshipFriction?.rawValue {
+            variables["friction"] = .string(friction)
+        }
+
+        return variables
+    }
+
+    private func finalizeUnlockAndDismiss() {
         guard !hasHandledUnlock else { return }
         hasHandledUnlock = true
 
+        appState.currentUser?.requiresInitialSubscriptionUnlock = false
+        appState.currentUser?.touch()
+        try? modelContext.save()
         appState.handleSubscriptionState(isPremium: true)
         appState.preparePostPurchaseExperience()
+        appState.dismissPresentedPaywall()
         dismiss()
     }
 }

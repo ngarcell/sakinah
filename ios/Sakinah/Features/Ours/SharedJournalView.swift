@@ -15,9 +15,15 @@ struct SharedJournalView: View {
                 SakinahEmptyState(
                     icon: "book.closed",
                     title: "Your shared journal",
-                    message: "Write your first entry together. Your thoughts, gratitude, and reflections — all in one place.",
-                    actionTitle: "Write Entry",
-                    action: { showCompose = true }
+                    message: "Keep gratitude, honesty, and ordinary moments in one place that feels like the two of you.",
+                    actionTitle: appState.hasPremiumAccess ? "Write Entry" : "Unlock Journal",
+                    action: {
+                        if appState.hasPremiumAccess {
+                            showCompose = true
+                        } else {
+                            appState.presentPaywall(for: .sharedSpace)
+                        }
+                    }
                 )
             } else {
                 ScrollView {
@@ -36,7 +42,11 @@ struct SharedJournalView: View {
             // FAB
             Button {
                 HapticEngine.shared.fire(.tap)
-                showCompose = true
+                if appState.hasPremiumAccess {
+                    showCompose = true
+                } else {
+                    appState.presentPaywall(for: .sharedSpace)
+                }
             } label: {
                 Image(systemName: "plus")
                     .font(.system(size: 22, weight: .semibold))
@@ -117,40 +127,53 @@ struct ComposeJournalSheet: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: SakinahSpacing.lg) {
-                ZStack(alignment: .topLeading) {
-                    if content.isEmpty {
-                        Text("What's on your heart today?")
-                            .font(SakinahFont.body)
-                            .foregroundStyle(SakinahColor.textTertiary)
-                            .padding(.horizontal, SakinahSpacing.md)
-                            .padding(.vertical, SakinahSpacing.md)
+            Group {
+                if appState.hasPremiumAccess {
+                    VStack(spacing: SakinahSpacing.lg) {
+                        ZStack(alignment: .topLeading) {
+                            if content.isEmpty {
+                                Text("What's on your heart today?")
+                                    .font(SakinahFont.body)
+                                    .foregroundStyle(SakinahColor.textTertiary)
+                                    .padding(.horizontal, SakinahSpacing.md)
+                                    .padding(.vertical, SakinahSpacing.md)
+                            }
+                            TextEditor(text: $content)
+                                .font(SakinahFont.body)
+                                .foregroundStyle(SakinahColor.textPrimary)
+                                .scrollContentBackground(.hidden)
+                                .padding(.horizontal, SakinahSpacing.sm)
+                                .padding(.vertical, SakinahSpacing.sm)
+                        }
+                        .frame(minHeight: 200)
+                        .background(SakinahColor.backgroundSecondary)
+                        .clipShape(.rect(cornerRadius: SakinahRadius.medium))
+
+                        Toggle(isOn: $isShared) {
+                            Text("Share with \(appState.partnerName)")
+                                .font(SakinahFont.body)
+                                .foregroundStyle(SakinahColor.textPrimary)
+                        }
+                        .tint(SakinahColor.primary)
+
+                        Spacer()
+
+                        SakinahButton(title: "Save") {
+                            save()
+                        }
+                        .disabled(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        .opacity(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.55 : 1)
                     }
-                    TextEditor(text: $content)
-                        .font(SakinahFont.body)
-                        .foregroundStyle(SakinahColor.textPrimary)
-                        .scrollContentBackground(.hidden)
-                        .padding(.horizontal, SakinahSpacing.sm)
-                        .padding(.vertical, SakinahSpacing.sm)
+                } else {
+                    UpgradePromptView(
+                        icon: "book.closed.fill",
+                        headline: "Keep writing in your journal",
+                        message: "Your saved entries remain here. Unlock new writing and sharing with an active plan."
+                    ) {
+                        appState.presentPaywall(for: .sharedSpace)
+                        dismiss()
+                    }
                 }
-                .frame(minHeight: 200)
-                .background(SakinahColor.backgroundSecondary)
-                .clipShape(.rect(cornerRadius: SakinahRadius.medium))
-
-                Toggle(isOn: $isShared) {
-                    Text("Share with \(appState.partnerName)")
-                        .font(SakinahFont.body)
-                        .foregroundStyle(SakinahColor.textPrimary)
-                }
-                .tint(SakinahColor.primary)
-
-                Spacer()
-
-                SakinahButton(title: "Save") {
-                    save()
-                }
-                .disabled(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                .opacity(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.55 : 1)
             }
             .padding(SakinahSpacing.base)
             .navigationTitle("New Entry")
@@ -168,6 +191,11 @@ struct ComposeJournalSheet: View {
     }
 
     private func save() {
+        guard appState.hasPremiumAccess else {
+            appState.presentPaywall(for: .sharedSpace)
+            dismiss()
+            return
+        }
         let entry = JournalEntry(
             coupleID: appState.currentCouple?.id ?? "",
             userID: appState.currentUser?.id ?? "",

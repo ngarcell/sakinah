@@ -33,6 +33,10 @@ struct TodayView: View {
                             inviteBanner
                         }
 
+                        if appState.shouldShowStarterPlanCard {
+                            StarterPlanCard()
+                        }
+
                         DailyPromptCard(vm: vm)
 
                         if let dua = vm.todaysDua {
@@ -87,8 +91,8 @@ struct TodayView: View {
                 if vm.currentStreak > 0 {
                     StreakBadge(count: vm.currentStreak, label: "day streak")
                 }
-                if appState.daysTogether > 0 {
-                    StreakBadge(count: appState.daysTogether, label: "days together", icon: "heart.fill")
+                if let relationshipDurationDays = appState.relationshipDurationDays, relationshipDurationDays > 0 {
+                    StreakBadge(count: relationshipDurationDays, label: "days together", icon: "heart.fill")
                 }
             }
         }

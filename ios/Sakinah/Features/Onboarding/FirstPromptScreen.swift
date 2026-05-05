@@ -2,13 +2,18 @@ import SwiftUI
 
 struct FirstPromptScreen: View {
     @Bindable var vm: OnboardingViewModel
+    @Environment(\.modelContext) private var modelContext
     let onComplete: () -> Void
     @State private var appeared = false
     @FocusState private var focused: Bool
 
-    @MainActor
-    private var prompt: (id: String, text: String, category: PromptCategory) {
-        ContentService.shared.firstPrompt(partnerName: vm.partnerName.isEmpty ? "your spouse" : vm.partnerName)
+    private var plan: StarterPlan {
+        vm.starterPlan ?? StarterPlanService.makePlan(
+            partnerName: vm.partnerName,
+            focus: vm.relationshipFocus,
+            urgency: vm.relationshipUrgency,
+            friction: vm.relationshipFriction
+        )
     }
 
     var body: some View {
@@ -22,7 +27,7 @@ struct FirstPromptScreen: View {
                 HStack {
                     Button {
                         HapticEngine.shared.fire(.tap)
-                        vm.advance(to: .coupleSetup)
+                        vm.goBack(context: modelContext)
                     } label: {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 17, weight: .semibold))
@@ -46,11 +51,11 @@ struct FirstPromptScreen: View {
                                 .foregroundStyle(SakinahColor.accent)
                                 .scaleEffect(appeared ? 1 : 0.85)
                                 .opacity(appeared ? 1 : 0)
-                            Text("Begin with something real")
+                            Text("Your first week in Sakinah")
                                 .font(SakinahFont.title2)
                                 .foregroundStyle(SakinahColor.textPrimary)
                                 .multilineTextAlignment(.center)
-                            Text("Write one honest answer now. We’ll save it first, then unlock the full experience.")
+                            Text("This is the first plan built from what you told us. Save one honest answer, then continue into the full ritual.")
                                 .font(SakinahFont.bodySmall)
                                 .foregroundStyle(SakinahColor.textSecondary)
                                 .multilineTextAlignment(.center)
@@ -60,20 +65,49 @@ struct FirstPromptScreen: View {
                         SakinahCard(elevated: true) {
                             VStack(alignment: .leading, spacing: SakinahSpacing.base) {
                                 SakinahBadge(
-                                    text: prompt.category.label,
-                                    icon: prompt.category.icon,
+                                    text: vm.relationshipFocus.shortLabel,
+                                    icon: "sparkles",
                                     color: SakinahColor.accent,
                                     tintedBackground: SakinahColor.accentLight
                                 )
-                                Text(prompt.text)
+                                Text(plan.headline)
                                     .font(SakinahFont.title3)
                                     .foregroundStyle(SakinahColor.textPrimary)
                                     .lineSpacing(4)
                                     .fixedSize(horizontal: false, vertical: true)
 
+                                Text(plan.reason)
+                                    .font(SakinahFont.bodySmall)
+                                    .foregroundStyle(SakinahColor.textSecondary)
+                                    .lineSpacing(3)
+
+                                VStack(alignment: .leading, spacing: SakinahSpacing.xs) {
+                                    Text("First question")
+                                        .font(SakinahFont.captionBold)
+                                        .foregroundStyle(SakinahColor.textSecondary)
+                                        .textCase(.uppercase)
+                                    Text(plan.firstPrompt)
+                                        .font(SakinahFont.body)
+                                        .foregroundStyle(SakinahColor.textPrimary)
+                                        .lineSpacing(4)
+                                }
+
+                                VStack(alignment: .leading, spacing: SakinahSpacing.xs) {
+                                    Text("What to do next")
+                                        .font(SakinahFont.captionBold)
+                                        .foregroundStyle(SakinahColor.textSecondary)
+                                        .textCase(.uppercase)
+                                    Text(plan.firstWeekAction)
+                                        .font(SakinahFont.bodySmall)
+                                        .foregroundStyle(SakinahColor.textSecondary)
+                                    Text(plan.recommendedPackOrLesson)
+                                        .font(SakinahFont.bodySmall)
+                                        .foregroundStyle(SakinahColor.accent)
+                                }
+
                                 ZStack(alignment: .topLeading) {
                                     if vm.firstResponse.isEmpty {
-                                        Text("Write the answer you want to bring into your next conversation.")
+                                        Text("Write the answer you would want to bring into your next calm conversation.")
                                             .font(SakinahFont.body)
                                             .foregroundStyle(SakinahColor.textTertiary)
                                             .padding(.horizontal, SakinahSpacing.sm)
@@ -104,15 +138,20 @@ struct FirstPromptScreen: View {
                             onComplete()
                         }
                     }
-                    .disabled(vm.firstResponse.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                    .opacity(vm.firstResponse.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.55 : 1)
+                    .disabled(!vm.canCompleteFirstValue)
+                    .opacity(vm.canCompleteFirstValue ? 1 : 0.55)
 
-                    Text("Next: a short handoff, then the hosted plan screen.")
+                    Text("Next: choose the plan that keeps this ritual open.")
                         .font(SakinahFont.caption)
                         .foregroundStyle(SakinahColor.textTertiary)
                 }
                 .padding(.horizontal, SakinahSpacing.base)
                 .padding(.bottom, SakinahSpacing.base)
+            }
+        }
+        .task {
+            if vm.starterPlan == nil {
+                vm.refreshStarterPlan(context: modelContext)
             }
         }
         .onAppear {

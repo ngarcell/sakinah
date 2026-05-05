@@ -44,7 +44,7 @@ final class TodayViewModel {
     var coupleID: String = ""
     var userID: String = ""
     var useHijri: Bool = false
-    var relationshipDays: Int = 0
+    var relationshipDays: Int?
 
     let maxResponseLength = 500
 
@@ -62,7 +62,7 @@ final class TodayViewModel {
         coupleID = appState.currentCouple?.id ?? ""
         userID = appState.currentUser?.id ?? ""
         useHijri = appState.currentCouple?.useHijriCalendar ?? false
-        relationshipDays = appState.currentCouple?.daysTogether ?? 0
+        relationshipDays = appState.relationshipDurationDays
 
         let prompt = ContentService.shared.todaysPrompt(
             coupleID: coupleID,

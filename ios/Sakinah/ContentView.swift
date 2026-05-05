@@ -23,7 +23,7 @@ struct ContentView: View {
                             removal: .opacity
                         ))
                 } else if appState.shouldShowMandatoryPaywall {
-                    SakinahPaywallView(entryPoint: .generic, isMandatory: true)
+                    SakinahPaywallView(entryPoint: appState.requiredPaywallEntryPoint, isMandatory: true)
                         .transition(.asymmetric(
                             insertion: .opacity,
                             removal: .opacity
@@ -49,13 +49,20 @@ struct ContentView: View {
     }
 
     private func restoreSession() {
+        appState.handleSubscriptionState(isPremium: subscriptionService.isPremium)
+
         let userDescriptor = FetchDescriptor<User>()
         let user = (try? modelContext.fetch(userDescriptor))?.first
 
         let coupleDescriptor = FetchDescriptor<Couple>()
         let couple = (try? modelContext.fetch(coupleDescriptor))?.first
 
+        let shouldPersistUnlockClear = user?.requiresInitialSubscriptionUnlock == true && subscriptionService.isPremium
         appState.restoreSession(user: user, couple: couple)
+
+        if shouldPersistUnlockClear {
+            try? modelContext.save()
+        }
 
         if user != nil, appState.hasPremiumAccess {
             Task {

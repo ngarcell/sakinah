@@ -53,8 +53,17 @@ final class ContentService {
 
     // MARK: - Daily Selection (Deterministic)
 
-    func todaysPrompt(coupleID: String = "", partnerName: String = "your partner", relationshipDays: Int = 0) -> (id: String, text: String, category: PromptCategory) {
-        let eligible = prompts.filter { $0.minRelationshipDays <= relationshipDays }
+    func todaysPrompt(
+        coupleID: String = "",
+        partnerName: String = "your partner",
+        relationshipDays: Int? = nil
+    ) -> (id: String, text: String, category: PromptCategory) {
+        let eligible: [PromptData]
+        if let relationshipDays {
+            eligible = prompts.filter { $0.minRelationshipDays <= relationshipDays }
+        } else {
+            eligible = prompts
+        }
         guard !eligible.isEmpty else {
             let p = prompts.first ?? fallbackPrompts[0]
             return (p.id, resolveTemplate(p.text, partnerName: partnerName), PromptCategory(rawValue: p.category) ?? .gratitude)

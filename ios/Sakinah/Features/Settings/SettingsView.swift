@@ -12,6 +12,7 @@ struct SettingsView: View {
     @State private var showCustomerCenter = false
     @State private var showDeleteConfirm = false
     @State private var deleteText = ""
+    @State private var paywallEntryPoint: SakinahPaywallEntryPoint?
 
     // Notification preferences
     @AppStorage("dailyPromptNotif") private var dailyPromptNotif = true
@@ -59,6 +60,9 @@ struct SettingsView: View {
             .sheet(isPresented: invitePromptBinding) {
                 PartnerInvitePromptView()
             }
+            .sheet(item: $paywallEntryPoint) { entryPoint in
+                SakinahPaywallView(entryPoint: entryPoint, isMandatory: false)
+            }
         }
     }
 
@@ -94,19 +98,19 @@ struct SettingsView: View {
                     .foregroundStyle(sharedSpaceStatusColor)
             }
 
-            if appState.daysTogether > 0 {
+            if let relationshipDurationDays = appState.relationshipDurationDays, relationshipDurationDays > 0 {
                 HStack {
                     Text("Days together")
                         .font(SakinahFont.body)
                     Spacer()
-                    Text("\(appState.daysTogether)")
+                    Text("\(relationshipDurationDays)")
                         .font(SakinahFont.headline)
                         .foregroundStyle(SakinahColor.accent)
                 }
             }
 
             if appState.pairingStatus != .paired {
-                Button("Invite Spouse") {
+                Button("Invite spouse") {
                     appState.showPartnerInvitePrompt = true
                 }
             } else if let syncStatusText {
@@ -160,6 +164,17 @@ struct SettingsView: View {
                 Text(subscriptionService.currentPlanName)
                     .font(SakinahFont.bodySmall)
                     .foregroundStyle(subscriptionService.isPremium ? SakinahColor.accent : SakinahColor.textSecondary)
+            }
+
+            if !subscriptionService.isPremium {
+                Text(subscriptionService.featuredPlanSummary)
+                    .font(SakinahFont.bodySmall)
+                    .foregroundStyle(SakinahColor.textSecondary)
+
+                Button("See Plans") {
+                    paywallEntryPoint = .settings
+                }
+                .foregroundStyle(SakinahColor.primary)
             }
 
             if subscriptionService.canOpenCustomerCenter {
@@ -242,7 +257,7 @@ struct SettingsView: View {
             HStack(spacing: SakinahSpacing.sm) {
                 Image(systemName: "lock.shield.fill")
                     .foregroundStyle(SakinahColor.success)
-                Text("Your entries stay on your device and in your iCloud-shared space. Only the spouse you invite can access the shared items.")
+                Text("Your entries stay on your device and in the iCloud-shared space you create with your spouse. Only the spouse you invite can access shared items.")
                     .font(SakinahFont.bodySmall)
                     .foregroundStyle(SakinahColor.textSecondary)
             }
@@ -352,6 +367,7 @@ struct SettingsView: View {
             try modelContext.delete(model: SharedGoal.self)
             try modelContext.delete(model: WishItem.self)
             try modelContext.delete(model: Lesson.self)
+            try modelContext.delete(model: OnboardingDraft.self)
             try modelContext.save()
         } catch {}
 

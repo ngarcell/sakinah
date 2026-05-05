@@ -59,11 +59,11 @@ struct PartnerInvitePromptView: View {
 
     private var hero: some View {
         VStack(alignment: .leading, spacing: SakinahSpacing.md) {
-            Text("Bring your spouse into the same space when you're ready.")
+            Text("Bring your spouse into the same private space when you're ready.")
                 .font(SakinahFont.title1)
                 .foregroundStyle(SakinahColor.textPrimary)
 
-            Text("Sakinah keeps your daily prompt history, shared journal, letters, goals, and reflections together in one private place.")
+            Text("Keep your prompts, journal, letters, goals, and memories in one calm place you both return to.")
                 .font(SakinahFont.body)
                 .foregroundStyle(SakinahColor.textSecondary)
         }
@@ -73,9 +73,9 @@ struct PartnerInvitePromptView: View {
     private var detailCard: some View {
         SakinahCard(elevated: true) {
             VStack(alignment: .leading, spacing: SakinahSpacing.base) {
-                row(icon: "bubble.left.and.bubble.right.fill", title: "Daily prompts stay in sync")
-                row(icon: "book.closed.fill", title: "Shared journal and letters feel personal, not cluttered")
-                row(icon: "checklist", title: "Goals, memories, and reflections live in one calm timeline")
+                row(icon: "bubble.left.and.bubble.right.fill", title: "Daily prompts stay in step")
+                row(icon: "book.closed.fill", title: "Journal entries and letters stay personal, not scattered")
+                row(icon: "checklist", title: "Goals, memories, and reflections stay in one shared history")
             }
         }
     }
@@ -87,7 +87,7 @@ struct PartnerInvitePromptView: View {
                     .font(SakinahFont.headline)
                     .foregroundStyle(SakinahColor.textPrimary)
 
-                Text("Create a private invitation link and send it through Messages, WhatsApp, or wherever you already talk.")
+                Text("Create one private invitation link and send it through the place you already talk.")
                     .font(SakinahFont.bodySmall)
                     .foregroundStyle(SakinahColor.textSecondary)
 

@@ -39,6 +39,80 @@ nonisolated enum RelationshipStage: String, Codable, CaseIterable, Sendable {
     }
 }
 
+nonisolated enum RelationshipFocus: String, Codable, CaseIterable, Sendable {
+    case connection
+    case communication
+    case conflictRepair
+    case spiritualRhythm
+    case futurePlanning
+
+    var label: String {
+        switch self {
+        case .connection: return "Feel closer again"
+        case .communication: return "Talk more openly"
+        case .conflictRepair: return "Handle tension gently"
+        case .spiritualRhythm: return "Build a spiritual rhythm"
+        case .futurePlanning: return "Plan life together"
+        }
+    }
+
+    var shortLabel: String {
+        switch self {
+        case .connection: return "Connection"
+        case .communication: return "Communication"
+        case .conflictRepair: return "Conflict repair"
+        case .spiritualRhythm: return "Spiritual rhythm"
+        case .futurePlanning: return "Future planning"
+        }
+    }
+}
+
+nonisolated enum RelationshipUrgency: String, Codable, CaseIterable, Sendable {
+    case steady
+    case soon
+    case now
+
+    var label: String {
+        switch self {
+        case .steady: return "We want a steadier rhythm"
+        case .soon: return "We should get back on track soon"
+        case .now: return "Something needs care right now"
+        }
+    }
+
+    var shortLabel: String {
+        switch self {
+        case .steady: return "Steady"
+        case .soon: return "Soon"
+        case .now: return "Right now"
+        }
+    }
+}
+
+nonisolated enum RelationshipFriction: String, Codable, CaseIterable, Sendable {
+    case makingTime
+    case honestConversations
+    case spiritualAlignment
+    case hardTopics
+
+    var label: String {
+        switch self {
+        case .makingTime: return "Making time for each other"
+        case .honestConversations: return "Starting honest conversations"
+        case .spiritualAlignment: return "Staying spiritually aligned"
+        case .hardTopics: return "Handling hard topics gently"
+        }
+    }
+}
+
+nonisolated struct StarterPlan: Codable, Sendable, Equatable {
+    let headline: String
+    let reason: String
+    let firstPrompt: String
+    let recommendedPackOrLesson: String
+    let firstWeekAction: String
+}
+
 nonisolated enum PromptCategory: String, Codable, CaseIterable, Sendable {
     case gratitude, dreams, memories, faith, intimacy, fun
 

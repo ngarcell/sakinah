@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 
 struct LearnView: View {
+    @Environment(AppState.self) private var appState
     @Query private var completedLessons: [Lesson]
     @State private var selectedLesson: LessonData?
     @State private var selectedPack: ConversationPack?
@@ -78,8 +79,19 @@ struct LearnView: View {
                                 .lineLimit(2)
                         }
 
-                        SakinahButton(title: "Read Lesson") {
-                            selectedLesson = lesson
+                        if appState.hasPremiumAccess {
+                            SakinahButton(title: "Read Lesson") {
+                                selectedLesson = lesson
+                            }
+                        } else {
+                            UpgradePromptView(
+                                icon: "book.closed.fill",
+                                headline: "Unlock the full lesson",
+                                message: "Keep the guidance that fits your situation close when you need it.",
+                                ctaTitle: "See plans"
+                            ) {
+                                appState.presentPaywall(for: .guidedLesson)
+                            }
                         }
                     }
                 }
@@ -114,7 +126,11 @@ struct LearnView: View {
     private func packCard(_ pack: ConversationPack) -> some View {
         Button {
             HapticEngine.shared.fire(.tap)
-            selectedPack = pack
+            if appState.hasPremiumAccess {
+                selectedPack = pack
+            } else {
+                appState.presentPaywall(for: .conversationPacks)
+            }
         } label: {
             VStack(spacing: 0) {
                 ZStack {
@@ -127,6 +143,16 @@ struct LearnView: View {
                         .foregroundStyle(.white)
                 }
                 .frame(height: 130)
+                .overlay(alignment: .topTrailing) {
+                    if !appState.hasPremiumAccess {
+                        SakinahBadge(
+                            text: "Premium",
+                            color: .white,
+                            tintedBackground: SakinahColor.textPrimary.opacity(0.28)
+                        )
+                        .padding(SakinahSpacing.sm)
+                    }
+                }
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(pack.name)
@@ -166,7 +192,11 @@ struct LearnView: View {
 
                     ForEach(completed) { lesson in
                         Button {
-                            selectedLesson = lesson
+                            if appState.hasPremiumAccess {
+                                selectedLesson = lesson
+                            } else {
+                                appState.presentPaywall(for: .guidedLesson)
+                            }
                         } label: {
                             HStack(spacing: SakinahSpacing.md) {
                                 Image(systemName: "checkmark.circle.fill")

@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct OursView: View {
+    @Environment(AppState.self) private var appState
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -8,6 +10,18 @@ struct OursView: View {
                 ScrollView {
                     VStack(spacing: SakinahSpacing.xl) {
                         header
+
+                        if appState.hasLapsedAccess {
+                            UpgradePromptView(
+                                icon: "lock.shield.fill",
+                                headline: "Your shared space is still here",
+                                message: "Keep reading what you already saved, or unlock new writing, goals, wishes, and memories with an active plan."
+                            ) {
+                                appState.presentPaywall(for: .sharedSpace)
+                            }
+                            .padding(.horizontal, SakinahSpacing.base)
+                        }
+
                         gridCards
 
                         Spacer().frame(height: 100)
@@ -48,7 +62,7 @@ struct OursView: View {
             oursNavCard(
                 icon: "book.fill",
                 title: "Journal",
-                subtitle: "Write together",
+                subtitle: "Keep what mattered",
                 gradient: [SakinahColor.primary, SakinahColor.primary.opacity(0.7)],
                 destination: SharedJournalView()
             )
@@ -56,7 +70,7 @@ struct OursView: View {
             oursNavCard(
                 icon: "envelope.fill",
                 title: "Letters",
-                subtitle: "Send surprises",
+                subtitle: "Send with intention",
                 gradient: [SakinahColor.accent, SakinahColor.accentWarm],
                 destination: LoveLettersView()
             )
@@ -64,7 +78,7 @@ struct OursView: View {
             oursNavCard(
                 icon: "target",
                 title: "Goals",
-                subtitle: "Build together",
+                subtitle: "Move together",
                 gradient: [SakinahColor.success, SakinahColor.success.opacity(0.7)],
                 destination: SharedGoalsView()
             )

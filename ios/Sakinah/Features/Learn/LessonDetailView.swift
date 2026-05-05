@@ -3,6 +3,7 @@ import SwiftData
 
 struct LessonDetailView: View {
     let lesson: LessonData
+    @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @State private var isActionCompleted = false
@@ -149,11 +150,22 @@ struct LessonDetailView: View {
                 .font(SakinahFont.body)
                 .foregroundStyle(SakinahColor.textPrimary)
                 .lineSpacing(4)
-            SakinahButton(title: isActionCompleted ? "Done ✓" : "Mark as Done", variant: .secondary) {
-                markComplete()
+            if appState.hasPremiumAccess {
+                SakinahButton(title: isActionCompleted ? "Done ✓" : "Mark as Done", variant: .secondary) {
+                    markComplete()
+                }
+                .disabled(isActionCompleted)
+                .opacity(isActionCompleted ? 0.6 : 1)
+            } else {
+                UpgradePromptView(
+                    icon: "book.closed.fill",
+                    headline: "Keep lesson actions unlocked",
+                    message: "Use the guided follow-through inside your active plan.",
+                    ctaTitle: "See plans"
+                ) {
+                    appState.presentPaywall(for: .guidedLesson)
+                }
             }
-            .disabled(isActionCompleted)
-            .opacity(isActionCompleted ? 0.6 : 1)
         }
         .padding(SakinahSpacing.base)
         .background(SakinahColor.accentLight)
