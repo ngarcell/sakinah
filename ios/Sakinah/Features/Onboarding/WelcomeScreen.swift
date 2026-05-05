@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct WelcomeScreen: View {
     @Bindable var vm: OnboardingViewModel

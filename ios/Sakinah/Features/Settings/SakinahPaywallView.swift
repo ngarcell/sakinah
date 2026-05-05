@@ -1,6 +1,7 @@
 import RevenueCat
 import RevenueCatUI
 import SwiftUI
+import SwiftData
 
 enum SakinahPaywallEntryPoint: Hashable, Sendable, Identifiable {
     case starterPlan

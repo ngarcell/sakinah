@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct CoupleSetupScreen: View {
     @Bindable var vm: OnboardingViewModel

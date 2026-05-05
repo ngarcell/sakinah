@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct StarterPlanCard: View {
     @Environment(AppState.self) private var appState
