@@ -534,7 +534,13 @@ final class SubscriptionService {
             .filter { !preferredKeys.contains($0.identifier) }
             .sorted(by: { $0.identifier < $1.identifier })
 
-        return (preferredOfferings + remainingOfferings).first(where: isMonthlyAnnualOnlyOffering)
+        let candidates = preferredOfferings + remainingOfferings
+
+        if let exactTwoPlanOffering = candidates.first(where: isMonthlyAnnualOnlyOffering) {
+            return exactTwoPlanOffering
+        }
+
+        return candidates.first(where: includesMonthlyAndAnnualPlans)
     }
 
     private func includesAnnualPlan(_ offering: Offering) -> Bool {
@@ -547,6 +553,10 @@ final class SubscriptionService {
 
     private func isMonthlyAnnualOnlyOffering(_ offering: Offering) -> Bool {
         packageProductIdentifiers(in: offering) == ProductCatalog.sellablePlanProductIDs
+    }
+
+    private func includesMonthlyAndAnnualPlans(_ offering: Offering) -> Bool {
+        ProductCatalog.sellablePlanProductIDs.isSubset(of: packageProductIdentifiers(in: offering))
     }
 
     private func packageProductIdentifiers(in offering: Offering) -> Set<String> {
