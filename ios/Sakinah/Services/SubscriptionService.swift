@@ -233,7 +233,7 @@ final class SubscriptionService {
             currentOffering = selectMainOffering(from: loadedOfferings)
             manageOffering = selectManageOffering(from: loadedOfferings)
 
-            if currentOffering == nil {
+            if currentOffering == nil && manageOffering == nil {
                 purchaseError = "Plans are unavailable right now. Please try again in a moment."
             } else {
                 purchaseError = nil
@@ -522,16 +522,18 @@ final class SubscriptionService {
     }
 
     private func selectMainOffering(from offerings: Offerings) -> Offering? {
-        let candidates = [
-            offerings.current,
-            offerings.all["default"],
-        ].compactMap { $0 } + offerings.all.values.sorted(by: { $0.identifier < $1.identifier })
+        let preferredOffering = offerings.current ?? offerings.all["default"]
+        let candidates = [preferredOffering].compactMap { $0 } + offerings.all.values.sorted(by: { $0.identifier < $1.identifier })
 
         if let annualOnly = candidates.first(where: isAnnualOnlyOffering) {
             return annualOnly
         }
 
-        return candidates.first(where: includesAnnualPlan)
+        if let annualOffering = candidates.first(where: includesAnnualPlan) {
+            return annualOffering
+        }
+
+        return preferredOffering ?? candidates.first
     }
 
     private func selectManageOffering(from offerings: Offerings) -> Offering? {
@@ -547,7 +549,11 @@ final class SubscriptionService {
             return exactTwoPlanOffering
         }
 
-        return candidates.first(where: includesMonthlyAndAnnualPlans)
+        if let multiPlanOffering = candidates.first(where: includesMonthlyAndAnnualPlans) {
+            return multiPlanOffering
+        }
+
+        return preferredOfferings.first ?? offerings.current ?? offerings.all["default"] ?? candidates.first
     }
 
     private func includesAnnualPlan(_ offering: Offering) -> Bool {

@@ -126,7 +126,7 @@ struct SakinahPaywallView: View {
 
     private var selectedOffering: Offering? {
         if entryPoint == .settings {
-            subscriptionService.manageOffering
+            subscriptionService.manageOffering ?? subscriptionService.currentOffering
         } else {
             subscriptionService.currentOffering
         }
