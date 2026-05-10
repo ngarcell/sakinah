@@ -228,9 +228,10 @@ final class SubscriptionService {
         defer { isLoadingProducts = false }
 
         do {
-            offerings = try await Purchases.shared.offerings()
-            currentOffering = selectMainOffering(from: offerings)
-            manageOffering = selectManageOffering(from: offerings)
+            let loadedOfferings = try await Purchases.shared.offerings()
+            offerings = loadedOfferings
+            currentOffering = selectMainOffering(from: loadedOfferings)
+            manageOffering = selectManageOffering(from: loadedOfferings)
 
             if currentOffering == nil {
                 purchaseError = "Plans are unavailable right now. Please try again in a moment."
