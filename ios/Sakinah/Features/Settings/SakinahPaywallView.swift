@@ -90,10 +90,10 @@ struct SakinahPaywallView: View {
 
     var body: some View {
         Group {
-            if subscriptionService.currentOffering == nil && (subscriptionService.isLoadingProducts || isPreparingPaywall) {
+            if selectedOffering == nil && (subscriptionService.isLoadingProducts || isPreparingPaywall) {
                 loadingState
                     .background(paywallBackground.ignoresSafeArea())
-            } else if let offering = subscriptionService.currentOffering {
+            } else if let offering = selectedOffering {
                 hostedPaywall(offering: offering)
             } else {
                 unavailableState
@@ -121,6 +121,14 @@ struct SakinahPaywallView: View {
             if tier == .premium {
                 finalizeUnlockAndDismiss()
             }
+        }
+    }
+
+    private var selectedOffering: Offering? {
+        if entryPoint == .settings {
+            subscriptionService.manageOffering
+        } else {
+            subscriptionService.currentOffering
         }
     }
 
@@ -181,7 +189,7 @@ struct SakinahPaywallView: View {
                 .font(SakinahFont.title2)
                 .foregroundStyle(SakinahColor.textPrimary)
 
-            Text(subscriptionService.purchaseError ?? "Plans are unavailable right now. Please try again.")
+            Text(unavailableMessage)
                 .font(SakinahFont.bodySmall)
                 .foregroundStyle(SakinahColor.textSecondary)
                 .multilineTextAlignment(.center)
@@ -209,6 +217,8 @@ struct SakinahPaywallView: View {
 
             if !isMandatory {
                 Button("Continue for now") {
+                    markStarterPaywallSeenIfNeeded()
+                    appState.dismissPresentedPaywall()
                     dismiss()
                 }
                 .font(SakinahFont.captionBold)
@@ -217,6 +227,14 @@ struct SakinahPaywallView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.horizontal, SakinahSpacing.base)
+    }
+
+    private var unavailableMessage: String {
+        if let purchaseError = subscriptionService.purchaseError {
+            return purchaseError
+        }
+
+        return "Plans are unavailable right now. Please try again soon."
     }
 
     private func hostedPaywall(offering: Offering) -> some View {
@@ -261,6 +279,7 @@ struct SakinahPaywallView: View {
         }
         .onRequestedDismissal {
             if !isMandatory {
+                markStarterPaywallSeenIfNeeded()
                 appState.dismissPresentedPaywall()
                 dismiss()
             }
@@ -293,11 +312,21 @@ struct SakinahPaywallView: View {
         hasHandledUnlock = true
 
         appState.currentUser?.requiresInitialSubscriptionUnlock = false
+        appState.currentUser?.hasSeenInitialSubscriptionPaywall = true
         appState.currentUser?.touch()
         try? modelContext.save()
         appState.handleSubscriptionState(isPremium: true)
         appState.preparePostPurchaseExperience()
         appState.dismissPresentedPaywall()
         dismiss()
+    }
+
+    private func markStarterPaywallSeenIfNeeded() {
+        guard entryPoint == .starterPlan,
+              appState.currentUser?.requiresInitialSubscriptionUnlock == true,
+              !subscriptionService.isPremium else { return }
+
+        appState.markInitialStarterPaywallSeen()
+        try? modelContext.save()
     }
 }

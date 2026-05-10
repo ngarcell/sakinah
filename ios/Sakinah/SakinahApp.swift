@@ -185,6 +185,7 @@ struct SakinahApp: App {
               appState.currentUser?.requiresInitialSubscriptionUnlock == true else { return }
 
         appState.currentUser?.requiresInitialSubscriptionUnlock = false
+        appState.currentUser?.hasSeenInitialSubscriptionPaywall = true
         appState.currentUser?.touch()
         try? sharedModelContainer.mainContext.save()
     }

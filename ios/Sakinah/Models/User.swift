@@ -19,6 +19,7 @@ final class User {
     var starterPlanCreatedAt: Date?
     var starterPlanDismissedAt: Date?
     var requiresInitialSubscriptionUnlockFlag: Bool?
+    var hasSeenInitialSubscriptionPaywallFlag: Bool?
 
     var duaLanguagePreference: DuaLanguage {
         get { DuaLanguage(rawValue: duaLanguagePreferenceRaw) ?? .arabicEnglish }
@@ -81,6 +82,11 @@ final class User {
         set { requiresInitialSubscriptionUnlockFlag = newValue }
     }
 
+    var hasSeenInitialSubscriptionPaywall: Bool {
+        get { hasSeenInitialSubscriptionPaywallFlag ?? false }
+        set { hasSeenInitialSubscriptionPaywallFlag = newValue }
+    }
+
     init(id: String, name: String, partnerID: String? = nil, coupleID: String? = nil,
          duaLanguagePreference: DuaLanguage = .arabicEnglish,
          notificationTime: Date = Calendar.current.date(from: DateComponents(hour: 9, minute: 0)) ?? Date(),
@@ -102,6 +108,7 @@ final class User {
         self.starterPlanCreatedAt = nil
         self.starterPlanDismissedAt = nil
         self.requiresInitialSubscriptionUnlockFlag = false
+        self.hasSeenInitialSubscriptionPaywallFlag = false
     }
 
     func touch(_ date: Date = Date()) {
@@ -122,6 +129,7 @@ final class User {
         starterPlanCreatedAt = date
         starterPlanDismissedAt = nil
         requiresInitialSubscriptionUnlock = true
+        hasSeenInitialSubscriptionPaywall = false
         touch(date)
     }
 

@@ -23,6 +23,7 @@ final class SubscriptionService {
         static let lifetime = "com.socialreporthq.sakinah.premium.lifetimev2"
 
         static let allProductIDs: Set<String> = [monthly, annual, lifetime]
+        static let sellablePlanProductIDs: Set<String> = [monthly, annual]
     }
 
     private enum DefaultsKey {
@@ -45,6 +46,8 @@ final class SubscriptionService {
 
     private(set) var customerInfo: CustomerInfo?
     private(set) var offerings: Offerings?
+    private(set) var currentOffering: Offering?
+    private(set) var manageOffering: Offering?
     private(set) var monthlyProduct: StoreProduct?
     private(set) var annualProduct: StoreProduct?
     private(set) var lifetimeProduct: StoreProduct?
@@ -60,12 +63,6 @@ final class SubscriptionService {
     var isRevenueCatAvailable: Bool { configuration != nil && Purchases.isConfigured }
     var revenueCatUnavailableMessage: String {
         Self.unavailableMessage(from: configurationErrorDescription ?? "Plans are unavailable.")
-    }
-
-    var currentOffering: Offering? {
-        offerings?.current
-            ?? offerings?.all.values.first(where: { !$0.availablePackages.isEmpty })
-            ?? offerings?.all.values.first
     }
 
     var managementURL: URL? {
@@ -121,10 +118,6 @@ final class SubscriptionService {
             return monthlyDisplayPrice
         }
 
-        if lifetimeDisplayPrice != Self.unavailablePriceText {
-            return lifetimeDisplayPrice
-        }
-
         return nil
     }
 
@@ -141,12 +134,13 @@ final class SubscriptionService {
     }
 
     private var availablePackages: [Package] {
+        let primaryPackages = manageOffering?.availablePackages ?? currentOffering?.availablePackages ?? []
         let currentOfferingPackages = currentOffering?.availablePackages ?? []
         let fallbackPackages = offerings?.all.values.flatMap(\.availablePackages) ?? []
 
         var seenProductIDs = Set<String>()
 
-        return (currentOfferingPackages + fallbackPackages).filter { package in
+        return (primaryPackages + currentOfferingPackages + fallbackPackages).filter { package in
             seenProductIDs.insert(package.storeProduct.productIdentifier).inserted
         }
     }
@@ -235,6 +229,8 @@ final class SubscriptionService {
 
         do {
             offerings = try await Purchases.shared.offerings()
+            currentOffering = selectMainOffering(from: offerings)
+            manageOffering = selectManageOffering(from: offerings)
 
             if currentOffering == nil {
                 purchaseError = "Plans are unavailable right now. Please try again in a moment."
@@ -394,7 +390,7 @@ final class SubscriptionService {
     }
 
     private var hasAnyPurchaseOption: Bool {
-        currentOffering != nil || monthlyProduct != nil || annualProduct != nil || lifetimeProduct != nil
+        currentOffering != nil || manageOffering != nil || monthlyProduct != nil || annualProduct != nil
     }
 
     private func ensureRevenueCatAvailable() -> Bool {
@@ -515,6 +511,45 @@ final class SubscriptionService {
         default:
             return nil
         }
+    }
+
+    private func selectMainOffering(from offerings: Offerings) -> Offering? {
+        let candidates = [
+            offerings.current,
+            offerings.all["default"],
+        ].compactMap { $0 } + offerings.all.values.sorted(by: { $0.identifier < $1.identifier })
+
+        if let annualOnly = candidates.first(where: isAnnualOnlyOffering) {
+            return annualOnly
+        }
+
+        return candidates.first(where: includesAnnualPlan)
+    }
+
+    private func selectManageOffering(from offerings: Offerings) -> Offering? {
+        let preferredKeys = ["default2", "manage", "plans", "allplans"]
+        let preferredOfferings = preferredKeys.compactMap { offerings.all[$0] }
+        let remainingOfferings = offerings.all.values
+            .filter { !preferredKeys.contains($0.identifier) }
+            .sorted(by: { $0.identifier < $1.identifier })
+
+        return (preferredOfferings + remainingOfferings).first(where: isMonthlyAnnualOnlyOffering)
+    }
+
+    private func includesAnnualPlan(_ offering: Offering) -> Bool {
+        packageProductIdentifiers(in: offering).contains(ProductCatalog.annual)
+    }
+
+    private func isAnnualOnlyOffering(_ offering: Offering) -> Bool {
+        packageProductIdentifiers(in: offering) == [ProductCatalog.annual]
+    }
+
+    private func isMonthlyAnnualOnlyOffering(_ offering: Offering) -> Bool {
+        packageProductIdentifiers(in: offering) == ProductCatalog.sellablePlanProductIDs
+    }
+
+    private func packageProductIdentifiers(in offering: Offering) -> Set<String> {
+        Set(offering.availablePackages.map(\.storeProduct.productIdentifier))
     }
 }
 

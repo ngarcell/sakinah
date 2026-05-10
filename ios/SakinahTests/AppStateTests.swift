@@ -6,9 +6,10 @@ struct AppStateTests {
 
     @Test
     @MainActor
-    func onboardingCompletionRequiresPremiumAccess() {
+    func onboardingCompletionPresentsStarterPaywallSheet() {
         let appState = AppState()
         let user = User(id: "user-1", name: "Yusuf")
+        user.requiresInitialSubscriptionUnlock = true
         let couple = Couple(
             user1ID: user.id,
             user1Name: user.name,
@@ -19,15 +20,15 @@ struct AppStateTests {
         appState.completeOnboarding(user: user, couple: couple)
 
         #expect(appState.route == .main)
-        #expect(appState.paywallState == .handoffAfterOnboarding)
-        #expect(appState.shouldShowPaywallHandoff)
+        #expect(appState.paywallState == .none)
+        #expect(appState.presentedPaywallEntryPoint == .starterPlan)
         #expect(!appState.shouldShowMandatoryPaywall)
         #expect(appState.pairingStatus == .readyToInvite)
     }
 
     @Test
     @MainActor
-    func onboardingHandoffAdvancesToHostedPaywall() {
+    func advanceToHostedPaywallPresentsHostedSheet() {
         let appState = AppState()
         let user = User(id: "user-1", name: "Yusuf")
         let couple = Couple(
@@ -40,9 +41,9 @@ struct AppStateTests {
         appState.completeOnboarding(user: user, couple: couple)
         appState.advanceToHostedPaywall()
 
-        #expect(appState.paywallState == .requiredAfterOnboarding)
+        #expect(appState.paywallState == .none)
+        #expect(appState.presentedPaywallEntryPoint == .starterPlan)
         #expect(!appState.shouldShowPaywallHandoff)
-        #expect(appState.shouldShowMandatoryPaywall)
     }
 
     @Test
@@ -88,7 +89,7 @@ struct AppStateTests {
 
     @Test
     @MainActor
-    func initialUnlockRequirementRestoresHandoffAfterRelaunch() {
+    func initialUnlockRequirementRestoresStarterPaywallAfterRelaunch() {
         let appState = AppState()
         let user = User(id: "user-1", name: "Yusuf")
         user.requiresInitialSubscriptionUnlock = true
@@ -102,8 +103,28 @@ struct AppStateTests {
         appState.restoreSession(user: user, couple: couple)
         appState.handleSubscriptionState(isPremium: false)
 
-        #expect(appState.paywallState == .handoffAfterOnboarding)
-        #expect(appState.shouldShowPaywallHandoff)
+        #expect(appState.paywallState == .none)
+        #expect(appState.presentedPaywallEntryPoint == .starterPlan)
+    }
+
+    @Test
+    @MainActor
+    func seenStarterPaywallDoesNotAutoPresentAgain() {
+        let appState = AppState()
+        let user = User(id: "user-1", name: "Yusuf")
+        user.requiresInitialSubscriptionUnlock = true
+        user.hasSeenInitialSubscriptionPaywall = true
+        let couple = Couple(
+            user1ID: user.id,
+            user1Name: user.name,
+            user2Name: "Aisha",
+            inviteCode: "ABC123"
+        )
+
+        appState.restoreSession(user: user, couple: couple)
+        appState.handleSubscriptionState(isPremium: false)
+
+        #expect(appState.presentedPaywallEntryPoint == nil)
     }
 
     @Test

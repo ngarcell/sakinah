@@ -170,14 +170,14 @@ struct SettingsView: View {
                 Text(subscriptionService.featuredPlanSummary)
                     .font(SakinahFont.bodySmall)
                     .foregroundStyle(SakinahColor.textSecondary)
-
-                Button("See Plans") {
-                    paywallEntryPoint = .settings
-                }
-                .foregroundStyle(SakinahColor.primary)
             }
 
-            if subscriptionService.canOpenCustomerCenter {
+            Button(subscriptionService.isPremium ? "Change Plan" : "See Plans") {
+                paywallEntryPoint = .settings
+            }
+            .foregroundStyle(SakinahColor.primary)
+
+            if subscriptionService.isPremium && subscriptionService.canOpenCustomerCenter {
                 Button("Manage Plan") {
                     showCustomerCenter = true
                 }

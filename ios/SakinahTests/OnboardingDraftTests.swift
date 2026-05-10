@@ -88,7 +88,9 @@ struct OnboardingDraftTests {
         #expect(drafts.isEmpty)
         #expect(users.first?.starterPlan != nil)
         #expect(users.first?.requiresInitialSubscriptionUnlock == true)
-        #expect(appState.paywallState == .handoffAfterOnboarding)
+        #expect(users.first?.hasSeenInitialSubscriptionPaywall == false)
+        #expect(appState.paywallState == .none)
+        #expect(appState.presentedPaywallEntryPoint == .starterPlan)
     }
 
     @MainActor

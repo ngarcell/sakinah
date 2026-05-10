@@ -80,7 +80,10 @@ final class AppState {
         withAnimation(SakinahAnimation.gentle) {
             self.route = .main
         }
-        paywallState = .handoffAfterOnboarding
+        paywallState = .none
+        if shouldAutoPresentStarterPaywall {
+            presentedPaywallEntryPoint = .starterPlan
+        }
         refreshPairingStatus()
     }
 
@@ -122,13 +125,11 @@ final class AppState {
     }
 
     var shouldShowMandatoryPaywall: Bool {
-        currentUser != nil
-            && paywallState == .requiredAfterOnboarding
-            && !hasPremiumAccess
+        false
     }
 
     var shouldShowPaywallHandoff: Bool {
-        currentUser != nil && paywallState == .handoffAfterOnboarding && !hasPremiumAccess
+        false
     }
 
     func restoreSession(user: User?, couple: Couple?) {
@@ -146,8 +147,8 @@ final class AppState {
     func advanceToHostedPaywall(entryPoint: SakinahPaywallEntryPoint = .starterPlan) {
         guard currentUser != nil, !hasPremiumAccess else { return }
         requiredPaywallEntryPoint = entryPoint
-        presentedPaywallEntryPoint = nil
-        paywallState = .requiredAfterOnboarding
+        presentedPaywallEntryPoint = entryPoint
+        paywallState = .none
     }
 
     func presentPaywall(for entryPoint: SakinahPaywallEntryPoint) {
@@ -157,6 +158,11 @@ final class AppState {
 
     func dismissPresentedPaywall() {
         presentedPaywallEntryPoint = nil
+    }
+
+    func markInitialStarterPaywallSeen() {
+        currentUser?.hasSeenInitialSubscriptionPaywall = true
+        currentUser?.touch()
     }
 
     func preparePostPurchaseExperience() {
@@ -206,18 +212,23 @@ final class AppState {
             paywallState = .none
             presentedPaywallEntryPoint = nil
             showPartnerInvitePrompt = false
-        } else if currentUser?.requiresInitialSubscriptionUnlock == true && !hasPremiumAccess {
-            paywallState = .handoffAfterOnboarding
         } else if hasPremiumAccess {
             paywallState = .none
             currentUser?.requiresInitialSubscriptionUnlock = false
+            currentUser?.hasSeenInitialSubscriptionPaywall = true
+        } else {
+            paywallState = .none
+
+            if shouldAutoPresentStarterPaywall, presentedPaywallEntryPoint == nil {
+                presentedPaywallEntryPoint = .starterPlan
+            }
         }
 
         refreshPairingStatus()
     }
 
     var hasLapsedAccess: Bool {
-        currentUser != nil && !hasPremiumAccess && paywallState == .none
+        currentUser != nil && !hasPremiumAccess
     }
 
     var currentStarterPlan: StarterPlan? {
@@ -226,6 +237,14 @@ final class AppState {
 
     var shouldShowStarterPlanCard: Bool {
         hasPremiumAccess && currentUser?.shouldShowStarterPlan == true
+    }
+
+    private var shouldAutoPresentStarterPaywall: Bool {
+        guard let currentUser else { return false }
+
+        return currentUser.requiresInitialSubscriptionUnlock
+            && !currentUser.hasSeenInitialSubscriptionPaywall
+            && !hasPremiumAccess
     }
 
     private func refreshPairingStatus() {

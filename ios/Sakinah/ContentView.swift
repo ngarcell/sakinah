@@ -16,18 +16,6 @@ struct ContentView: View {
                             insertion: .opacity,
                             removal: .opacity.combined(with: .scale(scale: 0.98))
                         ))
-                } else if appState.shouldShowPaywallHandoff {
-                    PaywallHandoffView()
-                        .transition(.asymmetric(
-                            insertion: .opacity.combined(with: .move(edge: .trailing)),
-                            removal: .opacity
-                        ))
-                } else if appState.shouldShowMandatoryPaywall {
-                    SakinahPaywallView(entryPoint: appState.requiredPaywallEntryPoint, isMandatory: true)
-                        .transition(.asymmetric(
-                            insertion: .opacity,
-                            removal: .opacity
-                        ))
                 } else {
                     MainTabView()
                         .transition(.asymmetric(
@@ -38,7 +26,7 @@ struct ContentView: View {
             }
         }
         .animation(SakinahAnimation.gentle, value: appState.currentUser?.id)
-        .animation(SakinahAnimation.gentle, value: appState.paywallState)
+        .animation(SakinahAnimation.gentle, value: appState.presentedPaywallEntryPoint)
         .animation(SakinahAnimation.gentle, value: appState.pairingStatus)
         .onAppear {
             restoreSession()
