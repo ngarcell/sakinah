@@ -220,7 +220,7 @@ final class SubscriptionService {
             return hasAnyPurchaseOption
         }
 
-        if hasAnyPurchaseOption && !forceRefresh {
+        if hasLoadedRequiredOfferingsAndProducts && !forceRefresh {
             return true
         }
 
@@ -392,6 +392,13 @@ final class SubscriptionService {
 
     private var hasAnyPurchaseOption: Bool {
         currentOffering != nil || manageOffering != nil || monthlyProduct != nil || annualProduct != nil
+    }
+
+    private var hasLoadedRequiredOfferingsAndProducts: Bool {
+        currentOffering != nil
+            && manageOffering != nil
+            && monthlyProduct != nil
+            && annualProduct != nil
     }
 
     private func ensureRevenueCatAvailable() -> Bool {
