@@ -14,21 +14,9 @@ struct SakinahEmptyState: View {
     var body: some View {
         VStack(spacing: SakinahSpacing.lg) {
             ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [SakinahColor.primaryLight, SakinahColor.primaryLight.opacity(0.4)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 88, height: 88)
-                    .scaleEffect(appeared ? 1 : 0.6)
-                    .opacity(appeared ? 1 : 0)
-
                 Image(systemName: icon)
-                    .font(.system(size: 32, weight: .light))
-                    .foregroundStyle(SakinahColor.primary)
+                    .font(.system(size: 48, weight: .thin))
+                    .foregroundStyle(SakinahColor.textTertiary)
                     .scaleEffect(appeared ? 1 : 0.3)
                     .opacity(appeared ? 1 : 0)
             }

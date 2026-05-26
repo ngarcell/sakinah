@@ -26,44 +26,41 @@ struct QuickCheckInCard: View {
     private var premiumContent: some View {
         VStack(spacing: SakinahSpacing.base) {
             HStack {
-                Text("How are you feeling?")
-                    .font(SakinahFont.headline)
-                    .foregroundStyle(SakinahColor.textPrimary)
+                Text("HOW ARE YOU FEELING?")
+                    .font(SakinahFont.captionBold)
+                    .tracking(0.4)
+                    .foregroundStyle(SakinahColor.textSecondary)
                 Spacer()
                 if vm.hasCheckedInToday {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(SakinahColor.success)
                         .font(.system(size: 16))
-                }
+                    }
             }
 
-            HStack(spacing: 0) {
-                ForEach(moods, id: \.self) { mood in
-                    moodButton(mood)
-                }
-            }
-
-            if vm.showCheckInNote {
-                VStack(alignment: .leading, spacing: SakinahSpacing.sm) {
-                    Text("Want to add a note?")
+            if vm.hasCheckedInToday && !vm.isUpdatingCheckIn, let selectedMood = vm.selectedMood {
+                HStack(spacing: SakinahSpacing.sm) {
+                    Text(selectedMood.emoji)
+                        .font(.system(size: 22))
+                    Text("Checked in as \(selectedMood.label)")
                         .font(SakinahFont.bodySmall)
-                        .foregroundStyle(SakinahColor.textSecondary)
-
-                    TextField("Share what's on your mind...", text: $vm.checkInNote, axis: .vertical)
-                        .font(SakinahFont.body)
                         .foregroundStyle(SakinahColor.textPrimary)
-                        .padding(SakinahSpacing.md)
-                        .background(SakinahColor.backgroundSecondary)
-                        .clipShape(.rect(cornerRadius: SakinahRadius.medium))
-                        .lineLimit(3...5)
-                        .onSubmit {
-                            vm.saveCheckIn(context: modelContext, requestReview: { requestReview() })
-                            Task {
-                                await CloudKitService.shared.syncIfPossible(appState: appState, context: modelContext)
-                            }
-                        }
+                    Spacer()
+                    Button("Undo") {
+                        vm.toggleUpdateCheckIn()
+                    }
+                    .font(SakinahFont.captionBold)
+                    .foregroundStyle(SakinahColor.primary)
                 }
-                .transition(.opacity.combined(with: .move(edge: .top)))
+                .padding(SakinahSpacing.md)
+                .background(SakinahColor.backgroundSecondary)
+                .clipShape(.rect(cornerRadius: SakinahRadius.medium))
+            } else {
+                HStack(spacing: 0) {
+                    ForEach(moods, id: \.self) { mood in
+                        moodButton(mood)
+                    }
+                }
             }
 
             if let partnerMood = vm.partnerMood {
@@ -87,9 +84,10 @@ struct QuickCheckInCard: View {
     private var lockedContent: some View {
         VStack(alignment: .leading, spacing: SakinahSpacing.base) {
             HStack {
-                Text("How are you feeling?")
-                    .font(SakinahFont.headline)
-                    .foregroundStyle(SakinahColor.textPrimary)
+                Text("HOW ARE YOU FEELING?")
+                    .font(SakinahFont.captionBold)
+                    .tracking(0.4)
+                    .foregroundStyle(SakinahColor.textSecondary)
                 Spacer()
                 if let selectedMood = vm.selectedMood {
                     Text(selectedMood.emoji)
@@ -131,16 +129,11 @@ struct QuickCheckInCard: View {
             }
         } label: {
             VStack(spacing: SakinahSpacing.xs) {
-                ZStack {
-                    if isSelected {
-                        Circle()
-                            .fill(SakinahColor.primaryLight)
-                            .frame(width: 48, height: 48)
-                    }
-                    Text(mood.emoji)
-                        .font(.system(size: 28))
-                }
-                .frame(width: 48, height: 48)
+                Text(mood.emoji)
+                    .font(.system(size: 28))
+                    .frame(width: 48, height: 48)
+                    .background(isSelected ? SakinahColor.primaryLight : SakinahColor.backgroundSecondary)
+                    .clipShape(.rect(cornerRadius: SakinahRadius.medium))
 
                 Text(mood.label)
                     .font(SakinahFont.caption)

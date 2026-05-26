@@ -3,10 +3,14 @@ import SwiftData
 
 struct WelcomeScreen: View {
     @Bindable var vm: OnboardingViewModel
+    @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
     @State private var appeared = false
     @State private var taglineVisible = false
     @State private var ctaVisible = false
+    #if DEBUG
+    @State private var isLoadingDemo = false
+    #endif
 
     var body: some View {
         ZStack {
@@ -21,6 +25,8 @@ struct WelcomeScreen: View {
             .ignoresSafeArea()
 
             VStack(spacing: 0) {
+                OnboardingProgressHeader(step: .welcome, showsBack: false)
+
                 Spacer(minLength: 0)
 
                 GeometricPattern()
@@ -36,7 +42,6 @@ struct WelcomeScreen: View {
                         Text("sakinah")
                             .font(.system(size: 44, weight: .bold, design: .serif))
                             .foregroundStyle(SakinahColor.textPrimary)
-                            .tracking(-0.5)
                         Circle()
                             .fill(SakinahColor.accent)
                             .frame(width: 8, height: 8)
@@ -55,12 +60,12 @@ struct WelcomeScreen: View {
                             )
                         }
 
-                        Text(vm.hasPendingShareInvitation ? "Your spouse already opened the shared space." : "A private ritual for Muslim marriages")
+                        Text(vm.hasPendingShareInvitation ? "Your spouse already opened the shared space." : "You're in the right place.")
                             .font(SakinahFont.body)
                             .foregroundStyle(SakinahColor.textSecondary)
                             .multilineTextAlignment(.center)
 
-                        Text(vm.hasPendingShareInvitation ? "Finish your side, save one honest answer, and step back into the same space together." : "Begin with one honest answer, shape a calmer first week, and keep the parts of your marriage that matter in one quiet place.")
+                        Text(vm.hasPendingShareInvitation ? "Finish your side, save one honest answer, and step back into the same private space together." : "Sakinah helps Muslim couples build a calmer private ritual around honest prompts, du'a, and everyday care.")
                             .font(SakinahFont.caption)
                             .foregroundStyle(SakinahColor.textTertiary)
                             .multilineTextAlignment(.center)
@@ -75,10 +80,23 @@ struct WelcomeScreen: View {
                 VStack(spacing: SakinahSpacing.md) {
                     SakinahButton(title: vm.hasPendingShareInvitation ? "Continue My Setup" : "Begin") {
                         HapticEngine.shared.fire(.tap)
-                        vm.advance(to: .context, context: modelContext)
+                        vm.advance(to: .outcome, context: modelContext)
                     }
 
-                    Text("You will save your first answer before choosing a plan.")
+                    #if DEBUG
+                    SakinahButton(
+                        title: "Skip - Load Demo",
+                        icon: "photo.on.rectangle",
+                        variant: .secondary,
+                        isLoading: isLoadingDemo
+                    ) {
+                        isLoadingDemo = true
+                        _ = DemoDataSeeder.load(context: modelContext, appState: appState)
+                        isLoadingDemo = false
+                    }
+                    #endif
+
+                    Text("You will save one meaningful answer before continuing.")
                         .font(SakinahFont.caption)
                         .foregroundStyle(SakinahColor.textTertiary)
                 }

@@ -7,14 +7,17 @@ struct CoupleSetupScreen: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            header
+            OnboardingProgressHeader(step: .setup) {
+                vm.goBack(context: modelContext)
+            }
+
             ScrollView {
                 VStack(alignment: .leading, spacing: SakinahSpacing.xl) {
                     VStack(alignment: .leading, spacing: SakinahSpacing.xs) {
-                        Text("Set up your space")
+                        Text("Make this feel like your marriage")
                             .font(SakinahFont.title1)
                             .foregroundStyle(SakinahColor.textPrimary)
-                        Text("Only the details that help Sakinah sound like your marriage, not someone else’s.")
+                        Text("Only the details that help Sakinah sound like your real shared space. Skip anything that is not useful right now.")
                             .font(SakinahFont.bodySmall)
                             .foregroundStyle(SakinahColor.textSecondary)
                     }
@@ -89,8 +92,8 @@ struct CoupleSetupScreen: View {
             }
 
             VStack(spacing: SakinahSpacing.sm) {
-                SakinahButton(title: "Continue") {
-                    vm.advance(to: .clarify, context: modelContext)
+                SakinahButton(title: "Preview our first week") {
+                    vm.advance(to: .planPreview, context: modelContext)
                 }
                 .disabled(!vm.canContinueFromSetup)
                 .opacity(vm.canContinueFromSetup ? 1 : 0.55)
@@ -104,32 +107,6 @@ struct CoupleSetupScreen: View {
             .padding(.horizontal, SakinahSpacing.base)
             .padding(.bottom, SakinahSpacing.base)
         }
-    }
-
-    private var header: some View {
-        HStack {
-            Button {
-                vm.goBack(context: modelContext)
-            } label: {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(SakinahColor.textPrimary)
-                    .frame(width: 40, height: 40)
-                    .background(SakinahColor.surface)
-                    .clipShape(Circle())
-            }
-            .buttonStyle(.plain)
-
-            Spacer()
-
-            SakinahBadge(text: "Step 3 of 5", color: SakinahColor.accent, tintedBackground: SakinahColor.accentLight)
-
-            Spacer()
-
-            Color.clear
-                .frame(width: 40, height: 40)
-        }
-        .padding(.top, SakinahSpacing.base)
     }
 
     private func langChip(_ lang: DuaLanguage) -> some View {

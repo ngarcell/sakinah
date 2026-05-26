@@ -24,145 +24,177 @@ struct MilestonesView: View {
     let memories: [Memory]
     let coupleID: String
     @Environment(AppState.self) private var appState
-    @Environment(\.modelContext) private var modelContext
     @State private var showAddMemory = false
 
     var body: some View {
+        VStack(alignment: .leading, spacing: SakinahSpacing.xl) {
+            milestonesSection
+            memoriesSection
+        }
+        .sheet(isPresented: $showAddMemory) {
+            AddMemorySheet(coupleID: coupleID)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
+    }
+
+    private var milestonesSection: some View {
         VStack(alignment: .leading, spacing: SakinahSpacing.md) {
-            Text("Milestones & Memories")
+            Text("MILESTONES")
                 .font(SakinahFont.captionBold)
-                .foregroundStyle(SakinahColor.textSecondary)
                 .tracking(0.4)
-                .textCase(.uppercase)
+                .foregroundStyle(SakinahColor.textSecondary)
                 .padding(.horizontal, SakinahSpacing.base)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: SakinahSpacing.md) {
-                    // Milestone cards
-                    ForEach(milestones) { milestone in
-                        milestoneCard(milestone)
+                    if milestones.isEmpty {
+                        milestonePlaceholder
+                    } else {
+                        ForEach(milestones) { milestone in
+                            milestoneCard(milestone)
+                        }
                     }
-
-                    // Memory cards
-                    ForEach(memories) { memory in
-                        memoryCard(memory)
-                    }
-
-                    // Add memory card
-                    addMemoryCard
                 }
                 .padding(.horizontal, SakinahSpacing.base)
                 .scrollTargetLayout()
             }
             .scrollTargetBehavior(.viewAligned)
         }
-        .sheet(isPresented: $showAddMemory) {
-            AddMemorySheet(coupleID: coupleID)
-                .presentationDetents([.medium])
+    }
+
+    private var memoriesSection: some View {
+        VStack(alignment: .leading, spacing: SakinahSpacing.md) {
+            HStack {
+                Text("MEMORIES")
+                    .font(SakinahFont.captionBold)
+                    .tracking(0.4)
+                    .foregroundStyle(SakinahColor.textSecondary)
+
+                Spacer()
+
+                Button {
+                    HapticEngine.shared.fire(.tap)
+                    if appState.hasPremiumAccess {
+                        showAddMemory = true
+                    } else {
+                        appState.presentPaywall(for: .sharedSpace)
+                    }
+                } label: {
+                    HStack(spacing: SakinahSpacing.xs) {
+                        Text("Add")
+                        Image(systemName: "plus")
+                    }
+                    .font(SakinahFont.captionBold)
+                    .foregroundStyle(SakinahColor.primary)
+                }
+            }
+            .padding(.horizontal, SakinahSpacing.base)
+
+            if memories.isEmpty {
+                SakinahCard {
+                    HStack(spacing: SakinahSpacing.md) {
+                        Image(systemName: "photo.on.rectangle")
+                            .font(.system(size: 24, weight: .regular))
+                            .foregroundStyle(SakinahColor.textTertiary)
+                        Text("Add the moments you want to remember together.")
+                            .font(SakinahFont.bodySmall)
+                            .foregroundStyle(SakinahColor.textSecondary)
+                    }
+                }
+                .padding(.horizontal, SakinahSpacing.base)
+            } else {
+                LazyVGrid(
+                    columns: [
+                        GridItem(.flexible(), spacing: SakinahSpacing.md),
+                        GridItem(.flexible(), spacing: SakinahSpacing.md)
+                    ],
+                    spacing: SakinahSpacing.md
+                ) {
+                    ForEach(memories) { memory in
+                        memoryTile(memory)
+                    }
+                }
+                .padding(.horizontal, SakinahSpacing.base)
+            }
         }
+    }
+
+    private var milestonePlaceholder: some View {
+        VStack(alignment: .leading, spacing: SakinahSpacing.xs) {
+            Image(systemName: "sparkles")
+                .font(.system(size: 20))
+                .foregroundStyle(SakinahColor.accent)
+            Text("Keep showing up")
+                .font(SakinahFont.captionBold)
+                .foregroundStyle(SakinahColor.textPrimary)
+            Text("Milestones will appear here.")
+                .font(SakinahFont.caption)
+                .foregroundStyle(SakinahColor.textSecondary)
+        }
+        .padding(SakinahSpacing.md)
+        .frame(width: 120, height: 88, alignment: .leading)
+        .background(SakinahColor.surfaceWarm)
+        .clipShape(.rect(cornerRadius: SakinahRadius.medium))
     }
 
     private func milestoneCard(_ milestone: MilestoneItem) -> some View {
-        VStack(spacing: SakinahSpacing.md) {
-            Spacer()
+        VStack(alignment: .leading, spacing: SakinahSpacing.xs) {
             Group {
                 if milestone.usesSystemImage {
                     Image(systemName: milestone.icon)
-                        .font(.system(size: 30, weight: .semibold))
-                        .foregroundStyle(SakinahColor.accent)
+                        .font(.system(size: 20, weight: .regular))
                 } else {
-                    Text(milestone.icon)
-                        .font(.system(size: 36))
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 20, weight: .regular))
                 }
             }
+            .foregroundStyle(SakinahColor.accent)
+
             Text(milestone.title)
-                .font(SakinahFont.title3)
+                .font(SakinahFont.captionBold)
                 .foregroundStyle(SakinahColor.textPrimary)
-                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.82)
+
             Text(DateFormatting.gregorian(milestone.date, style: .short))
                 .font(SakinahFont.caption)
                 .foregroundStyle(SakinahColor.textTertiary)
-            Spacer()
         }
-        .frame(width: 280, height: 160)
-        .background(
-            RadialGradient(
-                colors: [SakinahColor.accentLight, SakinahColor.surface],
-                center: .center,
-                startRadius: 0,
-                endRadius: 140
-            )
+        .padding(SakinahSpacing.md)
+        .frame(width: 120, height: 88, alignment: .leading)
+        .background(SakinahColor.surfaceWarm)
+        .clipShape(.rect(cornerRadius: SakinahRadius.medium))
+        .overlay(
+            RoundedRectangle(cornerRadius: SakinahRadius.medium)
+                .stroke(SakinahColor.border, lineWidth: 1)
         )
-        .clipShape(.rect(cornerRadius: SakinahRadius.large))
-        .sakinahShadow(.subtle)
     }
 
-    private func memoryCard(_ memory: Memory) -> some View {
-        VStack(spacing: 0) {
-            if let photoData = memory.photoData, let uiImage = UIImage(data: photoData) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 280, height: 96)
-                    .clipped()
-            } else {
-                ZStack {
+    private func memoryTile(_ memory: Memory) -> some View {
+        VStack(alignment: .leading, spacing: SakinahSpacing.sm) {
+            ZStack {
+                if let photoData = memory.photoData, let uiImage = UIImage(data: photoData) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                } else {
                     SakinahColor.primaryLight
-                    Image(systemName: "photo")
-                        .font(.system(size: 24))
-                        .foregroundStyle(SakinahColor.primary.opacity(0.5))
+                    Image(systemName: "quote.opening")
+                        .font(.system(size: 24, weight: .regular))
+                        .foregroundStyle(SakinahColor.primary.opacity(0.55))
                 }
-                .frame(width: 280, height: 96)
             }
+            .aspectRatio(1, contentMode: .fit)
+            .clipShape(.rect(cornerRadius: SakinahRadius.medium))
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(memory.caption)
-                    .font(SakinahFont.bodySmall)
-                    .foregroundStyle(SakinahColor.textPrimary)
-                    .lineLimit(2)
-                Text(DateFormatting.gregorian(memory.date, style: .short))
-                    .font(SakinahFont.caption)
-                    .foregroundStyle(SakinahColor.textTertiary)
-            }
-            .padding(SakinahSpacing.md)
-            .frame(width: 280, alignment: .leading)
+            Text(memory.caption)
+                .font(SakinahFont.caption)
+                .foregroundStyle(SakinahColor.textPrimary)
+                .lineLimit(2)
         }
-        .frame(width: 280, height: 160)
-        .background(SakinahColor.surface)
-        .clipShape(.rect(cornerRadius: SakinahRadius.large))
-        .sakinahShadow(.subtle)
-    }
-
-    private var addMemoryCard: some View {
-        Button {
-            HapticEngine.shared.fire(.tap)
-            if appState.hasPremiumAccess {
-                showAddMemory = true
-            } else {
-                appState.presentPaywall(for: .sharedSpace)
-            }
-        } label: {
-            VStack(spacing: SakinahSpacing.md) {
-                Image(systemName: "camera.fill")
-                    .font(.system(size: 24))
-                    .foregroundStyle(SakinahColor.textTertiary)
-                Text("Add a memory")
-                    .font(SakinahFont.bodySmall)
-                    .foregroundStyle(SakinahColor.textTertiary)
-            }
-            .frame(width: 280, height: 160)
-            .background(Color.clear)
-            .overlay(
-                RoundedRectangle(cornerRadius: SakinahRadius.large)
-                    .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [8, 4]))
-                    .foregroundStyle(SakinahColor.textTertiary.opacity(0.4))
-            )
-        }
-        .pressScale()
     }
 }
-
-// MARK: - Add Memory Sheet
 
 struct AddMemorySheet: View {
     @Environment(AppState.self) private var appState
@@ -178,7 +210,6 @@ struct AddMemorySheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: SakinahSpacing.lg) {
-                // Photo picker
                 PhotosPicker(selection: $selectedPhoto, matching: .images) {
                     ZStack {
                         if let photoData, let uiImage = UIImage(data: photoData) {
@@ -211,7 +242,6 @@ struct AddMemorySheet: View {
                     }
                 }
 
-                // Caption
                 TextField("Write a caption...", text: $caption, axis: .vertical)
                     .font(SakinahFont.body)
                     .padding(SakinahSpacing.md)
@@ -219,7 +249,6 @@ struct AddMemorySheet: View {
                     .clipShape(.rect(cornerRadius: SakinahRadius.medium))
                     .lineLimit(3)
 
-                // Date picker
                 DatePicker("Date", selection: $selectedDate, displayedComponents: .date)
                     .font(SakinahFont.body)
                     .tint(SakinahColor.primary)

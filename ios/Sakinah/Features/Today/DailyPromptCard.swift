@@ -5,115 +5,75 @@ import StoreKit
 struct DailyPromptCard: View {
     @Bindable var vm: TodayViewModel
     @Environment(AppState.self) private var appState
-    @Environment(\.modelContext) private var modelContext
-    @Environment(\.requestReview) private var requestReview
-    @State private var wordAppeared: [Bool] = []
-    @State private var userBubbleScale: CGFloat = 0
-    @State private var partnerBubbleScale: CGFloat = 0
+    @State private var showPartnerAnswer = false
 
     var body: some View {
-        SakinahCard(elevated: true) {
-            VStack(spacing: 0) {
-                promptContent
-            }
-            .padding(.top, SakinahSpacing.sm)
-            .padding(.bottom, SakinahSpacing.xs)
-        }
-        .overlay(alignment: .top) {
-            // Warm gradient overlay at top edge
-            LinearGradient(
-                colors: [vm.promptCategory.badgeColor.opacity(0.05), .clear],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: 40)
-            .clipShape(.rect(cornerRadius: SakinahRadius.medium))
-            .allowsHitTesting(false)
-        }
-        .overlay {
-            if vm.revealFlash {
-                RoundedRectangle(cornerRadius: SakinahRadius.medium)
-                    .fill(SakinahColor.accent.opacity(0.1))
+        Group {
+            switch vm.promptState {
+            case .unanswered:
+                unansweredState
+            case .revealed:
+                answeredState
             }
         }
         .overlay {
             ParticleSystem(isActive: vm.particlesActive, color: SakinahColor.accent)
                 .allowsHitTesting(false)
         }
-        .padding(.horizontal, SakinahSpacing.base)
-    }
-
-    @ViewBuilder
-    private var promptContent: some View {
-        switch vm.promptState {
-        case .unanswered:
-            unansweredState
-        case .revealed:
-            revealedState
+        .sheet(isPresented: $showPartnerAnswer) {
+            PartnerAnswerSheet(name: vm.partnerName, answer: vm.partnerResponse)
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
         }
     }
 
-    // MARK: - State 1: Unanswered
-
     private var unansweredState: some View {
-        VStack(alignment: .leading, spacing: SakinahSpacing.base) {
-            SakinahBadge(
-                text: vm.promptCategory.displayLabel,
-                color: vm.promptCategory.badgeColor,
-                tintedBackground: vm.promptCategory.badgeColor.opacity(0.12)
-            )
-
-            // Typewriter prompt text
-            HStack {
-                Spacer()
-                typewriterText
-                Spacer()
-            }
-
+        Group {
             if appState.hasPremiumAccess {
-                VStack(alignment: .trailing, spacing: SakinahSpacing.xs) {
-                    ZStack(alignment: .topLeading) {
-                        if vm.userResponse.isEmpty {
-                            Text("Write the answer you want to bring into your next conversation.")
-                                .font(SakinahFont.body)
-                                .foregroundStyle(SakinahColor.textTertiary)
-                                .padding(.horizontal, SakinahSpacing.md)
-                                .padding(.vertical, SakinahSpacing.md)
+                NavigationLink {
+                    DailyPromptAnswerView(vm: vm)
+                } label: {
+                    VStack(alignment: .leading, spacing: SakinahSpacing.lg) {
+                        Text("TODAY'S REFLECTION")
+                            .font(SakinahFont.captionBold)
+                            .tracking(0.4)
+                            .foregroundStyle(.white.opacity(0.82))
+
+                        Text("\"\(vm.promptText)\"")
+                            .font(.system(size: 19, weight: .regular, design: .serif))
+                            .foregroundStyle(.white)
+                            .lineSpacing(4)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        HStack {
+                            Label("Write your answer", systemImage: "square.and.pencil")
+                                .font(SakinahFont.headline)
+                            Spacer()
+                            Image(systemName: "arrow.right")
                         }
-                        TextEditor(text: $vm.userResponse)
-                            .font(SakinahFont.body)
-                            .foregroundStyle(SakinahColor.textPrimary)
-                            .scrollContentBackground(.hidden)
-                            .padding(.horizontal, SakinahSpacing.sm)
-                            .padding(.vertical, SakinahSpacing.sm)
-                            .onChange(of: vm.userResponse) { _, new in
-                                if new.count > vm.maxResponseLength {
-                                    vm.userResponse = String(new.prefix(vm.maxResponseLength))
-                                }
-                            }
-                    }
-                    .frame(minHeight: 100)
-                    .background(SakinahColor.backgroundSecondary)
-                    .clipShape(.rect(cornerRadius: SakinahRadius.medium))
+                        .foregroundStyle(.white)
+                        .padding(.top, SakinahSpacing.xs)
 
-                    Text(vm.characterCount)
-                        .font(SakinahFont.caption)
-                        .foregroundStyle(
-                            vm.userResponse.count > vm.maxResponseLength - 50
-                            ? SakinahColor.warning
-                            : SakinahColor.textTertiary
+                        HStack(spacing: SakinahSpacing.sm) {
+                            statusDot(isActive: false)
+                            Text("Not yet")
+                                .font(SakinahFont.caption)
+                                .foregroundStyle(.white.opacity(0.78))
+                        }
+                    }
+                    .padding(SakinahSpacing.base)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(
+                        LinearGradient(
+                            colors: SakinahColor.heroGradient,
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
                         )
+                    )
+                    .clipShape(.rect(cornerRadius: SakinahRadius.medium))
+                    .sakinahShadow(.medium)
                 }
-
-                SakinahButton(title: "Save my answer") {
-                    vm.submitResponse(context: modelContext)
-                    ReviewService.shared.onPromptRevealed(requestReview: { requestReview() })
-                    Task {
-                        await CloudKitService.shared.syncIfPossible(appState: appState, context: modelContext)
-                    }
-                }
-                .disabled(!vm.isResponseValid)
-                .opacity(vm.isResponseValid ? 1 : 0.55)
+                .buttonStyle(.plain)
             } else {
                 UpgradePromptView(
                     icon: "moon.stars.fill",
@@ -125,191 +85,203 @@ struct DailyPromptCard: View {
                 }
             }
         }
+        .padding(.horizontal, SakinahSpacing.base)
     }
 
-    private var typewriterText: some View {
-        let words = vm.promptText.split(separator: " ").map(String.init)
-        return VStack {
-            WrappingHStack(words: words, wordAppeared: wordAppeared)
-                .onAppear {
-                    wordAppeared = Array(repeating: false, count: words.count)
-                    for i in words.indices {
-                        withAnimation(.easeIn(duration: 0.3).delay(Double(i) * 0.08)) {
-                            if i < wordAppeared.count {
-                                wordAppeared[i] = true
+    private var answeredState: some View {
+        SakinahCard {
+            VStack(alignment: .leading, spacing: SakinahSpacing.base) {
+                HStack(alignment: .center) {
+                    HStack(spacing: SakinahSpacing.sm) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(SakinahColor.success)
+                        Text("TODAY'S REFLECTION")
+                            .font(SakinahFont.captionBold)
+                            .tracking(0.4)
+                            .foregroundStyle(SakinahColor.textSecondary)
+                    }
+
+                    Spacer()
+
+                    NavigationLink("Edit") {
+                        DailyPromptAnswerView(vm: vm)
+                    }
+                    .font(SakinahFont.captionBold)
+                    .foregroundStyle(SakinahColor.primary)
+                }
+
+                Text("\"\(vm.userResponse)\"")
+                    .font(.system(size: 17, weight: .regular, design: .serif))
+                    .foregroundStyle(SakinahColor.textPrimary)
+                    .lineSpacing(4)
+                    .lineLimit(2)
+
+                HStack {
+                    Text("Read more")
+                        .font(SakinahFont.captionBold)
+                        .foregroundStyle(SakinahColor.primary)
+
+                    Spacer()
+
+                    if !vm.partnerResponse.isEmpty {
+                        Button {
+                            showPartnerAnswer = true
+                        } label: {
+                            HStack(spacing: SakinahSpacing.xs) {
+                                Text("\(vm.partnerName)'s answer")
+                                Image(systemName: "chevron.right")
                             }
+                            .font(SakinahFont.captionBold)
+                            .foregroundStyle(SakinahColor.rose)
                         }
                     }
                 }
+            }
         }
+        .overlay {
+            if vm.revealFlash {
+                RoundedRectangle(cornerRadius: SakinahRadius.medium)
+                    .fill(SakinahColor.accent.opacity(0.12))
+            }
+        }
+        .padding(.horizontal, SakinahSpacing.base)
     }
 
-    // MARK: - State 2: Revealed
+    private func statusDot(isActive: Bool) -> some View {
+        Circle()
+            .strokeBorder(.white.opacity(0.75), lineWidth: 1.5)
+            .background(Circle().fill(isActive ? .white : .clear))
+            .frame(width: 9, height: 9)
+    }
+}
 
-    private var revealedState: some View {
-        VStack(spacing: SakinahSpacing.base) {
-            SakinahBadge(
-                text: vm.promptCategory.displayLabel,
-                color: SakinahColor.accent,
-                tintedBackground: SakinahColor.accentLight
+struct DailyPromptAnswerView: View {
+    @Bindable var vm: TodayViewModel
+    @Environment(AppState.self) private var appState
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.requestReview) private var requestReview
+    @Environment(\.dismiss) private var dismiss
+    @State private var draft = ""
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: SakinahSpacing.xl) {
+            VStack(alignment: .leading, spacing: SakinahSpacing.md) {
+                Text("\"\(vm.promptText)\"")
+                    .font(.system(size: 22, weight: .regular, design: .serif))
+                    .foregroundStyle(SakinahColor.textPrimary)
+                    .lineSpacing(5)
+
+                HStack {
+                    Rectangle()
+                        .fill(SakinahColor.divider)
+                        .frame(height: 1)
+                    Image(systemName: "sparkle")
+                        .font(.system(size: 12, weight: .regular))
+                        .foregroundStyle(SakinahColor.accent)
+                    Rectangle()
+                        .fill(SakinahColor.divider)
+                        .frame(height: 1)
+                }
+            }
+
+            ZStack(alignment: .topLeading) {
+                if draft.isEmpty {
+                    Text("Write your answer here...")
+                        .font(SakinahFont.body)
+                        .foregroundStyle(SakinahColor.textTertiary)
+                        .padding(.horizontal, SakinahSpacing.md)
+                        .padding(.vertical, SakinahSpacing.md)
+                }
+
+                TextEditor(text: $draft)
+                    .font(SakinahFont.body)
+                    .foregroundStyle(SakinahColor.textPrimary)
+                    .scrollContentBackground(.hidden)
+                    .padding(SakinahSpacing.sm)
+                    .onChange(of: draft) { _, newValue in
+                        if newValue.count > vm.maxResponseLength {
+                            draft = String(newValue.prefix(vm.maxResponseLength))
+                        }
+                    }
+            }
+            .frame(maxHeight: .infinity)
+            .background(SakinahColor.surface)
+            .clipShape(.rect(cornerRadius: SakinahRadius.medium))
+            .overlay(
+                RoundedRectangle(cornerRadius: SakinahRadius.medium)
+                    .stroke(SakinahColor.border, lineWidth: 1)
             )
 
-            VStack(spacing: SakinahSpacing.xs) {
-                Text("Saved for today")
-                    .font(SakinahFont.title3)
-                    .foregroundStyle(SakinahColor.textPrimary)
-
-                Text(vm.promptText)
-                    .font(SakinahFont.bodySmall)
-                    .foregroundStyle(SakinahColor.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, SakinahSpacing.sm)
+            if draft.count > 400 {
+                Text("\(draft.count)/\(vm.maxResponseLength)")
+                    .font(SakinahFont.caption)
+                    .foregroundStyle(draft.count >= vm.maxResponseLength ? SakinahColor.error : SakinahColor.textTertiary)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
             }
-
-            // User's bubble (right)
-            HStack {
-                Spacer()
-                VStack(alignment: .trailing, spacing: SakinahSpacing.xs) {
-                    Text(vm.userName)
-                        .font(SakinahFont.captionBold)
-                        .foregroundStyle(SakinahColor.textSecondary)
-                    SpeechBubbleView(tailOnRight: true, backgroundColor: SakinahColor.primaryLight) {
-                        Text(vm.userResponse)
-                            .font(SakinahFont.bodySmall)
-                            .foregroundStyle(SakinahColor.textPrimary)
-                            .multilineTextAlignment(.trailing)
-                    }
+        }
+        .padding(SakinahSpacing.base)
+        .background(SakinahColor.background.ignoresSafeArea())
+        .navigationTitle("Today's Reflection")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button("Save") {
+                    save()
                 }
-                .frame(maxWidth: 260)
-                .scaleEffect(userBubbleScale)
+                .disabled(!canSave)
             }
-
-            if !vm.partnerResponse.isEmpty {
-                HStack {
-                    VStack(alignment: .leading, spacing: SakinahSpacing.xs) {
-                        Text(vm.partnerName)
-                            .font(SakinahFont.captionBold)
-                            .foregroundStyle(SakinahColor.textSecondary)
-                        SpeechBubbleView(tailOnRight: false, backgroundColor: SakinahColor.accentLight) {
-                            Text(vm.partnerResponse)
-                                .font(SakinahFont.bodySmall)
-                                .foregroundStyle(SakinahColor.textPrimary)
-                        }
-                    }
-                    .frame(maxWidth: 260)
-                    .scaleEffect(partnerBubbleScale)
-                    Spacer()
+            ToolbarItem(placement: .keyboard) {
+                Button("Save") {
+                    save()
                 }
-
-                reactionBar
-            } else {
-                HStack(spacing: SakinahSpacing.sm) {
-                    Image(systemName: "sparkles")
-                        .foregroundStyle(SakinahColor.accent)
-                    Text("Bring this into your next conversation together.")
-                        .font(SakinahFont.bodySmall)
-                        .foregroundStyle(SakinahColor.textSecondary)
-                    Spacer()
-                }
-                .padding(SakinahSpacing.md)
-                .background(SakinahColor.backgroundSecondary)
-                .clipShape(.rect(cornerRadius: SakinahRadius.medium))
+                .disabled(!canSave)
             }
         }
         .onAppear {
-            withAnimation(SakinahAnimation.bounce.delay(0.1)) {
-                userBubbleScale = 1
-            }
-            if !vm.partnerResponse.isEmpty {
-                withAnimation(SakinahAnimation.bounce.delay(0.25)) {
-                    partnerBubbleScale = 1
-                }
-            }
+            draft = vm.userResponse
         }
     }
 
-    private var reactionBar: some View {
-        HStack(spacing: SakinahSpacing.md) {
-            ForEach(["❤️", "😂", "🥺", "🤲", "✨"], id: \.self) { emoji in
-                let isSelected = vm.selectedReaction == emoji
-                Button {
-                    vm.selectReaction(emoji)
-                } label: {
-                    Text(emoji)
-                        .font(.system(size: 24))
-                        .frame(width: 40, height: 40)
-                        .background(isSelected ? SakinahColor.primaryLight : Color.clear)
-                        .clipShape(Circle())
-                        .scaleEffect(isSelected ? 1.2 : 1.0)
-                        .shadow(color: isSelected ? SakinahColor.primary.opacity(0.3) : .clear, radius: 8)
-                }
-                .pressScale()
-                .animation(SakinahAnimation.bounce, value: isSelected)
-            }
+    private var canSave: Bool {
+        !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && draft.count <= vm.maxResponseLength
+    }
+
+    private func save() {
+        guard appState.hasPremiumAccess, canSave else { return }
+        vm.userResponse = draft
+        vm.submitResponse(context: modelContext)
+        ReviewService.shared.onPromptRevealed(requestReview: { requestReview() })
+        Task {
+            await CloudKitService.shared.syncIfPossible(appState: appState, context: modelContext)
         }
-        .padding(.top, SakinahSpacing.sm)
+        dismiss()
     }
 }
 
-// MARK: - Wrapping HStack for typewriter text
-
-struct WrappingHStack: View {
-    let words: [String]
-    let wordAppeared: [Bool]
+struct PartnerAnswerSheet: View {
+    let name: String
+    let answer: String
 
     var body: some View {
-        // Simple approach: use a Text with attributedString approach
-        // For typewriter effect, we'll use individual Text views in a flow layout
-        FlowLayout(spacing: 4) {
-            ForEach(Array(words.enumerated()), id: \.offset) { index, word in
-                Text(word)
-                    .font(SakinahFont.title3)
-                    .foregroundStyle(SakinahColor.textPrimary)
-                    .opacity(index < wordAppeared.count && wordAppeared[index] ? 1 : 0)
-            }
+        VStack(alignment: .leading, spacing: SakinahSpacing.lg) {
+            Capsule()
+                .fill(SakinahColor.divider)
+                .frame(width: 36, height: 4)
+                .frame(maxWidth: .infinity)
+                .padding(.top, SakinahSpacing.sm)
+
+            Text("\(name)'s answer")
+                .font(SakinahFont.title2)
+                .foregroundStyle(SakinahColor.textPrimary)
+
+            Text(answer)
+                .font(.system(size: 18, weight: .regular, design: .serif))
+                .foregroundStyle(SakinahColor.textPrimary)
+                .lineSpacing(6)
+
+            Spacer()
         }
-        .multilineTextAlignment(.center)
-    }
-}
-
-struct FlowLayout: Layout {
-    var spacing: CGFloat = 4
-
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let result = arrange(proposal: proposal, subviews: subviews)
-        return result.size
-    }
-
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        let result = arrange(proposal: proposal, subviews: subviews)
-        for (index, subview) in subviews.enumerated() {
-            guard index < result.positions.count else { break }
-            let position = result.positions[index]
-            subview.place(at: CGPoint(x: bounds.minX + position.x, y: bounds.minY + position.y), proposal: .unspecified)
-        }
-    }
-
-    private func arrange(proposal: ProposedViewSize, subviews: Subviews) -> (positions: [CGPoint], size: CGSize) {
-        let maxWidth = proposal.width ?? .infinity
-        var positions: [CGPoint] = []
-        var currentX: CGFloat = 0
-        var currentY: CGFloat = 0
-        var lineHeight: CGFloat = 0
-        var maxX: CGFloat = 0
-
-        for subview in subviews {
-            let size = subview.sizeThatFits(.unspecified)
-            if currentX + size.width > maxWidth && currentX > 0 {
-                currentX = 0
-                currentY += lineHeight + spacing
-                lineHeight = 0
-            }
-            positions.append(CGPoint(x: currentX, y: currentY))
-            lineHeight = max(lineHeight, size.height)
-            currentX += size.width + spacing
-            maxX = max(maxX, currentX)
-        }
-
-        return (positions, CGSize(width: maxX, height: currentY + lineHeight))
+        .padding(SakinahSpacing.base)
+        .background(SakinahColor.background)
     }
 }

@@ -12,11 +12,16 @@ struct StarterPlanCard: View {
                 VStack(alignment: .leading, spacing: SakinahSpacing.base) {
                     HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: SakinahSpacing.xs) {
-                            SakinahBadge(
-                                text: "Your first week",
-                                color: SakinahColor.accent,
-                                tintedBackground: SakinahColor.accentLight
-                            )
+                            HStack {
+                                Text("YOUR 30-DAY PLAN")
+                                    .font(SakinahFont.captionBold)
+                                    .tracking(0.4)
+                                    .foregroundStyle(SakinahColor.textSecondary)
+                                Spacer()
+                                Text(planDayText)
+                                    .font(SakinahFont.captionBold)
+                                    .foregroundStyle(SakinahColor.accent)
+                            }
 
                             Text(plan.headline)
                                 .font(SakinahFont.title3)
@@ -44,8 +49,12 @@ struct StarterPlanCard: View {
                         .foregroundStyle(SakinahColor.textSecondary)
                         .lineSpacing(3)
 
+                    ProgressView(value: planProgress)
+                        .tint(SakinahColor.primary)
+                        .background(SakinahColor.divider)
+
                     VStack(alignment: .leading, spacing: SakinahSpacing.xs) {
-                        Text("This week")
+                        Text("Today")
                             .font(SakinahFont.captionBold)
                             .foregroundStyle(SakinahColor.textSecondary)
                             .textCase(.uppercase)
@@ -61,6 +70,24 @@ struct StarterPlanCard: View {
             }
             .padding(.horizontal, SakinahSpacing.base)
         }
+    }
+
+    private var planDay: Int {
+        guard let createdAt = appState.currentUser?.starterPlanCreatedAt else { return 1 }
+        let days = Calendar.current.dateComponents(
+            [.day],
+            from: Calendar.current.startOfDay(for: createdAt),
+            to: Calendar.current.startOfDay(for: Date())
+        ).day ?? 0
+        return min(max(days + 1, 1), 30)
+    }
+
+    private var planDayText: String {
+        "Day \(planDay) of 30"
+    }
+
+    private var planProgress: Double {
+        Double(planDay) / 30.0
     }
 
     private func dismissCard() {

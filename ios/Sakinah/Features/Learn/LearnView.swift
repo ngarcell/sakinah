@@ -13,113 +13,116 @@ struct LearnView: View {
                 SakinahColor.background.ignoresSafeArea()
 
                 ScrollView {
-                    VStack(spacing: SakinahSpacing.xxl) {
-                        // Header
-                        VStack(spacing: SakinahSpacing.xs) {
-                            Text("Learn")
-                                .font(SakinahFont.title1)
-                                .foregroundStyle(SakinahColor.textPrimary)
-                            Text("Thoughtful guidance for the parts of marriage that need care, language, and ritual.")
-                                .font(SakinahFont.bodySmall)
-                                .foregroundStyle(SakinahColor.textSecondary)
-                                .multilineTextAlignment(.center)
-                        }
-                        .padding(.top, SakinahSpacing.lg)
-
-                        // Weekly Lesson
+                    VStack(alignment: .leading, spacing: SakinahSpacing.xxl) {
                         weeklyLesson
-
-                        // Conversation Starters
-                        conversationStarters
-
-                        // Past lessons
-                        pastLessons
-
-                        Spacer().frame(height: 100)
+                        conversationPacks
+                        completedLessonsSection
+                        Spacer().frame(height: 32)
                     }
+                    .padding(.top, SakinahSpacing.md)
+                    .padding(.bottom, SakinahSpacing.jumbo)
                 }
                 .scrollIndicators(.hidden)
             }
             .sheet(item: $selectedLesson) { lesson in
                 LessonDetailView(lesson: lesson)
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
             }
             .sheet(item: $selectedPack) { pack in
-                packDetailSheet(pack)
+                PackDetailSheet(pack: pack)
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
             }
         }
     }
 
+    @ViewBuilder
     private var weeklyLesson: some View {
-        Group {
-            if let lesson = LessonService.shared.currentWeekLesson() {
-                SakinahCard(elevated: true) {
-                    VStack(alignment: .leading, spacing: SakinahSpacing.md) {
-                        LessonIllustration(category: lesson.category)
-                            .frame(height: 120)
-                            .clipShape(.rect(cornerRadius: SakinahRadius.medium))
+        if let lesson = LessonService.shared.currentWeekLesson() {
+            Button {
+                HapticEngine.shared.fire(.tap)
+                selectedLesson = lesson
+            } label: {
+                VStack(alignment: .leading, spacing: SakinahSpacing.base) {
+                    Text("THIS WEEK")
+                        .font(SakinahFont.captionBold)
+                        .tracking(0.4)
+                        .foregroundStyle(.white.opacity(0.82))
 
-                        SakinahBadge(text: lesson.category.capitalized, color: SakinahColor.primary, tintedBackground: SakinahColor.primaryLight)
+                    Text(lesson.title)
+                        .font(.system(size: 24, weight: .bold, design: .serif))
+                        .foregroundStyle(.white)
+                        .fixedSize(horizontal: false, vertical: true)
 
-                        Text(lesson.title)
-                            .font(SakinahFont.title2)
-                            .foregroundStyle(SakinahColor.textPrimary)
-
-                        HStack(spacing: 4) {
-                            Image(systemName: "clock")
-                                .font(.system(size: 12))
-                            Text("\(lesson.readTimeMinutes) min read")
-                                .font(SakinahFont.caption)
-                        }
-                        .foregroundStyle(SakinahColor.textTertiary)
-
-                        if let first = lesson.sections.first, let body = first.body {
-                            Text(body)
-                                .font(SakinahFont.body)
-                                .foregroundStyle(SakinahColor.textSecondary)
-                                .lineLimit(2)
-                        }
-
-                        if appState.hasPremiumAccess {
-                            SakinahButton(title: "Read Lesson") {
-                                selectedLesson = lesson
-                            }
-                        } else {
-                            UpgradePromptView(
-                                icon: "book.closed.fill",
-                                headline: "Unlock the full lesson",
-                                message: "Keep the guidance that fits your situation close when you need it.",
-                                ctaTitle: "See plans"
-                            ) {
-                                appState.presentPaywall(for: .guidedLesson)
-                            }
-                        }
+                    if let firstBody = lesson.sections.first?.body {
+                        Text(firstBody)
+                            .font(SakinahFont.bodySmall)
+                            .foregroundStyle(.white.opacity(0.86))
+                            .lineLimit(2)
                     }
+
+                    HStack(spacing: SakinahSpacing.xs) {
+                        ForEach(0..<5, id: \.self) { index in
+                            Circle()
+                                .fill(index == 0 ? .white : .white.opacity(0.35))
+                                .frame(width: 7, height: 7)
+                        }
+                        Text("1 of 5 chapters")
+                            .font(SakinahFont.caption)
+                            .foregroundStyle(.white.opacity(0.82))
+                        Spacer()
+                        Text("\(lesson.readTimeMinutes) min")
+                            .font(SakinahFont.caption)
+                            .foregroundStyle(.white.opacity(0.82))
+                    }
+
+                    HStack {
+                        Text(appState.hasPremiumAccess ? "Continue Reading" : "Preview Lesson")
+                            .font(SakinahFont.headline)
+                        Image(systemName: "arrow.right")
+                        Spacer()
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.top, SakinahSpacing.xs)
                 }
-                .padding(.horizontal, SakinahSpacing.base)
+                .padding(SakinahSpacing.base)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    LinearGradient(
+                        colors: SakinahColor.heroGradient,
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .clipShape(.rect(cornerRadius: SakinahRadius.medium))
+                .sakinahShadow(.medium)
             }
+            .buttonStyle(.plain)
+            .padding(.horizontal, SakinahSpacing.base)
         }
     }
 
-    private var conversationStarters: some View {
+    private var conversationPacks: some View {
         VStack(alignment: .leading, spacing: SakinahSpacing.md) {
-            HStack {
-                Text("Conversation Starters")
-                    .font(SakinahFont.title3)
-                    .foregroundStyle(SakinahColor.textPrimary)
-                Spacer()
+            Text("CONVERSATION PACKS")
+                .font(SakinahFont.captionBold)
+                .tracking(0.4)
+                .foregroundStyle(SakinahColor.textSecondary)
+                .padding(.horizontal, SakinahSpacing.base)
+
+            LazyVGrid(
+                columns: [
+                    GridItem(.flexible(), spacing: SakinahSpacing.md),
+                    GridItem(.flexible(), spacing: SakinahSpacing.md)
+                ],
+                spacing: SakinahSpacing.md
+            ) {
+                ForEach(ConversationPack.allPacks) { pack in
+                    packCard(pack)
+                }
             }
             .padding(.horizontal, SakinahSpacing.base)
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: SakinahSpacing.md) {
-                    ForEach(ConversationPack.allPacks) { pack in
-                        packCard(pack)
-                    }
-                }
-                .padding(.horizontal, SakinahSpacing.base)
-                .scrollTargetLayout()
-            }
-            .scrollTargetBehavior(.viewAligned)
         }
     }
 
@@ -132,71 +135,63 @@ struct LearnView: View {
                 appState.presentPaywall(for: .conversationPacks)
             }
         } label: {
-            VStack(spacing: 0) {
-                ZStack {
-                    LinearGradient(
-                        colors: [Color(hex: pack.gradientStart), Color(hex: pack.gradientEnd)],
-                        startPoint: .topLeading, endPoint: .bottomTrailing
-                    )
-                    Image(systemName: pack.icon)
-                        .font(.system(size: 32, weight: .medium))
-                        .foregroundStyle(.white)
-                }
-                .frame(height: 130)
-                .overlay(alignment: .topTrailing) {
-                    if !appState.hasPremiumAccess {
-                        SakinahBadge(
-                            text: "Premium",
-                            color: .white,
-                            tintedBackground: SakinahColor.textPrimary.opacity(0.28)
-                        )
-                        .padding(SakinahSpacing.sm)
-                    }
-                }
+            VStack(alignment: .leading, spacing: SakinahSpacing.md) {
+                Image(systemName: pack.icon)
+                    .font(.system(size: 28, weight: .regular))
+                    .foregroundStyle(SakinahColor.primary)
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: SakinahSpacing.xs) {
                     Text(pack.name)
                         .font(SakinahFont.headline)
                         .foregroundStyle(SakinahColor.textPrimary)
-                        .lineLimit(1)
+                        .lineLimit(2)
+
                     Text("\(pack.promptCount) prompts")
                         .font(SakinahFont.caption)
                         .foregroundStyle(SakinahColor.textSecondary)
                 }
-                .padding(SakinahSpacing.md)
-                .frame(width: 200, alignment: .leading)
+
+                Spacer(minLength: 0)
+
+                SakinahBadge(
+                    text: appState.hasPremiumAccess ? "Open" : "Premium",
+                    icon: appState.hasPremiumAccess ? "checkmark" : "lock.fill",
+                    color: appState.hasPremiumAccess ? SakinahColor.primary : .white,
+                    tintedBackground: appState.hasPremiumAccess ? SakinahColor.primaryLight : SakinahColor.accent
+                )
             }
-            .frame(width: 200, height: 210)
+            .padding(SakinahSpacing.base)
+            .frame(maxWidth: .infinity, minHeight: 160, alignment: .leading)
             .background(SakinahColor.surface)
-            .clipShape(.rect(cornerRadius: SakinahRadius.large))
-            .sakinahShadow(.subtle)
+            .clipShape(.rect(cornerRadius: SakinahRadius.medium))
+            .overlay(
+                RoundedRectangle(cornerRadius: SakinahRadius.medium)
+                    .stroke(SakinahColor.border, lineWidth: 1)
+            )
         }
-        .pressScale()
+        .buttonStyle(.plain)
     }
 
-    private func packDetailSheet(_ pack: ConversationPack) -> some View {
-        PackDetailSheet(pack: pack)
-    }
-
-    private var pastLessons: some View {
-        Group {
-            let completed = LessonService.shared.completedLessons(from: completedLessons)
-            if !completed.isEmpty {
-                VStack(alignment: .leading, spacing: SakinahSpacing.md) {
-                    Text("Past Lessons")
+    @ViewBuilder
+    private var completedLessonsSection: some View {
+        if !completedLessonItems.isEmpty {
+            VStack(alignment: .leading, spacing: SakinahSpacing.md) {
+                HStack {
+                    Text("COMPLETED")
                         .font(SakinahFont.captionBold)
-                        .foregroundStyle(SakinahColor.textSecondary)
                         .tracking(0.4)
-                        .textCase(.uppercase)
-                        .padding(.horizontal, SakinahSpacing.base)
+                        .foregroundStyle(SakinahColor.textSecondary)
+                    Spacer()
+                    Text("\(completedLessonItems.count) lessons")
+                        .font(SakinahFont.caption)
+                        .foregroundStyle(SakinahColor.textTertiary)
+                }
+                .padding(.horizontal, SakinahSpacing.base)
 
-                    ForEach(completed) { lesson in
+                VStack(spacing: SakinahSpacing.sm) {
+                    ForEach(completedLessonItems) { lesson in
                         Button {
-                            if appState.hasPremiumAccess {
-                                selectedLesson = lesson
-                            } else {
-                                appState.presentPaywall(for: .guidedLesson)
-                            }
+                            selectedLesson = lesson
                         } label: {
                             HStack(spacing: SakinahSpacing.md) {
                                 Image(systemName: "checkmark.circle.fill")
@@ -218,34 +213,38 @@ struct LearnView: View {
                             .background(SakinahColor.surface)
                             .clipShape(.rect(cornerRadius: SakinahRadius.medium))
                         }
-                        .padding(.horizontal, SakinahSpacing.base)
+                        .buttonStyle(.plain)
                     }
                 }
+                .padding(.horizontal, SakinahSpacing.base)
             }
         }
+    }
+
+    private var completedLessonItems: [LessonData] {
+        LessonService.shared.completedLessons(from: completedLessons)
     }
 }
 
 struct LessonIllustration: View {
     let category: String
+
     var body: some View {
-        GeometryReader { geo in
-            Canvas { context, size in
-                let center = CGPoint(x: size.width / 2, y: size.height / 2)
-                let radius: CGFloat = min(size.width, size.height) * 0.3
-                for i in 0..<8 {
-                    let angle = (Double(i) / 8) * 2 * .pi
-                    let x = center.x + cos(angle) * radius
-                    let y = center.y + sin(angle) * radius
-                    let rect = CGRect(x: x - 15, y: y - 15, width: 30, height: 30)
-                    var diamond = Path()
-                    diamond.move(to: CGPoint(x: rect.midX, y: rect.minY))
-                    diamond.addLine(to: CGPoint(x: rect.maxX, y: rect.midY))
-                    diamond.addLine(to: CGPoint(x: rect.midX, y: rect.maxY))
-                    diamond.addLine(to: CGPoint(x: rect.minX, y: rect.midY))
-                    diamond.closeSubpath()
-                    context.stroke(diamond, with: .color(SakinahColor.primary), lineWidth: 1)
-                }
+        Canvas { context, size in
+            let center = CGPoint(x: size.width / 2, y: size.height / 2)
+            let radius: CGFloat = min(size.width, size.height) * 0.3
+            for index in 0..<8 {
+                let angle = (Double(index) / 8) * 2 * .pi
+                let x = center.x + cos(angle) * radius
+                let y = center.y + sin(angle) * radius
+                let rect = CGRect(x: x - 15, y: y - 15, width: 30, height: 30)
+                var diamond = Path()
+                diamond.move(to: CGPoint(x: rect.midX, y: rect.minY))
+                diamond.addLine(to: CGPoint(x: rect.maxX, y: rect.midY))
+                diamond.addLine(to: CGPoint(x: rect.midX, y: rect.maxY))
+                diamond.addLine(to: CGPoint(x: rect.minX, y: rect.midY))
+                diamond.closeSubpath()
+                context.stroke(diamond, with: .color(SakinahColor.primary.opacity(0.22)), lineWidth: 1)
             }
         }
     }

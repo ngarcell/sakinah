@@ -9,79 +9,64 @@ struct LessonDetailView: View {
     @State private var isActionCompleted = false
 
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            SakinahColor.background.ignoresSafeArea()
-
+        NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    // Parallax illustration
-                    GeometryReader { geo in
-                        let offset = geo.frame(in: .global).minY
-                        ZStack {
-                            SakinahColor.primaryLight
-                            LessonIllustration(category: lesson.category)
-                                .opacity(0.15)
-                            Image(systemName: categoryIcon)
-                                .font(.system(size: 48))
-                                .foregroundStyle(SakinahColor.primary.opacity(0.25))
-                        }
-                        .frame(height: max(240, 240 + offset * 0.5))
-                        .offset(y: offset > 0 ? -offset * 0.5 : 0)
-                    }
-                    .frame(height: 240)
+                VStack(alignment: .leading, spacing: SakinahSpacing.xl) {
+                    ProgressView(value: chapterProgress)
+                        .tint(SakinahColor.primary)
 
-                    VStack(alignment: .leading, spacing: SakinahSpacing.xl) {
-                        // Title area
-                        VStack(alignment: .leading, spacing: SakinahSpacing.sm) {
-                            SakinahBadge(text: lesson.category.capitalized)
-                            Text(lesson.title)
-                                .font(SakinahFont.title1)
-                                .foregroundStyle(SakinahColor.textPrimary)
-                            HStack(spacing: 4) {
-                                Image(systemName: "clock")
-                                    .font(.system(size: 12))
-                                Text("\(lesson.readTimeMinutes) min read")
-                                    .font(SakinahFont.caption)
-                            }
+                    VStack(alignment: .leading, spacing: SakinahSpacing.sm) {
+                        SakinahBadge(text: lesson.category.capitalized)
+                        Text(lesson.title)
+                            .font(.system(size: 24, weight: .bold, design: .serif))
+                            .foregroundStyle(SakinahColor.textPrimary)
+                            .lineSpacing(4)
+                        Text("\(lesson.readTimeMinutes) min read")
+                            .font(SakinahFont.caption)
                             .foregroundStyle(SakinahColor.textTertiary)
-                        }
-
-                        // Content sections
-                        ForEach(lesson.sections) { section in
-                            sectionView(section)
-                        }
-
-                        // Try This card
-                        tryThisCard
-
-                        // Share
-                        SakinahButton(title: "Share Lesson", icon: "square.and.arrow.up", variant: .ghost) {
-                            // Share sheet handled by system
-                        }
-
-                        Spacer().frame(height: 60)
                     }
-                    .padding(.horizontal, SakinahSpacing.base)
-                    .padding(.top, SakinahSpacing.lg)
+
+                    ForEach(visibleSections) { section in
+                        sectionView(section)
+                    }
+
+                    if !appState.hasPremiumAccess {
+                        UpgradePromptView(
+                            icon: "book.closed.fill",
+                            headline: "Continue reading with Sakinah Premium",
+                            message: "The first chapter is your preview. Unlock the rest of this lesson and the full guided library.",
+                            ctaTitle: "Begin my journey"
+                        ) {
+                            appState.presentPaywall(for: .guidedLesson)
+                            dismiss()
+                        }
+                    } else {
+                        tryThisCard
+                    }
+
+                    Spacer().frame(height: 32)
+                }
+                .padding(SakinahSpacing.base)
+            }
+            .background(SakinahColor.background)
+            .navigationTitle("Lesson")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") { dismiss() }
+                        .foregroundStyle(SakinahColor.primary)
                 }
             }
-            .scrollIndicators(.hidden)
-
-            // Back button
-            Button {
-                dismiss()
-            } label: {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(SakinahColor.primary)
-                    .frame(width: 40, height: 40)
-                    .background(.ultraThinMaterial)
-                    .clipShape(Circle())
-            }
-            .padding(.leading, SakinahSpacing.base)
-            .padding(.top, SakinahSpacing.sm)
         }
-        .navigationBarBackButtonHidden()
+    }
+
+    private var visibleSections: [LessonSection] {
+        appState.hasPremiumAccess ? lesson.sections : Array(lesson.sections.prefix(1))
+    }
+
+    private var chapterProgress: Double {
+        guard !lesson.sections.isEmpty else { return 0 }
+        return Double(visibleSections.count) / Double(lesson.sections.count)
     }
 
     @ViewBuilder
@@ -92,33 +77,34 @@ struct LessonDetailView: View {
                     Text(arabic)
                         .font(SakinahFont.arabic)
                         .foregroundStyle(SakinahColor.textPrimary)
-                        .multilineTextAlignment(.center)
+                        .multilineTextAlignment(.trailing)
                         .environment(\.layoutDirection, .rightToLeft)
                         .lineSpacing(8)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
                 }
-                if let trans = section.transliteration {
-                    Text(trans)
+                if let transliteration = section.transliteration {
+                    Text(transliteration)
                         .font(SakinahFont.bodySmall)
                         .italic()
                         .foregroundStyle(SakinahColor.textSecondary)
-                        .multilineTextAlignment(.center)
                 }
-                Rectangle().fill(SakinahColor.divider).frame(width: 40, height: 1)
+                Rectangle()
+                    .fill(SakinahColor.divider)
+                    .frame(width: 40, height: 1)
                 if let translation = section.translation {
                     Text(translation)
                         .font(SakinahFont.body)
                         .foregroundStyle(SakinahColor.textPrimary)
-                        .multilineTextAlignment(.center)
+                        .lineSpacing(5)
                 }
                 if let source = section.source {
-                    Text("— \(source)")
+                    Text(source)
                         .font(SakinahFont.caption)
                         .foregroundStyle(SakinahColor.textTertiary)
                 }
             }
-            .padding(SakinahSpacing.lg)
-            .frame(maxWidth: .infinity)
-            .background(SakinahColor.backgroundSecondary)
+            .padding(SakinahSpacing.base)
+            .background(SakinahColor.surfaceWarm)
             .clipShape(.rect(cornerRadius: SakinahRadius.medium))
         } else {
             VStack(alignment: .leading, spacing: SakinahSpacing.md) {
@@ -128,13 +114,11 @@ struct LessonDetailView: View {
                         .foregroundStyle(SakinahColor.textPrimary)
                 }
                 if let body = section.body {
-                    // Check for pull quotes (lines starting with specific patterns)
-                    let paragraphs = body.components(separatedBy: "\n\n")
-                    ForEach(Array(paragraphs.enumerated()), id: \.offset) { _, para in
-                        Text(para)
+                    ForEach(Array(body.components(separatedBy: "\n\n").enumerated()), id: \.offset) { _, paragraph in
+                        Text(paragraph)
                             .font(SakinahFont.body)
                             .foregroundStyle(SakinahColor.textPrimary)
-                            .lineSpacing(6)
+                            .lineSpacing(7)
                     }
                 }
             }
@@ -143,29 +127,20 @@ struct LessonDetailView: View {
 
     private var tryThisCard: some View {
         VStack(alignment: .leading, spacing: SakinahSpacing.md) {
-            Text("Try This Together 💡")
+            Text("Try this together")
                 .font(SakinahFont.headline)
                 .foregroundStyle(SakinahColor.textPrimary)
+
             Text(lesson.tryThis.description)
                 .font(SakinahFont.body)
                 .foregroundStyle(SakinahColor.textPrimary)
                 .lineSpacing(4)
-            if appState.hasPremiumAccess {
-                SakinahButton(title: isActionCompleted ? "Done ✓" : "Mark as Done", variant: .secondary) {
-                    markComplete()
-                }
-                .disabled(isActionCompleted)
-                .opacity(isActionCompleted ? 0.6 : 1)
-            } else {
-                UpgradePromptView(
-                    icon: "book.closed.fill",
-                    headline: "Keep lesson actions unlocked",
-                    message: "Use the guided follow-through inside your active plan.",
-                    ctaTitle: "See plans"
-                ) {
-                    appState.presentPaywall(for: .guidedLesson)
-                }
+
+            SakinahButton(title: isActionCompleted ? "Done" : "Mark as Done", icon: isActionCompleted ? "checkmark.circle.fill" : nil, variant: .secondary) {
+                markComplete()
             }
+            .disabled(isActionCompleted)
+            .opacity(isActionCompleted ? 0.6 : 1)
         }
         .padding(SakinahSpacing.base)
         .background(SakinahColor.accentLight)
@@ -179,17 +154,6 @@ struct LessonDetailView: View {
         try? modelContext.save()
         withAnimation(SakinahAnimation.bounce) { isActionCompleted = true }
     }
-
-    private var categoryIcon: String {
-        switch lesson.category {
-        case "communication": return "bubble.left.and.bubble.right.fill"
-        case "conflict": return "hand.raised.fill"
-        case "spiritual": return "moon.stars.fill"
-        case "intimacy": return "heart.fill"
-        case "practical": return "briefcase.fill"
-        default: return "book.fill"
-        }
-    }
 }
 
 struct PackDetailSheet: View {
@@ -198,34 +162,20 @@ struct PackDetailSheet: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                SakinahColor.background.ignoresSafeArea()
-                ScrollView {
-                    VStack(alignment: .leading, spacing: SakinahSpacing.lg) {
-                        // Header gradient
-                        ZStack {
-                            LinearGradient(colors: [Color(hex: pack.gradientStart), Color(hex: pack.gradientEnd)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                            VStack {
-                                Image(systemName: pack.icon)
-                                    .font(.system(size: 36))
-                                    .foregroundStyle(.white)
-                                Text(pack.name)
-                                    .font(SakinahFont.title2)
-                                    .foregroundStyle(.white)
-                            }
-                        }
-                        .frame(height: 140)
-                        .clipShape(.rect(cornerRadius: SakinahRadius.large))
+            ScrollView {
+                VStack(alignment: .leading, spacing: SakinahSpacing.md) {
+                    Text(pack.name)
+                        .font(.system(size: 28, weight: .bold, design: .serif))
+                        .foregroundStyle(SakinahColor.textPrimary)
                         .padding(.horizontal, SakinahSpacing.base)
 
-                        // Prompts list
-                        ForEach(Array(pack.prompts.enumerated()), id: \.offset) { index, prompt in
-                            promptRow(prompt: prompt, index: index)
-                        }
+                    ForEach(Array(pack.prompts.enumerated()), id: \.offset) { index, prompt in
+                        promptRow(prompt: prompt, index: index)
                     }
-                    .padding(.vertical, SakinahSpacing.lg)
                 }
+                .padding(.vertical, SakinahSpacing.base)
             }
+            .background(SakinahColor.background)
             .navigationTitle(pack.name)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -238,17 +188,16 @@ struct PackDetailSheet: View {
     }
 
     private func promptRow(prompt: String, index: Int) -> some View {
-        VStack(alignment: .leading, spacing: SakinahSpacing.sm) {
-            HStack(alignment: .top, spacing: SakinahSpacing.md) {
-                Text("\(index + 1)")
-                    .font(SakinahFont.captionBold)
-                    .foregroundStyle(SakinahColor.textTertiary)
-                    .frame(width: 24)
-                Text(prompt)
-                    .font(SakinahFont.body)
-                    .foregroundStyle(SakinahColor.textPrimary)
-                Spacer()
-            }
+        HStack(alignment: .top, spacing: SakinahSpacing.md) {
+            Text("\(index + 1)")
+                .font(SakinahFont.captionBold)
+                .foregroundStyle(SakinahColor.textTertiary)
+                .frame(width: 24)
+            Text(prompt)
+                .font(SakinahFont.body)
+                .foregroundStyle(SakinahColor.textPrimary)
+                .lineSpacing(4)
+            Spacer()
         }
         .padding(SakinahSpacing.base)
         .background(SakinahColor.surface)

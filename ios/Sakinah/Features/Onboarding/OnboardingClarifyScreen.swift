@@ -7,15 +7,17 @@ struct OnboardingClarifyScreen: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            header
+            OnboardingProgressHeader(step: .clarify) {
+                vm.goBack(context: modelContext)
+            }
 
             ScrollView {
                 VStack(alignment: .leading, spacing: SakinahSpacing.xl) {
                     VStack(alignment: .leading, spacing: SakinahSpacing.xs) {
-                        Text("Help us shape the first week")
+                        Text("What needs care right now?")
                             .font(SakinahFont.title1)
                             .foregroundStyle(SakinahColor.textPrimary)
-                        Text("Two quick choices will make your first prompt and next steps feel more specific.")
+                        Text("These choices help Sakinah avoid generic advice and make the first prompt match what is actually hard.")
                             .font(SakinahFont.bodySmall)
                             .foregroundStyle(SakinahColor.textSecondary)
                     }
@@ -63,8 +65,8 @@ struct OnboardingClarifyScreen: View {
             }
 
             VStack(spacing: SakinahSpacing.sm) {
-                SakinahButton(title: "Build my first week") {
-                    vm.advance(to: .firstValue, context: modelContext)
+                SakinahButton(title: "Continue") {
+                    vm.advance(to: .momentum, context: modelContext)
                 }
 
                 Button("Back") {
@@ -76,29 +78,6 @@ struct OnboardingClarifyScreen: View {
             .padding(.horizontal, SakinahSpacing.base)
             .padding(.bottom, SakinahSpacing.base)
         }
-    }
-
-    private var header: some View {
-        HStack {
-            Button {
-                vm.goBack(context: modelContext)
-            } label: {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(SakinahColor.textPrimary)
-                    .frame(width: 40, height: 40)
-                    .background(SakinahColor.surface)
-                    .clipShape(Circle())
-            }
-            .buttonStyle(.plain)
-
-            Spacer()
-            SakinahBadge(text: "Step 4 of 5", color: SakinahColor.accent, tintedBackground: SakinahColor.accentLight)
-            Spacer()
-            Color.clear.frame(width: 40, height: 40)
-        }
-        .padding(.top, SakinahSpacing.base)
-        .padding(.horizontal, SakinahSpacing.base)
     }
 
     private func selectionCard(title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {

@@ -99,8 +99,6 @@ struct WishlistsView: View {
             }
             .scrollIndicators(.hidden)
         }
-        .navigationTitle("Wishlists")
-        .navigationBarTitleDisplayMode(.large)
     }
 
     private var myWishes: [WishItem] {

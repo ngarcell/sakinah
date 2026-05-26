@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import UIKit
 
 struct SharedJournalView: View {
     @Environment(AppState.self) private var appState
@@ -8,7 +9,7 @@ struct SharedJournalView: View {
     @State private var showCompose = false
 
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
+        ZStack {
             SakinahColor.background.ignoresSafeArea()
 
             if filteredEntries.isEmpty {
@@ -38,35 +39,26 @@ struct SharedJournalView: View {
                 }
                 .scrollIndicators(.hidden)
             }
-
-            // FAB
-            Button {
-                HapticEngine.shared.fire(.tap)
-                if appState.hasPremiumAccess {
-                    showCompose = true
-                } else {
-                    appState.presentPaywall(for: .sharedSpace)
-                }
-            } label: {
-                Image(systemName: "plus")
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 56, height: 56)
-                    .background(
-                        LinearGradient(colors: [SakinahColor.primary, SakinahColor.primary.opacity(0.88)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                    )
-                    .clipShape(Circle())
-                    .sakinahShadow(.medium)
-            }
-            .pressScale()
-            .padding(.trailing, SakinahSpacing.lg)
-            .padding(.bottom, SakinahSpacing.lg)
         }
-        .navigationTitle("Shared Journal")
-        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    HapticEngine.shared.fire(.tap)
+                    if appState.hasPremiumAccess {
+                        showCompose = true
+                    } else {
+                        appState.presentPaywall(for: .sharedSpace)
+                    }
+                } label: {
+                    Image(systemName: "plus")
+                        .foregroundStyle(SakinahColor.primary)
+                }
+            }
+        }
         .sheet(isPresented: $showCompose) {
             ComposeJournalSheet()
                 .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
         }
     }
 
@@ -115,6 +107,13 @@ struct SharedJournalView: View {
         .background(isPartner ? SakinahColor.accentLight.opacity(0.3) : SakinahColor.surface)
         .clipShape(.rect(cornerRadius: SakinahRadius.medium))
         .sakinahShadow(.subtle)
+        .contextMenu {
+            Button {
+                UIPasteboard.general.string = entry.content
+            } label: {
+                Label("Copy", systemImage: "doc.on.doc")
+            }
+        }
     }
 }
 

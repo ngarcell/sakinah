@@ -74,7 +74,7 @@ final class User {
             to: Calendar.current.startOfDay(for: Date())
         ).day ?? 0
 
-        return visibleDays < 7
+        return visibleDays < 30
     }
 
     var requiresInitialSubscriptionUnlock: Bool {

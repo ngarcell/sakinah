@@ -214,7 +214,7 @@ final class TodayViewModel {
         }
 
         withAnimation(SakinahAnimation.gentle) {
-            showCheckInNote = true
+            showCheckInNote = false
         }
 
         saveCheckIn(context: context)
@@ -248,6 +248,8 @@ final class TodayViewModel {
 
         try? context.save()
         hasCheckedInToday = true
+        isUpdatingCheckIn = false
+        showCheckInNote = false
 
         // Recalculate streak
         calculateStreak(context: context)

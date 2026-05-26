@@ -2,11 +2,61 @@ import SwiftUI
 import SwiftData
 
 enum OnboardingStep: Int, CaseIterable {
-    case welcome
-    case context
-    case setup
-    case clarify
-    case firstValue
+    case welcome = 0
+    case context = 1
+    case setup = 2
+    case clarify = 3
+    case firstValue = 4
+    case outcome = 5
+    case relationshipStage = 6
+    case focusGoal = 7
+    case momentum = 8
+    case planPreview = 9
+
+    static let ordered: [OnboardingStep] = [
+        .welcome,
+        .outcome,
+        .relationshipStage,
+        .focusGoal,
+        .clarify,
+        .momentum,
+        .setup,
+        .planPreview,
+        .firstValue
+    ]
+
+    static var totalSteps: Int {
+        ordered.count
+    }
+
+    var normalizedForFlow: OnboardingStep {
+        self == .context ? .relationshipStage : self
+    }
+
+    var flowIndex: Int {
+        Self.ordered.firstIndex(of: normalizedForFlow).map { $0 + 1 } ?? 1
+    }
+
+    var progressPhrase: String {
+        switch normalizedForFlow {
+        case .welcome:
+            return "A quiet beginning"
+        case .outcome:
+            return "Picture the rhythm"
+        case .relationshipStage, .focusGoal, .clarify:
+            return "Make it personal"
+        case .momentum:
+            return "Taking shape"
+        case .setup:
+            return "Your shared space"
+        case .planPreview:
+            return "First-week preview"
+        case .firstValue:
+            return "First answer"
+        case .context:
+            return "Make it personal"
+        }
+    }
 }
 
 @Observable
@@ -50,7 +100,7 @@ final class OnboardingViewModel {
         draftIdentifier = draft.id
         apply(draft: draft)
 
-        if step == .firstValue, starterPlan == nil {
+        if (step == .planPreview || step == .firstValue), starterPlan == nil {
             refreshStarterPlan(context: context)
         }
     }
@@ -63,7 +113,7 @@ final class OnboardingViewModel {
             return newDraft
         }()
 
-        draft.step = step
+        draft.step = step.normalizedForFlow
         draft.yourName = yourName
         draft.partnerName = partnerName
         draft.relationshipStage = relationshipStage
@@ -82,19 +132,21 @@ final class OnboardingViewModel {
     }
 
     func advance(to step: OnboardingStep, context: ModelContext) {
-        if step == .firstValue {
+        let targetStep = step.normalizedForFlow
+        if targetStep == .planPreview || targetStep == .firstValue {
             refreshStarterPlan(context: context)
         }
 
         withAnimation(SakinahAnimation.gentle) {
-            self.step = step
+            self.step = targetStep
         }
         persist(context: context)
     }
 
     func goBack(context: ModelContext) {
-        guard let currentIndex = OnboardingStep.allCases.firstIndex(of: step), currentIndex > 0 else { return }
-        let previous = OnboardingStep.allCases[currentIndex - 1]
+        let currentStep = step.normalizedForFlow
+        guard let currentIndex = OnboardingStep.ordered.firstIndex(of: currentStep), currentIndex > 0 else { return }
+        let previous = OnboardingStep.ordered[currentIndex - 1]
         withAnimation(SakinahAnimation.gentle) {
             step = previous
         }
@@ -174,7 +226,7 @@ final class OnboardingViewModel {
     }
 
     private func apply(draft: OnboardingDraft) {
-        step = draft.step
+        step = draft.step.normalizedForFlow
         yourName = draft.yourName
         partnerName = draft.partnerName
         relationshipStage = draft.relationshipStage

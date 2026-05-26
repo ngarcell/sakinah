@@ -19,30 +19,12 @@ struct FirstPromptScreen: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(
-                colors: [SakinahColor.background, SakinahColor.accentLight.opacity(0.5)],
-                startPoint: .topLeading, endPoint: .bottomTrailing
-            ).ignoresSafeArea()
+            SakinahColor.background.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                HStack {
-                    Button {
-                        HapticEngine.shared.fire(.tap)
-                        vm.goBack(context: modelContext)
-                    } label: {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundStyle(SakinahColor.textPrimary)
-                            .frame(width: 44, height: 44)
-                            .background(SakinahColor.surface)
-                            .clipShape(Circle())
-                            .sakinahShadow(.subtle)
-                    }
-                    .pressScale()
-                    Spacer()
+                OnboardingProgressHeader(step: .firstValue) {
+                    vm.goBack(context: modelContext)
                 }
-                .padding(.horizontal, SakinahSpacing.base)
-                .padding(.top, SakinahSpacing.sm)
 
                 ScrollView {
                     VStack(spacing: SakinahSpacing.xl) {
@@ -52,11 +34,11 @@ struct FirstPromptScreen: View {
                                 .foregroundStyle(SakinahColor.accent)
                                 .scaleEffect(appeared ? 1 : 0.85)
                                 .opacity(appeared ? 1 : 0)
-                            Text("Your first week in Sakinah")
+                            Text("Save your first answer")
                                 .font(SakinahFont.title2)
                                 .foregroundStyle(SakinahColor.textPrimary)
                                 .multilineTextAlignment(.center)
-                            Text("This is the first plan built from what you told us. Save one honest answer, then continue into the full ritual.")
+                            Text("This is the first meaningful action in your ritual. Keep it honest, brief, and written for the conversation you want to have gently.")
                                 .font(SakinahFont.bodySmall)
                                 .foregroundStyle(SakinahColor.textSecondary)
                                 .multilineTextAlignment(.center)
@@ -66,45 +48,16 @@ struct FirstPromptScreen: View {
                         SakinahCard(elevated: true) {
                             VStack(alignment: .leading, spacing: SakinahSpacing.base) {
                                 SakinahBadge(
-                                    text: vm.relationshipFocus.shortLabel,
-                                    icon: "sparkles",
+                                    text: "First prompt",
+                                    icon: "quote.bubble.fill",
                                     color: SakinahColor.accent,
                                     tintedBackground: SakinahColor.accentLight
                                 )
-                                Text(plan.headline)
+                                Text(plan.firstPrompt)
                                     .font(SakinahFont.title3)
                                     .foregroundStyle(SakinahColor.textPrimary)
                                     .lineSpacing(4)
                                     .fixedSize(horizontal: false, vertical: true)
-
-                                Text(plan.reason)
-                                    .font(SakinahFont.bodySmall)
-                                    .foregroundStyle(SakinahColor.textSecondary)
-                                    .lineSpacing(3)
-
-                                VStack(alignment: .leading, spacing: SakinahSpacing.xs) {
-                                    Text("First question")
-                                        .font(SakinahFont.captionBold)
-                                        .foregroundStyle(SakinahColor.textSecondary)
-                                        .textCase(.uppercase)
-                                    Text(plan.firstPrompt)
-                                        .font(SakinahFont.body)
-                                        .foregroundStyle(SakinahColor.textPrimary)
-                                        .lineSpacing(4)
-                                }
-
-                                VStack(alignment: .leading, spacing: SakinahSpacing.xs) {
-                                    Text("What to do next")
-                                        .font(SakinahFont.captionBold)
-                                        .foregroundStyle(SakinahColor.textSecondary)
-                                        .textCase(.uppercase)
-                                    Text(plan.firstWeekAction)
-                                        .font(SakinahFont.bodySmall)
-                                        .foregroundStyle(SakinahColor.textSecondary)
-                                    Text(plan.recommendedPackOrLesson)
-                                        .font(SakinahFont.bodySmall)
-                                        .foregroundStyle(SakinahColor.accent)
-                                }
 
                                 ZStack(alignment: .topLeading) {
                                     if vm.firstResponse.isEmpty {
@@ -124,6 +77,10 @@ struct FirstPromptScreen: View {
                                 .padding(SakinahSpacing.sm)
                                 .background(SakinahColor.backgroundSecondary)
                                 .clipShape(.rect(cornerRadius: SakinahRadius.medium))
+
+                                Text("Your full ritual continues after this answer.")
+                                    .font(SakinahFont.caption)
+                                    .foregroundStyle(SakinahColor.textTertiary)
                             }
                         }
                         .padding(.horizontal, SakinahSpacing.base)
@@ -142,7 +99,7 @@ struct FirstPromptScreen: View {
                     .disabled(!vm.canCompleteFirstValue)
                     .opacity(vm.canCompleteFirstValue ? 1 : 0.55)
 
-                    Text("Next: choose the plan that keeps this ritual open.")
+                    Text("Next: continue into the full ritual.")
                         .font(SakinahFont.caption)
                         .foregroundStyle(SakinahColor.textTertiary)
                 }

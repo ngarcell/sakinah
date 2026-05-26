@@ -3,6 +3,7 @@ import SwiftUI
 struct SakinahCard<Content: View>: View {
     var elevated: Bool = false
     var accent: Bool = false
+    var warm: Bool = false
     @ViewBuilder var content: () -> Content
 
     var body: some View {
@@ -13,6 +14,8 @@ struct SakinahCard<Content: View>: View {
                 Group {
                     if accent {
                         SakinahColor.accentLight
+                    } else if warm {
+                        SakinahColor.surfaceWarm
                     } else {
                         elevated ? SakinahColor.surfaceElevated : SakinahColor.surface
                     }
@@ -21,7 +24,7 @@ struct SakinahCard<Content: View>: View {
             .clipShape(.rect(cornerRadius: SakinahRadius.medium))
             .overlay(
                 RoundedRectangle(cornerRadius: SakinahRadius.medium)
-                    .stroke(SakinahColor.cardGlow, lineWidth: elevated ? 1 : 0)
+                    .stroke(accent ? SakinahColor.accent.opacity(0.35) : SakinahColor.border.opacity(0.8), lineWidth: 1)
             )
             .sakinahShadow(elevated ? .medium : .subtle)
     }

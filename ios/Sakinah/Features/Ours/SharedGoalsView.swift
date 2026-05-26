@@ -62,8 +62,6 @@ struct SharedGoalsView: View {
                 .scrollIndicators(.hidden)
             }
         }
-        .navigationTitle("Shared Goals")
-        .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {

@@ -5,7 +5,7 @@ enum SakinahSpacing {
     static let xs: CGFloat = 4
     static let sm: CGFloat = 8
     static let md: CGFloat = 12
-    static let base: CGFloat = 16
+    static let base: CGFloat = 20
     static let lg: CGFloat = 20
     static let xl: CGFloat = 24
     static let xxl: CGFloat = 32
@@ -28,11 +28,11 @@ struct SakinahShadow {
     let x: CGFloat
     let y: CGFloat
 
-    static let subtle = SakinahShadow(color: .black.opacity(0.04), radius: 3, x: 0, y: 1)
-    static let medium = SakinahShadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 4)
-    static let strong = SakinahShadow(color: .black.opacity(0.12), radius: 24, x: 0, y: 8)
-    static let glow = SakinahShadow(color: SakinahColor.primary.opacity(0.20), radius: 20, x: 0, y: 0)
-    static let warmGlow = SakinahShadow(color: SakinahColor.accent.opacity(0.15), radius: 16, x: 0, y: 4)
+    static let subtle = SakinahShadow(color: Color(hex: 0x1C1710).opacity(0.05), radius: 4, x: 0, y: 2)
+    static let medium = SakinahShadow(color: Color(hex: 0x1C1710).opacity(0.08), radius: 16, x: 0, y: 6)
+    static let strong = SakinahShadow(color: Color(hex: 0x1C1710).opacity(0.12), radius: 28, x: 0, y: 12)
+    static let glow = SakinahShadow(color: SakinahColor.primary.opacity(0.22), radius: 20, x: 0, y: 0)
+    static let warmGlow = SakinahShadow(color: SakinahColor.accent.opacity(0.18), radius: 16, x: 0, y: 4)
 }
 
 extension View {

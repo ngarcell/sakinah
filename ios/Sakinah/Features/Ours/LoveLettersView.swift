@@ -42,8 +42,6 @@ struct LoveLettersView: View {
                 .scrollIndicators(.hidden)
             }
         }
-        .navigationTitle("Love Letters")
-        .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
@@ -59,8 +57,10 @@ struct LoveLettersView: View {
                 }
             }
         }
-        .fullScreenCover(isPresented: $showCompose) {
+        .sheet(isPresented: $showCompose) {
             ComposeLetterView()
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
         }
         .sheet(item: $selectedLetter) { letter in
             LetterReadView(letter: letter)

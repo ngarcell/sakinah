@@ -160,21 +160,21 @@ nonisolated enum Mood: Int, Codable, CaseIterable, Sendable {
 
     var emoji: String {
         switch self {
-        case .great: return "😊"
+        case .great: return "😌"
         case .good: return "🙂"
         case .okay: return "😐"
         case .low: return "😔"
-        case .tough: return "😢"
+        case .tough: return "😤"
         }
     }
 
     var label: String {
         switch self {
-        case .great: return "Great"
+        case .great: return "Calm"
         case .good: return "Good"
         case .okay: return "Okay"
         case .low: return "Low"
-        case .tough: return "Tough"
+        case .tough: return "Tense"
         }
     }
 }

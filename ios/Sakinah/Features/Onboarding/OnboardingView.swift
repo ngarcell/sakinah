@@ -35,13 +35,28 @@ struct OnboardingView: View {
             WelcomeScreen(vm: vm)
                 .transition(screenTransition)
         case .context:
-            OnboardingContextScreen(vm: vm)
+            RelationshipStageScreen(vm: vm)
+                .transition(screenTransition)
+        case .outcome:
+            OnboardingOutcomeScreen(vm: vm)
+                .transition(screenTransition)
+        case .relationshipStage:
+            RelationshipStageScreen(vm: vm)
+                .transition(screenTransition)
+        case .focusGoal:
+            FocusGoalScreen(vm: vm)
                 .transition(screenTransition)
         case .setup:
             CoupleSetupScreen(vm: vm)
                 .transition(screenTransition)
         case .clarify:
             OnboardingClarifyScreen(vm: vm)
+                .transition(screenTransition)
+        case .momentum:
+            OnboardingMomentumScreen(vm: vm)
+                .transition(screenTransition)
+        case .planPreview:
+            StarterPlanPreviewScreen(vm: vm)
                 .transition(screenTransition)
         case .firstValue:
             FirstPromptScreen(vm: vm) {

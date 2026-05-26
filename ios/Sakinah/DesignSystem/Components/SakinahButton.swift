@@ -51,7 +51,7 @@ struct SakinahButton: View {
         switch variant {
         case .primary:
             LinearGradient(
-                colors: [SakinahColor.primary, SakinahColor.primary.opacity(0.88)],
+                colors: [SakinahColor.primary, SakinahColor.primaryPressed],
                 startPoint: .topLeading, endPoint: .bottomTrailing
             )
         case .accent:
@@ -60,7 +60,7 @@ struct SakinahButton: View {
                 startPoint: .leading, endPoint: .trailing
             )
         case .secondary:
-            SakinahColor.primaryLight
+            SakinahColor.surface
         case .ghost:
             Color.clear
         }

@@ -29,14 +29,16 @@ struct SettingsView: View {
         NavigationStack {
             List {
                 profileSection
-                notificationsSection
                 subscriptionSection
+                notificationsSection
                 preferencesSection
-                privacySection
                 aboutSection
+                privacySection
+                dangerZoneSection
             }
-            .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.inline)
+            .listStyle(.insetGrouped)
+            .scrollContentBackground(.hidden)
+            .background(SakinahColor.background)
             .sheet(isPresented: $showCustomerCenter) {
                 CustomerCenterView()
                     .onCustomerCenterRestoreCompleted { customerInfo in
@@ -56,9 +58,6 @@ struct SettingsView: View {
                 Button("Cancel", role: .cancel) { deleteText = "" }
             } message: {
                 Text("This will permanently erase all your data. This cannot be undone.")
-            }
-            .sheet(isPresented: invitePromptBinding) {
-                PartnerInvitePromptView()
             }
             .sheet(item: $paywallEntryPoint) { entryPoint in
                 SakinahPaywallView(entryPoint: entryPoint, isMandatory: false)
@@ -156,9 +155,9 @@ struct SettingsView: View {
     // MARK: - Subscription
 
     private var subscriptionSection: some View {
-        Section("Plan") {
+        Section("Subscription") {
             HStack {
-                Text("Access")
+                Text("Sakinah Premium")
                     .font(SakinahFont.body)
                 Spacer()
                 Text(subscriptionService.currentPlanName)
@@ -253,7 +252,7 @@ struct SettingsView: View {
     // MARK: - Privacy
 
     private var privacySection: some View {
-        Section("Privacy & Data") {
+        Section("Privacy") {
             HStack(spacing: SakinahSpacing.sm) {
                 Image(systemName: "lock.shield.fill")
                     .foregroundStyle(SakinahColor.success)
@@ -262,22 +261,16 @@ struct SettingsView: View {
                     .foregroundStyle(SakinahColor.textSecondary)
             }
 
-            Button(role: .destructive) {
-                showDeleteConfirm = true
-            } label: {
-                Label("Delete All Data", systemImage: "trash")
-            }
-
-            Link("Privacy", destination: URL(string: "https://socialreporthq.com/sakinah/privacy")!)
-            Link("Terms", destination: URL(string: "https://socialreporthq.com/sakinah/terms")!)
+            Link("Privacy Policy", destination: URL(string: "https://socialreporthq.com/sakinah/privacy")!)
+            Link("Terms of Service", destination: URL(string: "https://socialreporthq.com/sakinah/terms")!)
         }
     }
 
     // MARK: - About
 
     private var aboutSection: some View {
-        Section("More") {
-            Button("Rate the App") {
+        Section("About") {
+            Button("Rate Sakinah") {
                 if let url = URL(string: "https://apps.apple.com/app/id6762535411?action=write-review") {
                     UIApplication.shared.open(url)
                 }
@@ -294,18 +287,28 @@ struct SettingsView: View {
                     root.present(av, animated: true)
                 }
             } label: {
-                Label("Share Sakinah", systemImage: "square.and.arrow.up")
+                Label("Share with a friend", systemImage: "square.and.arrow.up")
             }
 
-            Link("Help", destination: URL(string: "https://socialreporthq.com/sakinah/support")!)
+            Link("Contact support", destination: URL(string: "https://socialreporthq.com/sakinah/support")!)
+
+            HStack {
+                Text("Version")
+                Spacer()
+                Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0")
+                    .foregroundStyle(SakinahColor.textSecondary)
+            }
         }
     }
 
-    private var invitePromptBinding: Binding<Bool> {
-        Binding(
-            get: { appState.showPartnerInvitePrompt },
-            set: { appState.showPartnerInvitePrompt = $0 }
-        )
+    private var dangerZoneSection: some View {
+        Section("Danger Zone") {
+            Button(role: .destructive) {
+                showDeleteConfirm = true
+            } label: {
+                Label("Delete all my data", systemImage: "trash")
+            }
+        }
     }
 
     private var sharedSpaceStatusText: String {
