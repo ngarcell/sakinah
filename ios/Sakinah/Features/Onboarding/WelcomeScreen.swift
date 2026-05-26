@@ -3,14 +3,10 @@ import SwiftData
 
 struct WelcomeScreen: View {
     @Bindable var vm: OnboardingViewModel
-    @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
     @State private var appeared = false
     @State private var taglineVisible = false
     @State private var ctaVisible = false
-    #if DEBUG
-    @State private var isLoadingDemo = false
-    #endif
 
     var body: some View {
         ZStack {
@@ -82,19 +78,6 @@ struct WelcomeScreen: View {
                         HapticEngine.shared.fire(.tap)
                         vm.advance(to: .outcome, context: modelContext)
                     }
-
-                    #if DEBUG
-                    SakinahButton(
-                        title: "Skip - Load Demo",
-                        icon: "photo.on.rectangle",
-                        variant: .secondary,
-                        isLoading: isLoadingDemo
-                    ) {
-                        isLoadingDemo = true
-                        _ = DemoDataSeeder.load(context: modelContext, appState: appState)
-                        isLoadingDemo = false
-                    }
-                    #endif
 
                     Text("You will save one meaningful answer before continuing.")
                         .font(SakinahFont.caption)
