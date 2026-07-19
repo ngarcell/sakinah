@@ -3,7 +3,7 @@ import SwiftUI
 import UIKit
 
 struct TrueMaxScanRootView: View {
-    private enum Phase {
+    private enum Phase: Equatable {
         case checklist
         case photoMode
         case camera
@@ -74,11 +74,23 @@ struct TrueMaxScanRootView: View {
         .onChange(of: appState.scanRequestID) { _, _ in
             resetForNewScan()
         }
+        .onChange(of: phase) { _, newPhase in
+            TrueMaxAnalytics.shared.capture("scan phase changed", properties: [
+                "phase": String(describing: newPhase),
+                "onboarding_trial": isOnboardingTrial
+            ])
+        }
         .onChange(of: scenePhase) { _, newPhase in
             cameraController.setSceneActive(newPhase == .active)
         }
         .onDisappear {
             cameraController.stop()
+        }
+        .onAppear {
+            TrueMaxAnalytics.shared.screen("scan", properties: [
+                "onboarding_trial": isOnboardingTrial,
+                "is_premium": subscriptionService.isPremium
+            ])
         }
         .confirmationDialog(
             "Rescan now?",
@@ -600,7 +612,15 @@ struct TrueMaxScanRootView: View {
     }
 
     private func requestCamera() {
+        TrueMaxAnalytics.shared.capture("scan camera requested", properties: [
+            "onboarding_trial": isOnboardingTrial,
+            "is_premium": subscriptionService.isPremium
+        ])
         guard subscriptionService.isPremium || appState.canUseReverseTrialScan else {
+            TrueMaxAnalytics.shared.capture("scan blocked", properties: [
+                "reason": "subscription_required",
+                "onboarding_trial": isOnboardingTrial
+            ])
             appState.presentPaywall()
             return
         }
@@ -614,6 +634,9 @@ struct TrueMaxScanRootView: View {
 
     private func beginCameraPreparation() {
         guard !isOpeningCamera else { return }
+        TrueMaxAnalytics.shared.capture("camera preparation started", properties: [
+            "onboarding_trial": isOnboardingTrial
+        ])
         isOpeningCamera = true
         errorMessage = nil
 
@@ -644,6 +667,10 @@ struct TrueMaxScanRootView: View {
         Task {
             do {
                 let captured = try await cameraController.capturePhoto()
+                TrueMaxAnalytics.shared.capture("scan capture completed", properties: [
+                    "capture_mode": captured.captureMode.title,
+                    "onboarding_trial": isOnboardingTrial
+                ])
                 cameraController.stop()
                 capturedImage = captured.image
                 phase = .processing
@@ -686,7 +713,16 @@ struct TrueMaxScanRootView: View {
 
                 completedScan = scan
                 phase = .result
+                TrueMaxAnalytics.shared.capture("scan result available", properties: [
+                    "capture_mode": scan.captureMode.title,
+                    "confidence": scan.confidence.title,
+                    "onboarding_trial": isOnboardingTrial
+                ])
             } catch {
+                TrueMaxAnalytics.shared.capture("scan failed", properties: [
+                    "error_type": String(describing: type(of: error)),
+                    "onboarding_trial": isOnboardingTrial
+                ])
                 errorMessage = error.localizedDescription
                 capturedImage = nil
                 phase = .camera
@@ -696,6 +732,10 @@ struct TrueMaxScanRootView: View {
     }
 
     private func finishResult() {
+        TrueMaxAnalytics.shared.capture("scan AHA result completed", properties: [
+            "onboarding_trial": isOnboardingTrial,
+            "is_premium": subscriptionService.isPremium
+        ])
         cameraController.stop()
         phase = .checklist
         capturedImage = nil

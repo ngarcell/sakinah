@@ -128,10 +128,21 @@ struct TrueMaxPaywallView: View {
             .scrollIndicators(.hidden)
         }
         .task {
-            _ = await subscriptionService.preparePaywall(forceRefresh: false)
+            TrueMaxAnalytics.shared.screen("paywall", properties: [
+                "default_plan": selectedPlan.rawValue
+            ])
+            let loaded = await subscriptionService.preparePaywall(forceRefresh: false)
+            if !loaded {
+                TrueMaxAnalytics.shared.capture("paywall load failed", properties: [
+                    "error_type": subscriptionService.purchaseError == nil ? "unknown" : "revenuecat"
+                ])
+            }
             await refreshTrialEligibility()
         }
-        .onChange(of: selectedPlan) { _, _ in
+        .onChange(of: selectedPlan) { _, plan in
+            TrueMaxAnalytics.shared.capture("paywall plan selected", properties: [
+                "plan": plan.rawValue
+            ])
             subscriptionService.clearError()
             trialEligibility = .checking
             Task {
@@ -140,6 +151,7 @@ struct TrueMaxPaywallView: View {
         }
         .onChange(of: subscriptionService.isPremium) { _, isPremium in
             if isPremium {
+                TrueMaxAnalytics.shared.capture("paywall unlocked")
                 onUnlocked()
             }
         }
@@ -149,6 +161,9 @@ struct TrueMaxPaywallView: View {
         HStack {
             if showsCloseButton {
                 TrueMaxCloseButton {
+                    TrueMaxAnalytics.shared.capture("paywall dismissed", properties: [
+                        "reason": "close"
+                    ])
                     onClose?()
                 }
             } else {
@@ -158,10 +173,16 @@ struct TrueMaxPaywallView: View {
             Spacer()
 
             Button("Restore") {
+                TrueMaxAnalytics.shared.capture("restore purchases started", properties: [
+                    "location": "paywall_top"
+                ])
                 Task {
                     await subscriptionService.restorePurchases()
                     if subscriptionService.isPremium {
+                        TrueMaxAnalytics.shared.capture("subscription restored")
                         onUnlocked()
+                    } else {
+                        TrueMaxAnalytics.shared.capture("restore purchases unavailable")
                     }
                 }
             }
@@ -210,6 +231,10 @@ struct TrueMaxPaywallView: View {
     private var purchaseSection: some View {
         VStack(spacing: 12) {
             Button {
+                TrueMaxAnalytics.shared.capture("paywall CTA tapped", properties: [
+                    "plan": selectedPlan.rawValue,
+                    "cta": primaryCTATitle
+                ])
                 Task {
                     if trialEligibility == .unavailable {
                         trialEligibility = .checking
@@ -219,7 +244,15 @@ struct TrueMaxPaywallView: View {
 
                     let purchased = await subscriptionService.purchase(plan: selectedPlan)
                     if purchased {
+                        TrueMaxAnalytics.shared.capture("subscription purchase completed", properties: [
+                            "plan": selectedPlan.rawValue
+                        ])
                         onUnlocked()
+                    } else {
+                        TrueMaxAnalytics.shared.capture("subscription purchase failed", properties: [
+                            "plan": selectedPlan.rawValue,
+                            "has_error": subscriptionService.purchaseError != nil
+                        ])
                     }
                 }
             } label: {
@@ -260,6 +293,9 @@ struct TrueMaxPaywallView: View {
             details: subscriptionService.planDetails(for: .monthly),
             isSelected: selectedPlan == .monthly
         ) {
+            TrueMaxAnalytics.shared.capture("paywall plan selected", properties: [
+                "plan": SubscriptionService.Plan.monthly.rawValue
+            ])
             selectedPlan = .monthly
         }
     }
@@ -269,6 +305,9 @@ struct TrueMaxPaywallView: View {
             details: subscriptionService.planDetails(for: .annual),
             isSelected: selectedPlan == .annual
         ) {
+            TrueMaxAnalytics.shared.capture("paywall plan selected", properties: [
+                "plan": SubscriptionService.Plan.annual.rawValue
+            ])
             selectedPlan = .annual
         }
     }
@@ -323,6 +362,10 @@ struct TrueMaxPaywallView: View {
         @unknown default:
             trialEligibility = .unavailable
         }
+        TrueMaxAnalytics.shared.capture("trial eligibility checked", properties: [
+            "plan": plan.rawValue,
+            "status": String(describing: status)
+        ])
     }
 }
 

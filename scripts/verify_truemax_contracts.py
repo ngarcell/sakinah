@@ -620,15 +620,6 @@ class ContractVerifier:
                 r"\bAuthService\b",
                 r"\bAuthenticationService\b",
             ),
-            "analytics runtime": (
-                r"\bimport\s+FirebaseAnalytics\b",
-                r"\bAnalytics\.logEvent\b",
-                r"\bMixpanel\b",
-                r"\bAmplitude\b",
-                r"\bPostHog\b",
-                r"\bTelemetryDeck\b",
-                r"\bSentrySDK\b",
-            ),
         }
         for label, patterns in forbidden_patterns.items():
             matches = [
@@ -641,7 +632,27 @@ class ContractVerifier:
             self.fail_contract("Local-only TrueMax runtime", "; ".join(issues))
             return
         self.pass_contract("Explicit local-only SwiftData configuration")
-        self.pass_contract("No CloudKit, authentication, or analytics runtime")
+        self.pass_contract("No CloudKit or authentication runtime")
+
+        analytics_source = next(
+            (
+                source
+                for path, source in sources.items()
+                if path.name == "TrueMaxAnalytics.swift"
+            ),
+            "",
+        )
+        if (
+            "import PostHog" not in analytics_source
+            or "PostHogSDK.shared.setup" not in analytics_source
+            or "personProfiles = .identifiedOnly" not in analytics_source
+        ):
+            self.fail_contract(
+                "Anonymous PostHog analytics boundary",
+                "TrueMaxAnalytics must configure PostHog anonymously",
+            )
+        else:
+            self.pass_contract("Anonymous PostHog analytics boundary")
 
     def verify_metadata_document(self) -> None:
         source = self.read_text("docs/app-store-metadata.md")

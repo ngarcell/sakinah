@@ -72,14 +72,17 @@ privacy manifest and App Store disclosures.
 Face captures, geometry, measurements, coaching, and history are processed and
 stored locally with no account or cloud sync. RevenueCat and Apple necessarily
 use network communication for product loading, purchases, restoration, and
-entitlement verification. Product copy must therefore say that **facial data
-stays on device**, not that the entire app makes zero network calls.
+entitlement verification. Anonymous PostHog product telemetry also uses the
+network for activation, scan-flow, paywall, and conversion events. Product
+copy must therefore say that **facial data stays on device**, not that the
+entire app makes zero network calls.
 
 The active TrueMax runtime must not use:
 
 - CloudKit or iCloud data sync
 - Sign in with Apple or any other authentication
-- advertising or third-party analytics
+- advertising or analytics that receives facial images, measurements, or
+  subscriber attributes
 - remote face-analysis/model APIs
 - public ratings, leaderboards, social comparison, or generated idealized faces
 
@@ -94,12 +97,18 @@ SwiftData must use an explicit local `ModelConfiguration` with
 and entitlement state, using its existing cached `CustomerInfo`, refresh, and
 customer-information update stream.
 
+TrueMaxAnalytics uses PostHog with anonymous events only. It captures app
+navigation, onboarding progression, scan phases and outcomes, paywall and
+purchase outcomes, and settings usage. It never sends face captures,
+measurements, landmarks, style choices, or free-form user content.
+
 ## Repository layout
 
 - `ios/Sakinah/` — live native iOS target and retained RevenueCat services
 - `ios/SakinahTests/` — unit and contract-oriented tests
 - `ios/SakinahUITests/` — launch and critical-flow UI tests
 - `docs/` — product sources, supplied visual references, and App Store metadata
+- `docs/truemax-analytics.md` — anonymous event coverage and privacy boundary
 - `scripts/verify_truemax_contracts.py` — Linux-runnable release-contract gate
 - `scripts/verify_truemax_intelligence.py` — evidence-pack and offline-boundary gate
 

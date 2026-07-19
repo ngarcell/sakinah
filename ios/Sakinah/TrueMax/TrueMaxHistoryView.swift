@@ -92,6 +92,12 @@ struct TrueMaxHistoryView: View {
             .scrollIndicators(.hidden)
         }
         .toolbar(.hidden, for: .navigationBar)
+        .onAppear {
+            TrueMaxAnalytics.shared.screen("history", properties: [
+                "scan_count": scans.count,
+                "filter": filter.rawValue
+            ])
+        }
         .navigationDestination(isPresented: $showsComparison) {
             if comparisonScans.count == 2 {
                 TrueMaxComparisonView(

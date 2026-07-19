@@ -16,6 +16,10 @@ struct SakinahApp: App {
 
     private let modelBootstrap = Self.makeModelContainer()
 
+    init() {
+        TrueMaxAnalytics.shared.configure()
+    }
+
     var body: some Scene {
         WindowGroup {
             Group {

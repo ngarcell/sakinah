@@ -34,5 +34,22 @@ struct ContentView: View {
         .animation(.easeInOut(duration: 0.24), value: appState.isBootstrapping)
         .animation(.easeInOut(duration: 0.24), value: appState.hasCompletedOnboarding)
         .animation(.easeInOut(duration: 0.24), value: subscriptionService.isPremium)
+        .onAppear {
+            TrueMaxAnalytics.shared.screen(
+                appState.hasCompletedOnboarding ? "workspace" : "onboarding",
+                properties: ["is_premium": subscriptionService.isPremium]
+            )
+        }
+        .onChange(of: appState.presentsPaywall) { _, isPresented in
+            TrueMaxAnalytics.shared.capture(
+                isPresented ? "paywall presented" : "paywall dismissed",
+                properties: ["placement": "truemax"]
+            )
+        }
+        .onChange(of: appState.selectedTab) { _, tab in
+            TrueMaxAnalytics.shared.capture("tab selected", properties: [
+                "tab": tab.title
+            ])
+        }
     }
 }

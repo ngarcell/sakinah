@@ -60,5 +60,10 @@ struct TrueMaxMainTabView: View {
         .tint(TrueMaxPalette.accentLight)
         .toolbarBackground(TrueMaxPalette.backgroundRaised, for: .tabBar)
         .toolbarBackground(.visible, for: .tabBar)
+        .onAppear {
+            TrueMaxAnalytics.shared.screen("main tabs", properties: [
+                "selected_tab": appState.selectedTab.title
+            ])
+        }
     }
 }

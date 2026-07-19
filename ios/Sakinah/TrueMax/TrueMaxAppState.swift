@@ -125,6 +125,7 @@ final class TrueMaxAppState {
         defaults.set(TrueMaxBrand.onboardingVersion, forKey: DefaultsKey.onboardingVersion)
         onboardingCompleted = true
         selectedTab = .scan
+        TrueMaxAnalytics.shared.capture("onboarding completed")
     }
 
     func acknowledgeDisclaimer() {
@@ -136,10 +137,14 @@ final class TrueMaxAppState {
         reverseTrialConsumed = true
         defaults.set(true, forKey: DefaultsKey.reverseTrialConsumed)
         presentsPaywall = true
+        TrueMaxAnalytics.shared.capture("reverse trial consumed")
     }
 
     func presentPaywall() {
         presentsPaywall = true
+        TrueMaxAnalytics.shared.capture("paywall requested", properties: [
+            "source": "app_state"
+        ])
     }
 
     func dismissPaywall() {

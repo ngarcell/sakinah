@@ -28,6 +28,12 @@ struct TrueMaxHomeView: View {
             .scrollIndicators(.hidden)
         }
         .toolbar(.hidden, for: .navigationBar)
+        .onAppear {
+            TrueMaxAnalytics.shared.screen("home", properties: [
+                "scan_count": scans.count,
+                "has_baseline": !scans.isEmpty
+            ])
+        }
     }
 
     private var homeHeader: some View {

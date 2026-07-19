@@ -92,6 +92,13 @@ struct TrueMaxResultDetailView: View {
         }
         .navigationTitle(showsResultReveal ? "Your baseline" : scan.createdAt.formatted(date: .abbreviated, time: .omitted))
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            TrueMaxAnalytics.shared.screen("scan result", properties: [
+                "reveal": showsResultReveal,
+                "capture_mode": scan.captureMode.title,
+                "confidence": scan.confidence.title
+            ])
+        }
         .toolbar {
             if showsResultReveal {
                 ToolbarItem(placement: .topBarTrailing) {

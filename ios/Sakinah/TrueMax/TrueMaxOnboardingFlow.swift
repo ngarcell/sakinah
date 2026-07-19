@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 
 #if canImport(DeclaredAgeRange)
@@ -29,12 +30,14 @@ struct TrueMaxOnboardingFlow: View {
 
     @Environment(TrueMaxAppState.self) private var appState
     @Environment(SubscriptionService.self) private var subscriptionService
+    @Environment(\.requestReview) private var requestReview
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var step: Step = .welcome
     @State private var ageChoice: AgeChoice?
     @State private var showsUnderageSupport = false
     @State private var systemAgeStatus: SystemAgeStatus = .notStarted
+    @AppStorage("truemax.ahaReviewPrompted") private var hasRequestedAHAReview = false
 
     var body: some View {
         ZStack {
@@ -60,7 +63,7 @@ struct TrueMaxOnboardingFlow: View {
                             onTrialExit: { move(to: .privacy) },
                             onTrialCompleted: {
                                 appState.consumeReverseTrial()
-                                move(to: .paywall)
+                                requestReviewThenShowPaywall()
                             }
                         )
                     }
@@ -218,6 +221,9 @@ struct TrueMaxOnboardingFlow: View {
                         isSelected: ageChoice == .adult
                     ) {
                         ageChoice = .adult
+                        TrueMaxAnalytics.shared.capture("onboarding age selected", properties: [
+                            "age_range": "adult"
+                        ])
                     }
                     .disabled(
                         systemAgeStatus == .checking
@@ -230,6 +236,9 @@ struct TrueMaxOnboardingFlow: View {
                         isSelected: ageChoice == .underage
                     ) {
                         ageChoice = .underage
+                        TrueMaxAnalytics.shared.capture("onboarding age selected", properties: [
+                            "age_range": "underage"
+                        ])
                     }
                     .disabled(systemAgeStatus == .checking)
                 }
@@ -257,6 +266,10 @@ struct TrueMaxOnboardingFlow: View {
             back: { move(to: .ageGate) },
             actionTitle: "Start your first scan",
             action: {
+                TrueMaxAnalytics.shared.capture("onboarding scan CTA tapped", properties: [
+                    "reverse_trial_consumed": appState.reverseTrialConsumed,
+                    "is_premium": subscriptionService.isPremium
+                ])
                 if subscriptionService.isPremium {
                     appState.completeOnboarding()
                 } else if appState.reverseTrialConsumed {
@@ -292,6 +305,24 @@ struct TrueMaxOnboardingFlow: View {
 
                 Spacer(minLength: 10)
             }
+        }
+    }
+
+    private func requestReviewThenShowPaywall() {
+        guard !hasRequestedAHAReview else {
+            move(to: .paywall)
+            return
+        }
+
+        hasRequestedAHAReview = true
+        TrueMaxAnalytics.shared.capture("aha review prompt requested", properties: [
+            "product": "truemax",
+            "placement": "before_first_value_paywall"
+        ])
+        requestReview()
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+            move(to: .paywall)
         }
     }
 
@@ -362,7 +393,15 @@ struct TrueMaxOnboardingFlow: View {
     }
 
     private func move(to nextStep: Step) {
+        TrueMaxAnalytics.shared.capture("onboarding step completed", properties: [
+            "to_step": nextStep.rawValue,
+            "step_name": String(describing: nextStep)
+        ])
         step = nextStep
+        TrueMaxAnalytics.shared.screen("onboarding", properties: [
+            "step": nextStep.rawValue,
+            "step_name": String(describing: nextStep)
+        ])
     }
 
     @ViewBuilder

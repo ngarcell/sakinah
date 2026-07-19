@@ -415,6 +415,11 @@ struct TrueMaxStyleLibraryView: View {
         }
         .navigationTitle("Styles for you")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            TrueMaxAnalytics.shared.screen("style library", properties: [
+                "category": category.rawValue
+            ])
+        }
     }
 
     private var recommendationScan: ScanRecord {
@@ -753,6 +758,9 @@ struct TrueMaxColorAnalysisView: View {
             .scrollIndicators(.hidden)
         }
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            TrueMaxAnalytics.shared.screen("color analysis")
+        }
     }
 }
 

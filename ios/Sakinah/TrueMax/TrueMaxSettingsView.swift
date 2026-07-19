@@ -38,6 +38,12 @@ struct TrueMaxSettingsView: View {
             .scrollIndicators(.hidden)
         }
         .toolbar(.hidden, for: .navigationBar)
+        .onAppear {
+            TrueMaxAnalytics.shared.screen("settings", properties: [
+                "is_premium": subscriptionService.isPremium,
+                "scan_count": scans.count
+            ])
+        }
         .sheet(item: $exportItem) { item in
             TrueMaxActivityView(activityItems: [item.url])
                 .presentationDetents([.medium, .large])
@@ -354,6 +360,9 @@ struct TrueMaxSettingsView: View {
     }
 
     private func exportData() {
+        TrueMaxAnalytics.shared.capture("data export requested", properties: [
+            "scan_count": scans.count
+        ])
         do {
             exportItem = TrueMaxExportItem(
                 url: try TrueMaxStorage.makeJSONExport(scans: scans)
@@ -367,6 +376,9 @@ struct TrueMaxSettingsView: View {
     }
 
     private func restorePurchases() {
+        TrueMaxAnalytics.shared.capture("restore purchases started", properties: [
+            "location": "settings"
+        ])
         Task {
             await subscriptionService.restorePurchases()
 
@@ -376,6 +388,9 @@ struct TrueMaxSettingsView: View {
                     message: purchaseError
                 )
             } else {
+                TrueMaxAnalytics.shared.capture("subscription restored", properties: [
+                    "location": "settings"
+                ])
                 notice = TrueMaxNotice(
                     title: "Purchases restored",
                     message: "Your App Store purchase status is up to date."
@@ -385,6 +400,7 @@ struct TrueMaxSettingsView: View {
     }
 
     private func manageSubscriptions() {
+        TrueMaxAnalytics.shared.capture("subscription management opened")
         openURL(subscriptionService.managementURL ?? TrueMaxBrand.manageSubscriptionsURL)
     }
 
@@ -454,7 +470,7 @@ private struct TrueMaxDataPrivacyView: View {
                 .foregroundStyle(TrueMaxPalette.textPrimary)
                 .multilineTextAlignment(.center)
 
-            Text("TrueMax has no account, cloud sync, ads or analytics. Face captures and measurements stay in the app’s protected local storage.")
+            Text("TrueMax has no account, cloud sync, or ads. Face captures and measurements stay in the app’s protected local storage; anonymous product events never include face data.")
                 .font(.body)
                 .foregroundStyle(TrueMaxPalette.textSecondary)
                 .multilineTextAlignment(.center)
@@ -551,7 +567,7 @@ private struct TrueMaxDataPrivacyView: View {
                     .font(.title3.weight(.semibold))
                     .foregroundStyle(TrueMaxPalette.textPrimary)
 
-                Text("TrueMax does not send your face, photos, measurements or style choices off this device. RevenueCat and the App Store are used only for purchase access.")
+                Text("TrueMax does not send your face, photos, measurements or style choices off this device. RevenueCat handles purchases, while anonymous product events contain no face data.")
                     .font(.subheadline)
                     .foregroundStyle(TrueMaxPalette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -579,6 +595,10 @@ private struct TrueMaxDataPrivacyView: View {
     }
 
     private func deleteAllData() {
+        TrueMaxAnalytics.shared.capture("data deletion requested", properties: [
+            "scan_count": scans.count,
+            "favorite_count": favorites.count
+        ])
         for scan in scans {
             modelContext.delete(scan)
         }
