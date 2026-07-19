@@ -126,6 +126,7 @@ struct TrueMaxSettingsView: View {
                 }
                 .frame(minHeight: 58)
                 .accessibilityHint("Adjusts the local, non-blocking rescan reminder")
+            }
 
             TrueMaxSettingsDivider()
 
