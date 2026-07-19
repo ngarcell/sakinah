@@ -326,7 +326,9 @@ nonisolated private enum TrueMaxAnalysisBridge {
         let qualityFaces = qualityRequest.results ?? []
         let quality = qualityFaces.max(by: {
             area($0.boundingBox) < area($1.boundingBox)
-        })?.faceCaptureQuality?.doubleValue
+        }).flatMap { observation in
+            observation.faceCaptureQuality.map { Double($0) }
+        }
 
         let uncertainty = uncertaintyProfile(
             depthGeometry: depthGeometry,
