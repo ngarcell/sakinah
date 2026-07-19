@@ -147,25 +147,22 @@ struct TrueMaxOnboardingFlow: View {
                     .foregroundStyle(TrueMaxPalette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
 
-                Text("Three simple steps from capture to action.")
+                Text("A simple flow from capture to action.")
                     .font(.body)
                     .foregroundStyle(TrueMaxPalette.textSecondary)
 
                 VStack(spacing: 12) {
                     HowItWorksCard(
-                        number: "01",
                         symbol: "viewfinder",
                         title: "Capture",
                         detail: "Follow the live guide for one clear, neutral photo."
                     )
                     HowItWorksCard(
-                        number: "02",
                         symbol: "ruler",
                         title: "Measure",
                         detail: "Apple Vision landmarks are analysed locally and shown as honest ranges."
                     )
                     HowItWorksCard(
-                        number: "03",
                         symbol: "sparkles",
                         title: "Improve",
                         detail: "Get practical grooming, presentation, hair, and color guidance."
@@ -541,8 +538,17 @@ private struct OnboardingScaffold<Content: View>: View {
                     Color.clear.frame(width: 44, height: 44)
                 }
 
-                ProgressView(value: progress)
-                    .tint(TrueMaxPalette.accentLight)
+                HStack(spacing: 5) {
+                    ForEach(0..<6, id: \.self) { index in
+                        Circle()
+                            .fill(index == activeDot ? TrueMaxPalette.accentLight : TrueMaxPalette.textTertiary.opacity(0.45))
+                            .frame(width: index == activeDot ? 8 : 6, height: index == activeDot ? 8 : 6)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("Onboarding progress")
+                .accessibilityValue(activeDot == 5 ? "Finishing setup" : "Setup in progress")
 
                 Color.clear.frame(width: 44, height: 44)
             }
@@ -565,24 +571,20 @@ private struct OnboardingScaffold<Content: View>: View {
                 .background(.ultraThinMaterial)
         }
     }
+
+    private var activeDot: Int {
+        max(0, min(5, Int(ceil(progress * 6)) - 1))
+    }
 }
 
 private struct HowItWorksCard: View {
-    let number: String
     let symbol: String
     let title: String
     let detail: String
 
     var body: some View {
         HStack(spacing: 16) {
-            ZStack {
-                Text(number)
-                    .font(.caption2.weight(.black))
-                    .foregroundStyle(TrueMaxPalette.accentLight.opacity(0.62))
-                    .offset(x: -17, y: -18)
-                TrueMaxIconCircle(symbol: symbol, size: 56)
-            }
-            .frame(width: 62, height: 62)
+            TrueMaxIconCircle(symbol: symbol, size: 56)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
