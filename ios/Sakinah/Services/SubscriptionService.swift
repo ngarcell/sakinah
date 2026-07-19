@@ -37,9 +37,62 @@ final class SubscriptionService {
     static let monthlyProductID = ProductCatalog.monthly
     static let annualProductID = ProductCatalog.annual
     static let lifetimeProductID = ProductCatalog.lifetime
+    static let defaultPlan: Plan = .annual
+
+    enum Plan: String, CaseIterable, Identifiable, Sendable {
+        case annual
+        case monthly
+
+        var id: String { rawValue }
+
+        var displayName: String {
+            switch self {
+            case .annual:
+                return "Annual"
+            case .monthly:
+                return "Monthly"
+            }
+        }
+
+        var productIdentifier: String {
+            switch self {
+            case .annual:
+                return SubscriptionService.annualProductID
+            case .monthly:
+                return SubscriptionService.monthlyProductID
+            }
+        }
+
+        fileprivate var fallbackCadence: String {
+            switch self {
+            case .annual:
+                return "year"
+            case .monthly:
+                return "month"
+            }
+        }
+    }
+
+    struct PlanDetails {
+        let plan: Plan
+        let package: Package?
+        let product: StoreProduct?
+        let localizedPrice: String?
+        let cadence: String
+        let trialDuration: String?
+        let monthlyEquivalentPrice: String?
+        let annualSavingsPercent: Int?
+
+        var productIdentifier: String { plan.productIdentifier }
+        var displayName: String { plan.displayName }
+        /// Whether StoreKit has a free-trial offer configured; check customer eligibility separately.
+        var hasFreeTrial: Bool { trialDuration != nil }
+        var isAvailable: Bool { package != nil || product != nil }
+    }
 
     var currentTier: SubscriptionTier = .free
     var isLoadingProducts = false
+    private(set) var isPurchasing = false
     var isRestoringPurchases = false
     var isSyncingLegacyPurchases = false
     var purchaseError: String?
@@ -58,7 +111,9 @@ final class SubscriptionService {
     @ObservationIgnored private let customerInfoUpdatesObserver = CustomerInfoUpdatesObserver()
 
     var isPremium: Bool { currentTier == .premium }
-    var isLoading: Bool { isLoadingProducts || isRestoringPurchases || isSyncingLegacyPurchases }
+    var isLoading: Bool {
+        isLoadingProducts || isPurchasing || isRestoringPurchases || isSyncingLegacyPurchases
+    }
     var canOpenCustomerCenter: Bool { isRevenueCatAvailable }
     var isRevenueCatAvailable: Bool { configuration != nil && Purchases.isConfigured }
     var revenueCatUnavailableMessage: String {
@@ -106,7 +161,7 @@ final class SubscriptionService {
     }
 
     var premiumAccessSummary: String {
-        "Daily prompts, guided lessons, and your shared space stay unlocked as long as your plan is active."
+        "Private scans, estimate bands, and TrueMax style tools stay unlocked as long as your plan is active."
     }
 
     var featuredUpgradePrice: String? {
@@ -119,6 +174,68 @@ final class SubscriptionService {
         }
 
         return nil
+    }
+
+    func package(for plan: Plan) -> Package? {
+        switch plan {
+        case .annual:
+            return annualPackage
+        case .monthly:
+            return monthlyPackage
+        }
+    }
+
+    func product(for plan: Plan) -> StoreProduct? {
+        if let package = package(for: plan) {
+            return package.storeProduct
+        }
+
+        switch plan {
+        case .annual:
+            return annualProduct
+        case .monthly:
+            return monthlyProduct
+        }
+    }
+
+    func planDetails(for plan: Plan) -> PlanDetails {
+        let package = package(for: plan)
+        let product = self.product(for: plan)
+        let annualPlanProduct = self.product(for: .annual)
+        let monthlyPlanProduct = self.product(for: .monthly)
+
+        return PlanDetails(
+            plan: plan,
+            package: package,
+            product: product,
+            localizedPrice: product?.localizedPriceString,
+            cadence: product?.subscriptionPeriod.map(Self.compactSubscriptionPeriod) ?? plan.fallbackCadence,
+            trialDuration: Self.freeTrialDuration(for: product),
+            monthlyEquivalentPrice: plan == .annual
+                ? Self.annualMonthlyEquivalent(for: annualPlanProduct)
+                : nil,
+            annualSavingsPercent: plan == .annual
+                ? Self.annualSavingsPercent(
+                    annualProduct: annualPlanProduct,
+                    monthlyProduct: monthlyPlanProduct
+                )
+                : nil
+        )
+    }
+
+    func trialEligibility(for plan: Plan) async -> IntroEligibilityStatus {
+        guard ensureRevenueCatAvailable() else { return .unknown }
+
+        if product(for: plan) == nil {
+            _ = await loadProducts(forceRefresh: false)
+        }
+
+        guard let product = product(for: plan),
+              Self.freeTrialDuration(for: product) != nil else {
+            return .noIntroOfferExists
+        }
+
+        return await Purchases.shared.checkTrialOrIntroDiscountEligibility(product: product)
     }
 
     private var monthlyPackage: Package? {
@@ -258,6 +375,51 @@ final class SubscriptionService {
             syncCustomerInfo(info)
         } catch {
             purchaseError = userFacingErrorMessage(for: error)
+        }
+    }
+
+    @discardableResult
+    func purchase(plan: Plan) async -> Bool {
+        guard ensureRevenueCatAvailable() else { return false }
+        guard !isPurchasing else { return false }
+
+        purchaseError = nil
+        isPurchasing = true
+        defer { isPurchasing = false }
+
+        if package(for: plan) == nil && product(for: plan) == nil {
+            _ = await loadProducts(forceRefresh: false)
+        }
+
+        do {
+            let result: PurchaseResultData
+
+            if let package = package(for: plan) {
+                result = try await Purchases.shared.purchase(package: package)
+            } else if let product = product(for: plan) {
+                result = try await Purchases.shared.purchase(product: product)
+            } else {
+                purchaseError = "That plan is unavailable right now. Please try again in a moment."
+                return false
+            }
+
+            applyCustomerInfo(result.customerInfo)
+
+            if result.userCancelled {
+                purchaseError = nil
+                return false
+            }
+
+            guard isPremium else {
+                purchaseError = "Your purchase is being confirmed. Premium will unlock automatically."
+                return false
+            }
+
+            purchaseError = nil
+            return true
+        } catch {
+            purchaseError = isUserCancelledError(error) ? nil : userFacingErrorMessage(for: error)
+            return false
         }
     }
 
@@ -467,6 +629,46 @@ final class SubscriptionService {
         guard let introductoryDiscount = product?.introductoryDiscount else { return nil }
         guard introductoryDiscount.paymentMode == .freeTrial else { return nil }
         return compactSubscriptionPeriod(introductoryDiscount.subscriptionPeriod)
+    }
+
+    private static func annualMonthlyEquivalent(for product: StoreProduct?) -> String? {
+        guard hasPeriod(product, unit: .year, value: 1) else { return nil }
+        return product?.localizedPricePerMonth
+    }
+
+    private static func annualSavingsPercent(
+        annualProduct: StoreProduct?,
+        monthlyProduct: StoreProduct?
+    ) -> Int? {
+        guard let annualProduct, let monthlyProduct else { return nil }
+        guard hasPeriod(annualProduct, unit: .year, value: 1) else { return nil }
+        guard hasPeriod(monthlyProduct, unit: .month, value: 1) else { return nil }
+        guard let annualCurrency = annualProduct.currencyCode,
+              let monthlyCurrency = monthlyProduct.currencyCode,
+              annualCurrency == monthlyCurrency else {
+            return nil
+        }
+
+        let annualizedMonthlyPrice = monthlyProduct.price * 12
+        guard annualizedMonthlyPrice > 0,
+              annualProduct.price > 0,
+              annualProduct.price < annualizedMonthlyPrice else {
+            return nil
+        }
+
+        let savings = (annualizedMonthlyPrice - annualProduct.price) / annualizedMonthlyPrice
+        let roundedPercentage = Int((NSDecimalNumber(decimal: savings).doubleValue * 100).rounded())
+
+        return roundedPercentage > 0 ? roundedPercentage : nil
+    }
+
+    private static func hasPeriod(
+        _ product: StoreProduct?,
+        unit: SubscriptionPeriod.Unit,
+        value: Int
+    ) -> Bool {
+        guard let period = product?.subscriptionPeriod else { return false }
+        return period.unit == unit && period.value == value
     }
 
     private static func formatPrice(_ localizedPrice: String, period: SubscriptionPeriod?) -> String {

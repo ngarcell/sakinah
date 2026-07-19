@@ -2,7 +2,21 @@ import Foundation
 import Testing
 @testable import Sakinah
 
+@MainActor
 struct RevenueCatConfigurationTests {
+    @Test
+    func customPaywallPlanCatalogPreservesStoreProductIdentifiers() {
+        #expect(SubscriptionService.defaultPlan.rawValue == "annual")
+        #expect(
+            SubscriptionService.Plan.annual.productIdentifier
+                == "com.socialreporthq.sakinah.premium.annual"
+        )
+        #expect(
+            SubscriptionService.Plan.monthly.productIdentifier
+                == "com.socialreporthq.sakinah.premium.monthly"
+        )
+    }
+
     @Test
     func debugConfigurationDefaultsToTestStoreKey() throws {
         let configuration = try RevenueCatConfigurationResolver.resolve(

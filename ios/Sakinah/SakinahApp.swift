@@ -1,192 +1,175 @@
-import SwiftUI
+import Foundation
 import SwiftData
+import SwiftUI
 
 @main
 struct SakinahApp: App {
-    @UIApplicationDelegateAdaptor(CloudKitSharingAppDelegate.self) private var appDelegate
-    @State private var appState = AppState()
-    @State private var subscriptionService = SubscriptionService.shared
-    @AppStorage("selectedAppearance") private var selectedAppearance = AppAppearanceMode.system.rawValue
-
-    private static let storeFilename = "default.store"
-
-    var sharedModelContainer: ModelContainer = Self.makeModelContainer()
-
-    private static var appSchema: Schema {
-        Schema([
-            User.self,
-            Couple.self,
-            DailyPrompt.self,
-            PromptResponse.self,
-            CheckIn.self,
-            WeeklyReflection.self,
-            Memory.self,
-            Lesson.self,
-            JournalEntry.self,
-            LoveLetter.self,
-            SharedGoal.self,
-            WishItem.self,
-            OnboardingDraft.self,
-        ])
-    }
-
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-                .environment(appState)
-                .tint(SakinahColor.primary)
-                .preferredColorScheme(currentAppearance.colorScheme)
-                .onOpenURL { url in
-                    handleDeepLink(url)
-                }
-                .task {
-                    await bootstrapApp()
-                }
-                .onChange(of: scenePhase) { _, phase in
-                    if phase == .active {
-                        Task { await handleActiveScene() }
-                    }
-                }
-                .onChange(of: subscriptionService.currentTier) { _, tier in
-                    Task {
-                        appState.handleSubscriptionState(isPremium: tier == .premium)
-
-                        if tier == .premium {
-                            persistPremiumUnlockStateIfNeeded()
-                            await CloudKitService.shared.syncIfPossible(
-                                appState: appState,
-                                context: sharedModelContainer.mainContext
-                            )
-                        }
-                    }
-                }
-                .onReceive(NotificationCenter.default.publisher(for: .sakinahPendingShareChanged)) { _ in
-                    appState.notePendingShareDetected()
-
-                    Task {
-                        await CloudKitService.shared.syncIfPossible(
-                            appState: appState,
-                            context: sharedModelContainer.mainContext
-                        )
-                    }
-                }
-        }
-        .modelContainer(sharedModelContainer)
+    private struct ModelBootstrap {
+        let container: ModelContainer
+        let failureMessage: String?
     }
 
     @Environment(\.scenePhase) private var scenePhase
 
-    private var currentAppearance: AppAppearanceMode {
-        AppAppearanceMode(rawValue: selectedAppearance) ?? .system
+    @State private var appState = TrueMaxAppState()
+    @State private var subscriptionService = SubscriptionService.shared
+
+    private let modelBootstrap = Self.makeModelContainer()
+
+    var body: some Scene {
+        WindowGroup {
+            Group {
+                if let failureMessage = modelBootstrap.failureMessage {
+                    TrueMaxStorageUnavailableView(message: failureMessage)
+                } else {
+                    ContentView()
+                }
+            }
+                .environment(appState)
+                .environment(subscriptionService)
+                .preferredColorScheme(appState.appearance.colorScheme)
+                .tint(TrueMaxPalette.accentLight)
+                .task {
+                    guard modelBootstrap.failureMessage == nil else {
+                        appState.isBootstrapping = false
+                        return
+                    }
+                    subscriptionService.loadSubscriptionState()
+                    _ = await subscriptionService.preparePaywall(forceRefresh: false)
+                    appState.isBootstrapping = false
+                }
+                .onChange(of: scenePhase) { _, phase in
+                    guard phase == .active else { return }
+                    Task {
+                        await subscriptionService.refreshEntitlements()
+                    }
+                }
+        }
+        .modelContainer(modelBootstrap.container)
     }
 
-    private static func makeModelContainer() -> ModelContainer {
-        let schema = appSchema
-        let storeURL = defaultStoreURL()
-        let primaryConfiguration = ModelConfiguration(
-            "Sakinah",
-            schema: schema,
-            url: storeURL,
-            allowsSave: true,
-            cloudKitDatabase: .none
-        )
+    private static func makeModelContainer() -> ModelBootstrap {
+        let schema = Schema([
+            ScanRecord.self,
+            StyleFavorite.self,
+        ])
 
         do {
-            return try ModelContainer(for: schema, configurations: [primaryConfiguration])
+            let configuration = ModelConfiguration(
+                "TrueMaxLocal",
+                schema: schema,
+                url: try localStoreURL(),
+                allowsSave: true,
+                cloudKitDatabase: .none
+            )
+            let container = try ModelContainer(
+                for: schema,
+                configurations: [configuration]
+            )
+            return ModelBootstrap(container: container, failureMessage: nil)
         } catch {
-            print("SwiftData store load failed, attempting recovery: \(error)")
-            backupAndResetStore(at: storeURL)
+            assertionFailure("TrueMax local store could not be opened: \(error)")
+            let fallback = ModelConfiguration(
+                "TrueMaxLocalFallback",
+                schema: schema,
+                isStoredInMemoryOnly: true,
+                allowsSave: true,
+                cloudKitDatabase: .none
+            )
 
             do {
-                return try ModelContainer(for: schema, configurations: [primaryConfiguration])
-            } catch {
-                print("SwiftData store recovery failed, falling back to in-memory container: \(error)")
-
-                let fallbackConfiguration = ModelConfiguration(
-                    "SakinahInMemory",
-                    schema: schema,
-                    isStoredInMemoryOnly: true,
-                    allowsSave: true,
-                    groupContainer: .none,
-                    cloudKitDatabase: .none
+                let container = try ModelContainer(
+                    for: schema,
+                    configurations: [fallback]
                 )
-
-                do {
-                    return try ModelContainer(for: schema, configurations: [fallbackConfiguration])
-                } catch {
-                    fatalError("Could not create any ModelContainer: \(error)")
-                }
+                return ModelBootstrap(
+                    container: container,
+                    failureMessage: "TrueMax could not open its protected local storage. No scan data was changed. Close and reopen the app; if the problem continues, restart your iPhone before trying again."
+                )
+            } catch {
+                fatalError("TrueMax could not create a local model container: \(error)")
             }
         }
     }
 
-    private static func defaultStoreURL() -> URL {
-        let appSupportDirectory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
-            ?? FileManager.default.temporaryDirectory
-        try? FileManager.default.createDirectory(at: appSupportDirectory, withIntermediateDirectories: true)
-        return appSupportDirectory.appendingPathComponent(storeFilename)
-    }
-
-    private static func backupAndResetStore(at storeURL: URL) {
-        let fileManager = FileManager.default
-        let recoveryRoot = storeURL.deletingLastPathComponent().appendingPathComponent("StoreRecovery", isDirectory: true)
-        let timestamp = ISO8601DateFormatter().string(from: Date()).replacingOccurrences(of: ":", with: "-")
-        let recoveryDirectory = recoveryRoot.appendingPathComponent(timestamp, isDirectory: true)
-
-        try? fileManager.createDirectory(at: recoveryDirectory, withIntermediateDirectories: true)
-
-        for suffix in ["", "-shm", "-wal"] {
-            let sourceURL = URL(fileURLWithPath: storeURL.path + suffix)
-            guard fileManager.fileExists(atPath: sourceURL.path) else { continue }
-
-            let destinationURL = recoveryDirectory.appendingPathComponent(sourceURL.lastPathComponent)
-            try? fileManager.removeItem(at: destinationURL)
-            try? fileManager.moveItem(at: sourceURL, to: destinationURL)
-        }
-    }
-
-    private func handleDeepLink(_ url: URL) {
-        guard url.scheme == "sakinah" else { return }
-    }
-
-    private func bootstrapApp() async {
-        subscriptionService.loadSubscriptionState()
-        appState.handleSubscriptionState(isPremium: subscriptionService.isPremium)
-        persistPremiumUnlockStateIfNeeded()
-
-        if CloudKitService.shared.hasPendingAcceptedShare {
-            appState.notePendingShareDetected()
+    private static func localStoreURL() throws -> URL {
+        let manager = FileManager.default
+        guard let applicationSupport = manager.urls(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask
+        ).first else {
+            throw TrueMaxStorageBootstrapError.applicationSupportUnavailable
         }
 
-        await CloudKitService.shared.syncIfPossible(
-            appState: appState,
-            context: sharedModelContainer.mainContext
+        let directory = applicationSupport.appendingPathComponent(
+            "TrueMaxLocalData",
+            isDirectory: true
         )
-    }
-
-    private func handleActiveScene() async {
-        ContentService.shared.checkDateRollover()
-        await subscriptionService.refreshEntitlements()
-        appState.handleSubscriptionState(isPremium: subscriptionService.isPremium)
-        persistPremiumUnlockStateIfNeeded()
-
-        if CloudKitService.shared.hasPendingAcceptedShare {
-            appState.notePendingShareDetected()
-        }
-
-        await CloudKitService.shared.syncIfPossible(
-            appState: appState,
-            context: sharedModelContainer.mainContext
+        try manager.createDirectory(
+            at: directory,
+            withIntermediateDirectories: true,
+            attributes: [.protectionKey: FileProtectionType.complete]
         )
+        try manager.setAttributes(
+            [.protectionKey: FileProtectionType.complete],
+            ofItemAtPath: directory.path
+        )
+
+        var protectedDirectory = directory
+        var resourceValues = URLResourceValues()
+        resourceValues.isExcludedFromBackup = true
+        try protectedDirectory.setResourceValues(resourceValues)
+
+        return protectedDirectory.appendingPathComponent("TrueMaxLocal-v1.store")
     }
+}
 
-    private func persistPremiumUnlockStateIfNeeded() {
-        guard subscriptionService.isPremium,
-              appState.currentUser?.requiresInitialSubscriptionUnlock == true else { return }
+private enum TrueMaxStorageBootstrapError: LocalizedError {
+    case applicationSupportUnavailable
 
-        appState.currentUser?.requiresInitialSubscriptionUnlock = false
-        appState.currentUser?.hasSeenInitialSubscriptionPaywall = true
-        appState.currentUser?.touch()
-        try? sharedModelContainer.mainContext.save()
+    var errorDescription: String? {
+        switch self {
+        case .applicationSupportUnavailable:
+            return "The protected Application Support directory is unavailable."
+        }
+    }
+}
+
+private struct TrueMaxStorageUnavailableView: View {
+    let message: String
+
+    var body: some View {
+        ZStack {
+            TrueMaxPageBackground()
+
+            VStack(spacing: 20) {
+                TrueMaxIconCircle(
+                    symbol: "externaldrive.badge.exclamationmark",
+                    color: TrueMaxPalette.caution,
+                    size: 68
+                )
+
+                Text("Local storage unavailable")
+                    .font(.title2.weight(.bold))
+                    .foregroundStyle(TrueMaxPalette.textPrimary)
+                    .multilineTextAlignment(.center)
+
+                Text(message)
+                    .font(.body)
+                    .foregroundStyle(TrueMaxPalette.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Label(
+                    "TrueMax will not run in a temporary mode or risk losing a scan.",
+                    systemImage: "lock.shield"
+                )
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(TrueMaxPalette.textSecondary)
+                .multilineTextAlignment(.center)
+            }
+            .padding(24)
+            .trueMaxContentWidth()
+        }
     }
 }

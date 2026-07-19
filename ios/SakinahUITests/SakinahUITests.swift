@@ -23,12 +23,13 @@ final class SakinahUITests: XCTestCase {
     }
 
     @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
+    func testTrueMaxLaunchesWithoutAuthentication() throws {
         let app = XCUIApplication()
         app.launch()
 
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 8))
+        XCTAssertFalse(app.textFields["Email"].exists)
+        XCTAssertFalse(app.secureTextFields["Password"].exists)
     }
 
     @MainActor
