@@ -17,50 +17,50 @@
 			containerPortal = 105FC5722E9EAD3100EA8BCF /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 105FC5792E9EAD3100EA8BCF;
-			remoteInfo = Sakinah;
+			remoteInfo = TrueMax;
 		};
 		105FC5942E9EAD3200EA8BCF /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 105FC5722E9EAD3100EA8BCF /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 105FC5792E9EAD3100EA8BCF;
-			remoteInfo = Sakinah;
+			remoteInfo = TrueMax;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		105FC57A2E9EAD3100EA8BCF /* Sakinah.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sakinah.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		105FC5892E9EAD3200EA8BCF /* SakinahTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SakinahTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		105FC5932E9EAD3200EA8BCF /* SakinahUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SakinahUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		105FC57A2E9EAD3100EA8BCF /* TrueMax.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TrueMax.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		105FC5892E9EAD3200EA8BCF /* TrueMaxTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TrueMaxTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		105FC5932E9EAD3200EA8BCF /* TrueMaxUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TrueMaxUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		30B000000000000000000003 /* Exceptions for "Sakinah" folder in "Sakinah" target */ = {
+		30B000000000000000000003 /* Exceptions for "TrueMax" folder in "TrueMax" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = 105FC5792E9EAD3100EA8BCF /* Sakinah */;
+			target = 105FC5792E9EAD3100EA8BCF /* TrueMax */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		105FC57C2E9EAD3100EA8BCF /* Sakinah */ = {
+		105FC57C2E9EAD3100EA8BCF /* TrueMax */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				30B000000000000000000003 /* Exceptions for "Sakinah" folder in "Sakinah" target */,
+				30B000000000000000000003 /* Exceptions for "TrueMax" folder in "TrueMax" target */,
 			);
-			path = Sakinah;
+			path = TrueMax;
 			sourceTree = "<group>";
 		};
-		105FC58C2E9EAD3200EA8BCF /* SakinahTests */ = {
+		105FC58C2E9EAD3200EA8BCF /* TrueMaxTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = SakinahTests;
+			path = TrueMaxTests;
 			sourceTree = "<group>";
 		};
-		105FC5962E9EAD3200EA8BCF /* SakinahUITests */ = {
+		105FC5962E9EAD3200EA8BCF /* TrueMaxUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = SakinahUITests;
+			path = TrueMaxUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -95,9 +95,9 @@
 		105FC5712E9EAD3100EA8BCF = {
 			isa = PBXGroup;
 			children = (
-				105FC57C2E9EAD3100EA8BCF /* Sakinah */,
-				105FC58C2E9EAD3200EA8BCF /* SakinahTests */,
-				105FC5962E9EAD3200EA8BCF /* SakinahUITests */,
+				105FC57C2E9EAD3100EA8BCF /* TrueMax */,
+				105FC58C2E9EAD3200EA8BCF /* TrueMaxTests */,
+				105FC5962E9EAD3200EA8BCF /* TrueMaxUITests */,
 				105FC57B2E9EAD3100EA8BCF /* Products */,
 			);
 			sourceTree = "<group>";
@@ -105,9 +105,9 @@
 		105FC57B2E9EAD3100EA8BCF /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				105FC57A2E9EAD3100EA8BCF /* Sakinah.app */,
-				105FC5892E9EAD3200EA8BCF /* SakinahTests.xctest */,
-				105FC5932E9EAD3200EA8BCF /* SakinahUITests.xctest */,
+				105FC57A2E9EAD3100EA8BCF /* TrueMax.app */,
+				105FC5892E9EAD3200EA8BCF /* TrueMaxTests.xctest */,
+				105FC5932E9EAD3200EA8BCF /* TrueMaxUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -115,9 +115,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		105FC5792E9EAD3100EA8BCF /* Sakinah */ = {
+		105FC5792E9EAD3100EA8BCF /* TrueMax */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 105FC59D2E9EAD3200EA8BCF /* Build configuration list for PBXNativeTarget "Sakinah" */;
+			buildConfigurationList = 105FC59D2E9EAD3200EA8BCF /* Build configuration list for PBXNativeTarget "TrueMax" */;
 			buildPhases = (
 				105FC5762E9EAD3100EA8BCF /* Sources */,
 				105FC5772E9EAD3100EA8BCF /* Frameworks */,
@@ -128,20 +128,20 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				105FC57C2E9EAD3100EA8BCF /* Sakinah */,
+				105FC57C2E9EAD3100EA8BCF /* TrueMax */,
 			);
-			name = Sakinah;
+			name = TrueMax;
 			packageProductDependencies = (
 				A1B2C3D4E5F60718293A4B5B /* RevenueCat */,
 				A1B2C3D4E5F60718293A4B5F /* RevenueCatUI */,
 			);
-			productName = Sakinah;
-			productReference = 105FC57A2E9EAD3100EA8BCF /* Sakinah.app */;
+			productName = TrueMax;
+			productReference = 105FC57A2E9EAD3100EA8BCF /* TrueMax.app */;
 			productType = "com.apple.product-type.application";
 		};
-		105FC5882E9EAD3200EA8BCF /* SakinahTests */ = {
+		105FC5882E9EAD3200EA8BCF /* TrueMaxTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 105FC5A02E9EAD3200EA8BCF /* Build configuration list for PBXNativeTarget "SakinahTests" */;
+			buildConfigurationList = 105FC5A02E9EAD3200EA8BCF /* Build configuration list for PBXNativeTarget "TrueMaxTests" */;
 			buildPhases = (
 				105FC5852E9EAD3200EA8BCF /* Sources */,
 				105FC5862E9EAD3200EA8BCF /* Frameworks */,
@@ -153,18 +153,18 @@
 				105FC58B2E9EAD3200EA8BCF /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				105FC58C2E9EAD3200EA8BCF /* SakinahTests */,
+				105FC58C2E9EAD3200EA8BCF /* TrueMaxTests */,
 			);
-			name = SakinahTests;
+			name = TrueMaxTests;
 			packageProductDependencies = (
 			);
-			productName = SakinahTests;
-			productReference = 105FC5892E9EAD3200EA8BCF /* SakinahTests.xctest */;
+			productName = TrueMaxTests;
+			productReference = 105FC5892E9EAD3200EA8BCF /* TrueMaxTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		105FC5922E9EAD3200EA8BCF /* SakinahUITests */ = {
+		105FC5922E9EAD3200EA8BCF /* TrueMaxUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 105FC5A32E9EAD3200EA8BCF /* Build configuration list for PBXNativeTarget "SakinahUITests" */;
+			buildConfigurationList = 105FC5A32E9EAD3200EA8BCF /* Build configuration list for PBXNativeTarget "TrueMaxUITests" */;
 			buildPhases = (
 				105FC58F2E9EAD3200EA8BCF /* Sources */,
 				105FC5902E9EAD3200EA8BCF /* Frameworks */,
@@ -176,13 +176,13 @@
 				105FC5952E9EAD3200EA8BCF /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				105FC5962E9EAD3200EA8BCF /* SakinahUITests */,
+				105FC5962E9EAD3200EA8BCF /* TrueMaxUITests */,
 			);
-			name = SakinahUITests;
+			name = TrueMaxUITests;
 			packageProductDependencies = (
 			);
-			productName = SakinahUITests;
-			productReference = 105FC5932E9EAD3200EA8BCF /* SakinahUITests.xctest */;
+			productName = TrueMaxUITests;
+			productReference = 105FC5932E9EAD3200EA8BCF /* TrueMaxUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -208,7 +208,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 105FC5752E9EAD3100EA8BCF /* Build configuration list for PBXProject "Sakinah" */;
+			buildConfigurationList = 105FC5752E9EAD3100EA8BCF /* Build configuration list for PBXProject "TrueMax" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -225,9 +225,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				105FC5792E9EAD3100EA8BCF /* Sakinah */,
-				105FC5882E9EAD3200EA8BCF /* SakinahTests */,
-				105FC5922E9EAD3200EA8BCF /* SakinahUITests */,
+				105FC5792E9EAD3100EA8BCF /* TrueMax */,
+				105FC5882E9EAD3200EA8BCF /* TrueMaxTests */,
+				105FC5922E9EAD3200EA8BCF /* TrueMaxUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -283,39 +283,15 @@
 /* Begin PBXTargetDependency section */
 		105FC58B2E9EAD3200EA8BCF /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 105FC5792E9EAD3100EA8BCF /* Sakinah */;
+			target = 105FC5792E9EAD3100EA8BCF /* TrueMax */;
 			targetProxy = 105FC58A2E9EAD3200EA8BCF /* PBXContainerItemProxy */;
 		};
 		105FC5952E9EAD3200EA8BCF /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 105FC5792E9EAD3100EA8BCF /* Sakinah */;
+			target = 105FC5792E9EAD3100EA8BCF /* TrueMax */;
 			targetProxy = 105FC5942E9EAD3200EA8BCF /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		A1B2C3D4E5F60718293A4B5A /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.0.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		A1B2C3D4E5F60718293A4B5B /* RevenueCat */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = A1B2C3D4E5F60718293A4B5A /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
-			productName = RevenueCat;
-		};
-		A1B2C3D4E5F60718293A4B5F /* RevenueCatUI */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = A1B2C3D4E5F60718293A4B5A /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
-			productName = RevenueCatUI;
-		};
-/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		105FC59B2E9EAD3200EA8BCF /* Debug */ = {
@@ -452,7 +428,7 @@
 				CFRevenueCatPremiumEntitlementID = "Sakinah Premium";
 				CFRevenueCatRequireAppleKey = NO;
 				CFRevenueCatTestAPIKey = test_uMjDbsOgwWFKjqUFhUDgiJAnBnj;
-				CODE_SIGN_ENTITLEMENTS = Sakinah/Sakinah.entitlements;
+				CODE_SIGN_ENTITLEMENTS = TrueMax/TrueMax.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
@@ -489,7 +465,7 @@
 				CFRevenueCatPremiumEntitlementID = "Sakinah Premium";
 				CFRevenueCatRequireAppleKey = YES;
 				CFRevenueCatTestAPIKey = "";
-				CODE_SIGN_ENTITLEMENTS = Sakinah/Sakinah.entitlements;
+				CODE_SIGN_ENTITLEMENTS = TrueMax/TrueMax.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
@@ -523,7 +499,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.socialreporthq.sakinah.tests";
+				PRODUCT_BUNDLE_IDENTIFIER = com.socialreporthq.sakinah.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -531,7 +507,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Sakinah.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Sakinah";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TrueMax.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TrueMax";
 			};
 			name = Debug;
 		};
@@ -545,7 +521,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.socialreporthq.sakinah.tests";
+				PRODUCT_BUNDLE_IDENTIFIER = com.socialreporthq.sakinah.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -553,7 +529,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Sakinah.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Sakinah";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TrueMax.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TrueMax";
 			};
 			name = Release;
 		};
@@ -565,7 +541,7 @@
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.socialreporthq.sakinah.uitests";
+				PRODUCT_BUNDLE_IDENTIFIER = com.socialreporthq.sakinah.uitests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -573,7 +549,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = Sakinah;
+				TEST_TARGET_NAME = TrueMax;
 			};
 			name = Debug;
 		};
@@ -585,7 +561,7 @@
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.socialreporthq.sakinah.uitests";
+				PRODUCT_BUNDLE_IDENTIFIER = com.socialreporthq.sakinah.uitests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -593,14 +569,14 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = Sakinah;
+				TEST_TARGET_NAME = TrueMax;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		105FC5752E9EAD3100EA8BCF /* Build configuration list for PBXProject "Sakinah" */ = {
+		105FC5752E9EAD3100EA8BCF /* Build configuration list for PBXProject "TrueMax" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				105FC59B2E9EAD3200EA8BCF /* Debug */,
@@ -609,7 +585,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		105FC59D2E9EAD3200EA8BCF /* Build configuration list for PBXNativeTarget "Sakinah" */ = {
+		105FC59D2E9EAD3200EA8BCF /* Build configuration list for PBXNativeTarget "TrueMax" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				105FC59E2E9EAD3200EA8BCF /* Debug */,
@@ -618,7 +594,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		105FC5A02E9EAD3200EA8BCF /* Build configuration list for PBXNativeTarget "SakinahTests" */ = {
+		105FC5A02E9EAD3200EA8BCF /* Build configuration list for PBXNativeTarget "TrueMaxTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				105FC5A12E9EAD3200EA8BCF /* Debug */,
@@ -627,7 +603,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		105FC5A32E9EAD3200EA8BCF /* Build configuration list for PBXNativeTarget "SakinahUITests" */ = {
+		105FC5A32E9EAD3200EA8BCF /* Build configuration list for PBXNativeTarget "TrueMaxUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				105FC5A42E9EAD3200EA8BCF /* Debug */,
@@ -637,6 +613,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A1B2C3D4E5F60718293A4B5A /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A1B2C3D4E5F60718293A4B5B /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1B2C3D4E5F60718293A4B5A /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCat;
+		};
+		A1B2C3D4E5F60718293A4B5F /* RevenueCatUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1B2C3D4E5F60718293A4B5A /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCatUI;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 105FC5722E9EAD3100EA8BCF /* Project object */;
 }

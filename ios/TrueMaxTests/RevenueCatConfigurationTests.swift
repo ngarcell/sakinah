@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Sakinah
+@testable import TrueMax
 
 @MainActor
 struct RevenueCatConfigurationTests {
@@ -29,7 +29,7 @@ struct RevenueCatConfigurationTests {
         #expect(configuration.usesTestStore)
         #expect(configuration.hasBundledTestStoreKey)
         #expect(configuration.keySource == .buildConfiguration)
-        #expect(configuration.premiumEntitlementIDs == ["Sakinah Premium", "premium"])
+        #expect(configuration.premiumEntitlementIDs == ["TrueMax Premium", "premium"])
     }
 
     @Test
@@ -104,7 +104,7 @@ struct RevenueCatConfigurationTests {
             "CFRevenueCatDefaultAPIKey": "test_debug_key",
             "CFRevenueCatAppleAPIKey": "appl_live_key",
             "CFRevenueCatTestAPIKey": "test_debug_key",
-            "CFRevenueCatPremiumEntitlementID": "Sakinah Premium",
+            "CFRevenueCatPremiumEntitlementID": "TrueMax Premium",
             "CFRevenueCatPremiumEntitlementFallbackIDs": "premium",
             "CFRevenueCatAllowDebugOverrides": "YES",
             "CFRevenueCatRequireAppleKey": "NO",
@@ -117,7 +117,7 @@ struct RevenueCatConfigurationTests {
             "CFRevenueCatDefaultAPIKey": "appl_live_key",
             "CFRevenueCatAppleAPIKey": "appl_live_key",
             "CFRevenueCatTestAPIKey": testKey,
-            "CFRevenueCatPremiumEntitlementID": "Sakinah Premium",
+            "CFRevenueCatPremiumEntitlementID": "TrueMax Premium",
             "CFRevenueCatPremiumEntitlementFallbackIDs": "premium",
             "CFRevenueCatAllowDebugOverrides": "NO",
             "CFRevenueCatRequireAppleKey": "YES",
