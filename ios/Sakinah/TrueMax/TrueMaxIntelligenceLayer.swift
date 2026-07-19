@@ -4,7 +4,7 @@ import Foundation
 /// fetches face-related guidance at runtime: this keeps the privacy boundary
 /// deterministic and makes every recommendation traceable to a reviewed source.
 struct TrueMaxKnowledgeEntry: Identifiable, Hashable, Sendable {
-    enum EvidenceGrade: String, Sendable {
+    enum EvidenceGrade: String, Hashable, Sendable {
         case platform
         case guardrail
     }

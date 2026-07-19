@@ -412,7 +412,7 @@ struct TrueMaxScanRootView: View {
                     )
                     ProcessingRow(
                         symbol: "ruler",
-                            title: "Calculating estimate bands",
+                        title: "Calculating estimate bands",
                         state: .active
                     )
                     ProcessingRow(
