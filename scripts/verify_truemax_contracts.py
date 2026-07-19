@@ -654,8 +654,8 @@ class ContractVerifier:
             "facial images and measurements are never attached",
             "Monthly and annual plans are available, with annual selected by default.",
             "https://socialreporthq.com/sakinah/privacy",
-            "https://socialreporthq.com/truemax/terms",
-            "https://socialreporthq.com/truemax/support",
+            "https://socialreporthq.com/sakinah/terms",
+            "https://socialreporthq.com/sakinah/support",
         )
         issues = [
             f"missing required metadata statement: {snippet}"
