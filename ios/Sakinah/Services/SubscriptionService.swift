@@ -422,10 +422,13 @@ final class SubscriptionService {
 
         do {
             let result: PurchaseResultData
+            let purchasedProductIdentifier: String
 
             if let package = package(for: plan) {
+                purchasedProductIdentifier = package.storeProduct.productIdentifier
                 result = try await Purchases.shared.purchase(package: package)
             } else if let product = product(for: plan) {
+                purchasedProductIdentifier = product.productIdentifier
                 result = try await Purchases.shared.purchase(product: product)
             } else {
                 purchaseError = "That plan is unavailable right now. Please try again in a moment."
@@ -451,6 +454,15 @@ final class SubscriptionService {
                 }
             }
 
+            // A completed RevenueCat transaction can arrive before its
+            // entitlement snapshot is propagated. The purchased product is
+            // still authoritative here: only a non-cancelled purchase of one
+            // of our configured plan IDs can take this immediate-unlock path.
+            // CustomerInfo remains the source of truth on subsequent refreshes.
+            if !isPremium, matches(purchasedProductIdentifier, to: plan) {
+                markPremiumFromCompletedPurchase()
+            }
+
             guard isPremium else {
                 purchaseError = "Your purchase is being confirmed. Premium will unlock automatically."
                 return false
@@ -462,6 +474,11 @@ final class SubscriptionService {
             purchaseError = isUserCancelledError(error) ? nil : userFacingErrorMessage(for: error)
             return false
         }
+    }
+
+    private func markPremiumFromCompletedPurchase() {
+        currentTier = .premium
+        userDefaults.set(SubscriptionTier.premium.rawValue, forKey: DefaultsKey.tier)
     }
 
     func restorePurchases() async {
@@ -831,15 +848,19 @@ final class SubscriptionService {
     }
 
     private func matches(_ product: StoreProduct, to plan: Plan) -> Bool {
+        matches(product.productIdentifier, to: plan)
+    }
+
+    private func matches(_ productIdentifier: String, to plan: Plan) -> Bool {
         switch plan {
         case .annual:
-            return product.productIdentifier == ProductCatalog.annual
+            return productIdentifier == ProductCatalog.annual
                 || (configuration?.usesTestStore == true
-                    && product.productIdentifier == ProductCatalog.testStoreAnnual)
+                    && productIdentifier == ProductCatalog.testStoreAnnual)
         case .monthly:
-            return product.productIdentifier == ProductCatalog.monthly
+            return productIdentifier == ProductCatalog.monthly
                 || (configuration?.usesTestStore == true
-                    && product.productIdentifier == ProductCatalog.testStoreMonthly)
+                    && productIdentifier == ProductCatalog.testStoreMonthly)
         }
     }
 
