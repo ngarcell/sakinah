@@ -1,13 +1,13 @@
 //
-//  TrueMaxUITestsLaunchTests.swift
-//  TrueMaxUITests
+//  SakinahUITestsLaunchTests.swift
+//  SakinahUITests
 //
 //  Created by Rork on April 18, 2026.
 //
 
 import XCTest
 
-final class TrueMaxUITestsLaunchTests: XCTestCase {
+final class SakinahUITestsLaunchTests: XCTestCase {
 
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true

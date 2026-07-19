@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import TrueMax
+@testable import Sakinah
 
 @MainActor
 struct TrueMaxModelTests {

@@ -4,10 +4,7 @@
     {
       "name": "TrueMax",
       "path": "ios",
-      "framework": "swift",
-      "settings": {
-        "displayName": "TrueMax"
-      }
+      "framework": "swift"
     }
   ]
 }

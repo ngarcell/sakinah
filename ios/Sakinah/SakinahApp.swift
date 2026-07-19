@@ -3,7 +3,7 @@ import SwiftData
 import SwiftUI
 
 @main
-struct TrueMaxApp: App {
+struct SakinahApp: App {
     private struct ModelBootstrap {
         let container: ModelContainer
         let failureMessage: String?
