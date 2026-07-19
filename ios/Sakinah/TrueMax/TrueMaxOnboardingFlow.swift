@@ -29,7 +29,6 @@ struct TrueMaxOnboardingFlow: View {
     @Environment(TrueMaxAppState.self) private var appState
     @Environment(SubscriptionService.self) private var subscriptionService
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @State private var step: Step = .welcome
     @State private var ageChoice: AgeChoice?
@@ -102,27 +101,11 @@ struct TrueMaxOnboardingFlow: View {
                         .foregroundStyle(TrueMaxPalette.textPrimary)
                         .multilineTextAlignment(.center)
 
-                    Text("Private facial measurements and practical style guidance—processed entirely on your iPhone.")
+                    Text("Understand your proportions and build a practical routine.")
                         .font(.body)
                         .foregroundStyle(TrueMaxPalette.textSecondary)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
-                }
-
-                Group {
-                    if dynamicTypeSize.isAccessibilitySize {
-                        VStack(spacing: 8) {
-                            TrustTile(symbol: "iphone", title: "On-device")
-                            TrustTile(symbol: "person.crop.circle.badge.xmark", title: "No account")
-                            TrustTile(symbol: "icloud.slash", title: "Never uploaded")
-                        }
-                    } else {
-                        HStack(spacing: 8) {
-                            TrustTile(symbol: "iphone", title: "On-device")
-                            TrustTile(symbol: "person.crop.circle.badge.xmark", title: "No account")
-                            TrustTile(symbol: "icloud.slash", title: "Never uploaded")
-                        }
-                    }
                 }
 
                 Text("Designed for adults 18+")
@@ -150,7 +133,7 @@ struct TrueMaxOnboardingFlow: View {
                     .foregroundStyle(TrueMaxPalette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
 
-                Text("Three private steps. No uploads, social scores, or public comparisons.")
+                Text("Three simple steps from capture to action.")
                     .font(.body)
                     .foregroundStyle(TrueMaxPalette.textSecondary)
 
@@ -174,17 +157,6 @@ struct TrueMaxOnboardingFlow: View {
                         detail: "Get practical grooming, presentation, hair, and color guidance."
                     )
                 }
-
-                HStack(spacing: 10) {
-                    Image(systemName: "lock.shield")
-                        .foregroundStyle(TrueMaxPalette.accentLight)
-                    Text("Your capture never leaves this device.")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(TrueMaxPalette.textSecondary)
-                }
-                .padding(16)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .trueMaxCard()
 
                 Spacer(minLength: 12)
             }
@@ -231,7 +203,7 @@ struct TrueMaxOnboardingFlow: View {
                 VStack(spacing: 12) {
                     AgeChoiceButton(
                         title: "I am 18 or older",
-                        detail: "Continue to private facial analysis",
+                        detail: "Continue to facial analysis",
                         isSelected: ageChoice == .adult
                     ) {
                         ageChoice = .adult
@@ -284,52 +256,25 @@ struct TrueMaxOnboardingFlow: View {
             VStack(spacing: 24) {
                 Spacer(minLength: 24)
 
-                ZStack {
-                    Circle()
-                        .fill(TrueMaxPalette.accent.opacity(0.10))
-                        .frame(width: 184, height: 184)
-                    Image(systemName: "faceid")
-                        .font(.system(size: 84, weight: .light))
-                        .foregroundStyle(TrueMaxPalette.accentLight)
-                    Image(systemName: "lock.fill")
-                        .font(.system(size: 22, weight: .bold))
-                        .foregroundStyle(.white)
-                        .padding(12)
-                        .background(TrueMaxPalette.accent, in: Circle())
-                        .offset(x: 61, y: 61)
-                }
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel("Face data secured on this device")
+                TrueMaxIconCircle(
+                    symbol: "checkmark",
+                    color: TrueMaxPalette.accentLight,
+                    size: 72
+                )
 
                 VStack(spacing: 10) {
-                    Text("Your face stays yours.")
+                    Text("Ready to begin?")
                         .font(.title2.weight(.bold))
                         .fontDesign(.rounded)
                         .foregroundStyle(TrueMaxPalette.textPrimary)
                         .multilineTextAlignment(.center)
 
-                    Text("Your image and measurements are processed and stored locally. TrueMax never uploads your face.")
+                    Text("Choose a plan to unlock your baseline analysis and practical style guidance.")
                         .font(.body)
                         .foregroundStyle(TrueMaxPalette.textSecondary)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-
-                VStack(spacing: 0) {
-                    PrivacyRow(symbol: "icloud.slash", title: "No cloud upload")
-                    Divider().overlay(TrueMaxPalette.border)
-                    PrivacyRow(symbol: "person.crop.circle.badge.xmark", title: "No account or identity")
-                    Divider().overlay(TrueMaxPalette.border)
-                    PrivacyRow(symbol: "trash", title: "Delete everything anytime")
-                    Divider().overlay(TrueMaxPalette.border)
-                    PrivacyRow(symbol: "wifi.slash", title: "Analysis works offline")
-                }
-                .trueMaxCard()
-
-                Text("The App Store is contacted only for purchases and restores.")
-                    .font(.footnote)
-                    .foregroundStyle(TrueMaxPalette.textTertiary)
-                    .multilineTextAlignment(.center)
 
                 Spacer(minLength: 10)
             }
@@ -569,31 +514,6 @@ private struct OnboardingScaffold<Content: View>: View {
     }
 }
 
-private struct TrustTile: View {
-    let symbol: String
-    let title: String
-
-    var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: symbol)
-                .font(.title3)
-                .foregroundStyle(TrueMaxPalette.accentLight)
-            Text(title)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(TrueMaxPalette.textSecondary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 14)
-        .background(TrueMaxPalette.card, in: RoundedRectangle(cornerRadius: 14))
-        .overlay {
-            RoundedRectangle(cornerRadius: 14)
-                .strokeBorder(TrueMaxPalette.border)
-        }
-    }
-}
-
 private struct HowItWorksCard: View {
     let number: String
     let symbol: String
@@ -670,27 +590,5 @@ private struct AgeChoiceButton: View {
             }
         }
         .buttonStyle(.plain)
-    }
-}
-
-private struct PrivacyRow: View {
-    let symbol: String
-    let title: String
-
-    var body: some View {
-        HStack(spacing: 14) {
-            Image(systemName: symbol)
-                .font(.title3)
-                .foregroundStyle(TrueMaxPalette.accentLight)
-                .frame(width: 34)
-            Text(title)
-                .font(.body.weight(.semibold))
-                .foregroundStyle(TrueMaxPalette.textPrimary)
-            Spacer()
-            Image(systemName: "checkmark")
-                .font(.subheadline.weight(.bold))
-                .foregroundStyle(TrueMaxPalette.positive)
-        }
-        .padding(.vertical, 12)
     }
 }

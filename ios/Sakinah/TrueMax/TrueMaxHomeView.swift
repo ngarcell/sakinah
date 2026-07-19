@@ -31,20 +31,7 @@ struct TrueMaxHomeView: View {
     }
 
     private var homeHeader: some View {
-        Group {
-            if dynamicTypeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: 10) {
-                    TrueMaxBrandLockup(compact: true)
-                    TrueMaxPill(icon: "lock.fill", text: "On-device")
-                }
-            } else {
-                HStack {
-                    TrueMaxBrandLockup(compact: true)
-                    Spacer()
-                    TrueMaxPill(icon: "lock.fill", text: "On-device")
-                }
-            }
-        }
+        TrueMaxBrandLockup(compact: true)
     }
 
     private var firstScanHome: some View {
@@ -80,9 +67,10 @@ struct TrueMaxHomeView: View {
                 }
                 .buttonStyle(TrueMaxPrimaryButtonStyle())
 
-                Label("About 60 seconds · processed on-device", systemImage: "lock.shield")
+                Text("About 60 seconds")
                     .font(.footnote)
                     .foregroundStyle(TrueMaxPalette.textSecondary)
+                    .multilineTextAlignment(.center)
             }
             .trueMaxCard(elevated: true)
 

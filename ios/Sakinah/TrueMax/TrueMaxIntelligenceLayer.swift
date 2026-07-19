@@ -168,8 +168,8 @@ enum TrueMaxIntelligenceEngine {
         signals.append(
             TrueMaxIntelligenceSignal(
                 id: "local-first-provenance",
-                title: "Your plan stays on-device",
-                detail: "This guidance was selected from the bundled knowledge pack (\(TrueMaxKnowledgeBase.packVersion)); no face data was sent to a model or service.",
+                title: "Guidance adapts to your results",
+                detail: "This guidance was selected from the bundled knowledge pack (\(TrueMaxKnowledgeBase.packVersion)).",
                 knowledgeID: "nist-ai-rmf-1"
             )
         )

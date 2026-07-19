@@ -105,7 +105,7 @@ enum TrueMaxAnalysisEngine {
         let captureNote: String
         switch captureMode {
         case .depth3D:
-            captureNote = "Transient TrueDepth geometry refined the uncertainty of this on-device analysis. No depth map is saved. Results can still vary with expression, pose, and lighting."
+            captureNote = "Transient TrueDepth geometry refined the estimate band. Results can still vary with expression, pose, and lighting."
         case .photo2D:
             captureNote = "Photo mode estimates visible 2D landmarks only, so its ranges are intentionally wider. Lighting, pose, and lens distance can change them."
         }

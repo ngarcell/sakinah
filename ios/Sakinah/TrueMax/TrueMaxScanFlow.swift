@@ -158,12 +158,7 @@ struct TrueMaxScanRootView: View {
                     .buttonStyle(TrueMaxPrimaryButtonStyle())
                     .disabled(isOpeningCamera)
 
-                    Text("Your deliberate capture is processed on-device and saved only after analysis succeeds.")
-                        .font(.footnote)
-                        .foregroundStyle(TrueMaxPalette.textTertiary)
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .padding(.bottom, 24)
+                    Spacer(minLength: 8)
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 12)
@@ -205,7 +200,7 @@ struct TrueMaxScanRootView: View {
                             .fontDesign(.rounded)
                             .foregroundStyle(TrueMaxPalette.textPrimary)
                             .multilineTextAlignment(.center)
-                        Text("This camera did not deliver TrueDepth data, so TrueMax will use on-device 2D Vision landmarks and clearly label the result.")
+                        Text("This camera did not deliver depth data, so the result will use 2D landmarks and wider ranges.")
                             .font(.body)
                             .foregroundStyle(TrueMaxPalette.textSecondary)
                             .multilineTextAlignment(.center)
@@ -223,16 +218,6 @@ struct TrueMaxScanRootView: View {
                             }
                         }
                     }
-
-                    Label(
-                        "Your photo still never leaves this device.",
-                        systemImage: "lock.fill"
-                    )
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(TrueMaxPalette.textSecondary)
-                    .padding(16)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .trueMaxCard()
 
                     Button("Continue in Photo mode") {
                         photoModeExplained = true
@@ -341,10 +326,6 @@ struct TrueMaxScanRootView: View {
                     .disabled(!cameraController.canCapture)
                     .opacity(cameraController.canCapture ? 1 : 0.52)
                     .accessibilityLabel("Take photo")
-
-                    Label("Processed on this iPhone", systemImage: "lock.fill")
-                        .font(.footnote)
-                        .foregroundStyle(Color.white.opacity(0.74))
 
                     if let errorMessage {
                         Text(errorMessage)
@@ -463,7 +444,7 @@ struct TrueMaxScanRootView: View {
                             .fontDesign(.rounded)
                             .foregroundStyle(TrueMaxPalette.textPrimary)
                             .multilineTextAlignment(.center)
-                        Text("TrueMax uses the camera only for deliberate on-device facial capture. Photos are never uploaded or shared.")
+                        Text("TrueMax uses the camera only for deliberate facial capture.")
                             .font(.body)
                             .foregroundStyle(TrueMaxPalette.textSecondary)
                             .multilineTextAlignment(.center)
@@ -479,8 +460,8 @@ struct TrueMaxScanRootView: View {
                         Divider().overlay(TrueMaxPalette.border)
                         PrivacyPermissionRow(
                             symbol: "cpu",
-                            title: "Analyze on-device",
-                            detail: "Apple Vision runs on your iPhone."
+                            title: "Analyze the capture",
+                            detail: "Apple Vision measures the visible landmarks."
                         )
                         Divider().overlay(TrueMaxPalette.border)
                         PrivacyPermissionRow(

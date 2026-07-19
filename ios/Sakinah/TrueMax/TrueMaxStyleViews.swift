@@ -400,7 +400,7 @@ struct TrueMaxStyleLibraryView: View {
                         }
                     }
 
-                    Text("Recommendations are ranked on device from your latest measurement ranges—not attractiveness. Style previews are neutral, non-photorealistic guides, and TrueMax never generates an “idealized” version of your face.")
+                    Text("Recommendations use your latest measurement ranges—not attractiveness. Style previews are neutral, non-photorealistic guides, and TrueMax never generates an “idealized” version of your face.")
                         .font(.footnote)
                         .foregroundStyle(TrueMaxPalette.textTertiary)
                         .multilineTextAlignment(.center)

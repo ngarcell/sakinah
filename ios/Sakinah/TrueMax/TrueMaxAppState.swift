@@ -96,6 +96,11 @@ final class TrueMaxAppState {
     var presentsPaywall = false
     var scanRequestID = UUID()
     var onboardingRestartID = UUID()
+    var disclaimerAcknowledged: Bool {
+        didSet {
+            defaults.set(disclaimerAcknowledged, forKey: DefaultsKey.disclaimerAcknowledged)
+        }
+    }
     var appearance: TrueMaxAppearance {
         didSet {
             defaults.set(appearance.rawValue, forKey: DefaultsKey.appearance)
@@ -114,6 +119,7 @@ final class TrueMaxAppState {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        self.disclaimerAcknowledged = defaults.bool(forKey: DefaultsKey.disclaimerAcknowledged)
         if defaults.object(forKey: DefaultsKey.appearance) == nil {
             self.appearance = .dark
         } else {
@@ -129,10 +135,6 @@ final class TrueMaxAppState {
         defaults.integer(forKey: DefaultsKey.onboardingVersion) >= TrueMaxBrand.onboardingVersion
     }
 
-    var disclaimerAcknowledged: Bool {
-        defaults.bool(forKey: DefaultsKey.disclaimerAcknowledged)
-    }
-
     var requiresMedicalDisclaimer: Bool {
         hasCompletedOnboarding && !disclaimerAcknowledged
     }
@@ -143,7 +145,7 @@ final class TrueMaxAppState {
     }
 
     func acknowledgeDisclaimer() {
-        defaults.set(true, forKey: DefaultsKey.disclaimerAcknowledged)
+        disclaimerAcknowledged = true
     }
 
     func startScan() {

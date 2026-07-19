@@ -105,9 +105,9 @@ struct TrueMaxSettingsView: View {
 
     private var accessDetail: String {
         if subscriptionService.isPremium {
-            return "\(subscriptionService.currentPlanName) access · On-device scans"
+            return "\(subscriptionService.currentPlanName) access"
         }
-        return "No account · On-device scans"
+        return "No account"
     }
 
     private var experienceSection: some View {
@@ -332,7 +332,7 @@ struct TrueMaxSettingsView: View {
     private var versionFooter: some View {
         VStack(spacing: 5) {
             Text("Version \(TrueMaxVersion.display)")
-            Text("No account · Face and scan data stays on device")
+            Text("No account")
         }
         .font(.footnote)
         .foregroundStyle(TrueMaxPalette.textTertiary)
@@ -364,7 +364,7 @@ struct TrueMaxSettingsView: View {
     private var cameraPermissionDetail: String {
         switch cameraAuthorization {
         case .authorized:
-            return "Allowed · captures are processed on-device"
+            return "Allowed"
         case .denied:
             return "Not allowed · tap to open Settings"
         case .restricted:
@@ -506,7 +506,7 @@ private struct TrueMaxDataPrivacyView: View {
             TrueMaxPrivacyFactRow(
                 symbol: "ruler",
                 title: "Measurements",
-                detail: "SwiftData on-device",
+                detail: "SwiftData storage",
                 value: "\(scans.count) \(scans.count == 1 ? "scan" : "scans")"
             )
 
@@ -515,7 +515,7 @@ private struct TrueMaxDataPrivacyView: View {
             TrueMaxPrivacyFactRow(
                 symbol: "star",
                 title: "Style favorites",
-                detail: "SwiftData on-device",
+                detail: "SwiftData storage",
                 value: "\(favorites.count) saved"
             )
 
@@ -643,7 +643,7 @@ private struct TrueMaxMethodologyView: View {
                 TrueMaxInformationCard(
                     symbol: "scope",
                     title: "Transparent estimates",
-                    message: "TrueMax detects visible facial landmarks on-device and reports a range. A range reflects pose, lighting and landmark uncertainty; it is not a beauty or attractiveness score."
+                    message: "TrueMax detects visible facial landmarks and reports a range. A range reflects pose, lighting and landmark uncertainty; it is not a beauty or attractiveness score."
                 )
 
                 ForEach(MetricKind.allCases) { metric in
@@ -726,7 +726,7 @@ private struct TrueMaxMedicalDisclaimerView: View {
                 TrueMaxInformationCard(
                     symbol: "cross.case",
                     title: "Cosmetic information only",
-                    message: "TrueMax provides on-device estimates of visible facial geometry, image texture and general grooming or style guidance. It is not a medical device."
+                    message: "TrueMax provides estimates of visible facial geometry, image texture and general grooming or style guidance. It is not a medical device."
                 )
 
                 TrueMaxInformationCard(
