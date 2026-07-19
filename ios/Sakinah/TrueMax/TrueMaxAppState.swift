@@ -78,6 +78,7 @@ final class TrueMaxAppState {
     var presentsPaywall = false
     var scanRequestID = UUID()
     var onboardingRestartID = UUID()
+    private(set) var onboardingCompleted: Bool
     private(set) var reverseTrialConsumed: Bool
     var disclaimerAcknowledged: Bool {
         didSet {
@@ -100,6 +101,8 @@ final class TrueMaxAppState {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        self.onboardingCompleted = defaults.integer(forKey: DefaultsKey.onboardingVersion)
+            >= TrueMaxBrand.onboardingVersion
         self.disclaimerAcknowledged = defaults.bool(forKey: DefaultsKey.disclaimerAcknowledged)
         self.reverseTrialConsumed = defaults.bool(forKey: DefaultsKey.reverseTrialConsumed)
         let storedCooldown = defaults.integer(forKey: DefaultsKey.cooldownDays)
@@ -107,7 +110,7 @@ final class TrueMaxAppState {
     }
 
     var hasCompletedOnboarding: Bool {
-        defaults.integer(forKey: DefaultsKey.onboardingVersion) >= TrueMaxBrand.onboardingVersion
+        onboardingCompleted
     }
 
     var requiresMedicalDisclaimer: Bool {
@@ -120,6 +123,7 @@ final class TrueMaxAppState {
 
     func completeOnboarding() {
         defaults.set(TrueMaxBrand.onboardingVersion, forKey: DefaultsKey.onboardingVersion)
+        onboardingCompleted = true
         selectedTab = .scan
     }
 
@@ -149,6 +153,7 @@ final class TrueMaxAppState {
 
     func restartOnboarding() {
         defaults.removeObject(forKey: DefaultsKey.onboardingVersion)
+        onboardingCompleted = false
         onboardingRestartID = UUID()
     }
 }
