@@ -11,6 +11,7 @@ struct TrueMaxKnowledgeEntry: Identifiable, Hashable, Sendable {
 
     let id: String
     let title: String
+    let publisher: String
     let summary: String
     let sourceURL: URL
     let reviewedOn: String
@@ -18,38 +19,81 @@ struct TrueMaxKnowledgeEntry: Identifiable, Hashable, Sendable {
 }
 
 enum TrueMaxKnowledgeBase {
+    static let schemaVersion = 1
+    static let packVersion = "2026.07.19"
     static let revision = "2026-07-19"
+    static let reviewCadenceDays = 90
 
     static let entries: [TrueMaxKnowledgeEntry] = [
         TrueMaxKnowledgeEntry(
             id: "vision-face-landmarks",
             title: "Vision face landmarks",
+            publisher: "Apple Developer",
             summary: "Use landmark geometry for visible, image-dependent relationships; do not present it as clinical anatomy or an attractiveness score.",
             sourceURL: URL(string: "https://developer.apple.com/documentation/vision/detectfacelandmarksrequest")!,
             reviewedOn: revision,
             evidenceGrade: .platform
         ),
         TrueMaxKnowledgeEntry(
+            id: "vision-face-capture-quality",
+            title: "Vision face capture quality",
+            publisher: "Apple Developer",
+            summary: "Use Vision's 0–1 capture-quality signal as an uncertainty input for lighting, sharpness, pose, and framing; never as a person score.",
+            sourceURL: URL(string: "https://developer.apple.com/documentation/vision/detectfacecapturequalityrequest")!,
+            reviewedOn: revision,
+            evidenceGrade: .platform
+        ),
+        TrueMaxKnowledgeEntry(
             id: "avfoundation-photo-capture",
             title: "AVFoundation photo capture",
+            publisher: "Apple Developer",
             summary: "Treat each deliberate still capture as a new sample and preserve the user's lighting, pose, and framing guidance.",
             sourceURL: URL(string: "https://developer.apple.com/documentation/avfoundation/avcapturephotooutput")!,
             reviewedOn: revision,
             evidenceGrade: .platform
         ),
         TrueMaxKnowledgeEntry(
+            id: "avfoundation-depth-data",
+            title: "AVDepthData calibration",
+            publisher: "Apple Developer",
+            summary: "Depth values are camera data that require calibration and distortion awareness; TrueMax retains only a compact transient summary.",
+            sourceURL: URL(string: "https://developer.apple.com/documentation/avfoundation/avdepthdata")!,
+            reviewedOn: revision,
+            evidenceGrade: .platform
+        ),
+        TrueMaxKnowledgeEntry(
+            id: "declared-age-range",
+            title: "Declared Age Range",
+            publisher: "Apple Developer",
+            summary: "Use a system age-range signal for the adult gate without requesting or persisting an exact birth date.",
+            sourceURL: URL(string: "https://developer.apple.com/documentation/DeclaredAgeRange")!,
+            reviewedOn: revision,
+            evidenceGrade: .platform
+        ),
+        TrueMaxKnowledgeEntry(
             id: "privacy-manifest",
             title: "Apple privacy manifest",
+            publisher: "Apple Developer",
             summary: "Keep required-reason declarations and data-use statements aligned with the APIs and local-only storage actually used by the target.",
             sourceURL: URL(string: "https://developer.apple.com/documentation/bundleresources/privacy-manifest-files")!,
             reviewedOn: revision,
             evidenceGrade: .platform
         ),
         TrueMaxKnowledgeEntry(
-            id: "cosmetic-safety-boundary",
-            title: "Cosmetic guidance boundary",
-            summary: "Recommendations are optional grooming and presentation experiments. They must not diagnose, rank people, or direct medical treatment.",
+            id: "apple-app-review-safety",
+            title: "App Store safety boundary",
+            publisher: "Apple Developer",
+            summary: "Keep cosmetic claims truthful and avoid medical, psychological, ranking, or harmful appearance promises.",
             sourceURL: URL(string: "https://developer.apple.com/app-store/review/guidelines/")!,
+            reviewedOn: revision,
+            evidenceGrade: .guardrail
+        ),
+        TrueMaxKnowledgeEntry(
+            id: "nist-ai-rmf-1",
+            title: "AI risk traceability",
+            publisher: "National Institute of Standards and Technology",
+            summary: "Version sources, evaluate deterministic behavior, expose limitations, and keep human-readable provenance for every guidance rule.",
+            sourceURL: URL(string: "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-ai-rmf-10")!,
             reviewedOn: revision,
             evidenceGrade: .guardrail
         ),
@@ -88,7 +132,22 @@ enum TrueMaxIntelligenceEngine {
                     id: "depth-assisted-boundary",
                     title: "Keep the depth context in view",
                     detail: "TrueDepth can narrow selected estimate bands, but expression and pose still affect visible landmarks.",
-                    knowledgeID: "avfoundation-photo-capture"
+                    knowledgeID: "avfoundation-depth-data"
+                )
+            )
+        }
+
+        let widestBand = MetricKind.allCases.map { metric in
+            let range = scan.range(for: metric)
+            return range.high - range.low
+        }.max() ?? 0
+        if widestBand >= 12 {
+            signals.append(
+                TrueMaxIntelligenceSignal(
+                    id: "capture-quality-band",
+                    title: "Use a tighter capture for comparison",
+                    detail: "At least one estimate band is wide. Even light, a centered pose, and the same distance can make your next comparison more useful.",
+                    knowledgeID: "vision-face-capture-quality"
                 )
             )
         }
@@ -101,7 +160,7 @@ enum TrueMaxIntelligenceEngine {
                     id: "texture-image-dependent",
                     title: "Treat texture as image-dependent",
                     detail: "Side light and camera processing can change visible texture; use the result to compare photos, not to assess skin health.",
-                    knowledgeID: "cosmetic-safety-boundary"
+                    knowledgeID: "apple-app-review-safety"
                 )
             )
         }
@@ -110,8 +169,8 @@ enum TrueMaxIntelligenceEngine {
             TrueMaxIntelligenceSignal(
                 id: "local-first-provenance",
                 title: "Your plan stays on-device",
-                detail: "This guidance was selected from the bundled knowledge revision (TrueMaxKnowledgeBase.revision); no face data was sent to a model or service.",
-                knowledgeID: "privacy-manifest"
+                detail: "This guidance was selected from the bundled knowledge pack (\(TrueMaxKnowledgeBase.packVersion)); no face data was sent to a model or service.",
+                knowledgeID: "nist-ai-rmf-1"
             )
         )
 

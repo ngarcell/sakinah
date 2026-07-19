@@ -1,0 +1,18 @@
+name: TrueMax intelligence freshness
+
+on:
+  schedule:
+    - cron: "0 9 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evidence-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Verify bundled knowledge pack and review cadence
+        run: python3 scripts/verify_truemax_intelligence.py --enforce-freshness

@@ -62,10 +62,14 @@ score.
 ## Local intelligence
 
 `TrueMaxKnowledgeBase` stores reviewed platform/guardrail entries and a release
-revision. `TrueMaxIntelligenceEngine` consumes a `ScanRecord` and returns
-explainable signals with knowledge IDs. It is deterministic and offline; no
-runtime document crawler, remote LLM, face upload, or RevenueCat attribute is
-allowed. A knowledge update is shipped as code/docs with a new review date.
+revision. The registry in `docs/truemax-intelligence-sources.json` covers
+Vision landmarks and capture quality, AVFoundation photo/depth calibration,
+Declared Age Range, Apple privacy/safety guidance, and NIST AI traceability.
+`TrueMaxIntelligenceEngine` consumes a `ScanRecord` and returns explainable
+signals with knowledge IDs. It is deterministic and offline; no runtime
+document crawler, remote LLM, face upload, or RevenueCat attribute is allowed.
+A knowledge update is shipped as code/docs with a new review date and checked
+with `python3 scripts/verify_truemax_intelligence.py`.
 
 ## Subscription flow
 

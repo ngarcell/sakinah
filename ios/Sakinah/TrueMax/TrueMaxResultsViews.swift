@@ -459,7 +459,7 @@ private struct IntelligenceSignalCard: View {
                     .foregroundStyle(TrueMaxPalette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if let source = TrueMaxKnowledgeBase.entry(signal.knowledgeID) {
-                    Text("Source: (source.title) · reviewed (source.reviewedOn)")
+                    Text("Source: \(source.publisher) · \(source.title) · reviewed \(source.reviewedOn)")
                         .font(.caption)
                         .foregroundStyle(TrueMaxPalette.textTertiary)
                 }

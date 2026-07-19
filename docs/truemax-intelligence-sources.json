@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "pack_version": "2026.07.19",
+  "reviewed_at": "2026-07-19",
+  "review_cadence_days": 90,
+  "sources": [
+    {
+      "id": "vision-face-landmarks",
+      "title": "DetectFaceLandmarksRequest",
+      "publisher": "Apple Developer",
+      "url": "https://developer.apple.com/documentation/vision/detectfacelandmarksrequest",
+      "version": "Current Vision documentation",
+      "reviewed_at": "2026-07-19",
+      "applies_to": ["visible landmark geometry", "2D fallback", "measurement limits"],
+      "status": "active"
+    },
+    {
+      "id": "vision-face-capture-quality",
+      "title": "DetectFaceCaptureQualityRequest",
+      "publisher": "Apple Developer",
+      "url": "https://developer.apple.com/documentation/vision/detectfacecapturequalityrequest",
+      "version": "Current Vision documentation",
+      "reviewed_at": "2026-07-19",
+      "applies_to": ["lighting quality", "sharpness", "capture uncertainty"],
+      "status": "active"
+    },
+    {
+      "id": "avfoundation-photo-capture",
+      "title": "AVCapturePhotoOutput",
+      "publisher": "Apple Developer",
+      "url": "https://developer.apple.com/documentation/avfoundation/avcapturephotooutput",
+      "version": "Current AVFoundation documentation",
+      "reviewed_at": "2026-07-19",
+      "applies_to": ["deliberate still capture", "photo lifecycle", "local processing"],
+      "status": "active"
+    },
+    {
+      "id": "avfoundation-depth-data",
+      "title": "AVDepthData",
+      "publisher": "Apple Developer",
+      "url": "https://developer.apple.com/documentation/avfoundation/avdepthdata",
+      "version": "Current AVFoundation documentation",
+      "reviewed_at": "2026-07-19",
+      "applies_to": ["depth calibration", "transient depth summary", "uncertainty boundaries"],
+      "status": "active"
+    },
+    {
+      "id": "declared-age-range",
+      "title": "Declared Age Range",
+      "publisher": "Apple Developer",
+      "url": "https://developer.apple.com/documentation/DeclaredAgeRange",
+      "version": "Current platform documentation",
+      "reviewed_at": "2026-07-19",
+      "applies_to": ["adult gate", "no exact birth date", "age-appropriate access"],
+      "status": "active"
+    },
+    {
+      "id": "privacy-manifest",
+      "title": "Privacy manifest files",
+      "publisher": "Apple Developer",
+      "url": "https://developer.apple.com/documentation/bundleresources/privacy-manifest-files",
+      "version": "Current App Store documentation",
+      "reviewed_at": "2026-07-19",
+      "applies_to": ["required-reason APIs", "privacy declarations", "release review"],
+      "status": "active"
+    },
+    {
+      "id": "apple-app-review-safety",
+      "title": "App Store Review Guidelines",
+      "publisher": "Apple Developer",
+      "url": "https://developer.apple.com/app-store/review/guidelines/",
+      "version": "Current review guidelines",
+      "reviewed_at": "2026-07-19",
+      "applies_to": ["safety boundary", "truthful claims", "user well-being"],
+      "status": "active"
+    },
+    {
+      "id": "nist-ai-rmf-1",
+      "title": "Artificial Intelligence Risk Management Framework 1.0",
+      "publisher": "National Institute of Standards and Technology",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-ai-rmf-10",
+      "version": "NIST AI 100-1",
+      "reviewed_at": "2026-07-19",
+      "applies_to": ["provenance", "traceability", "evaluation", "knowledge limits"],
+      "status": "active"
+    }
+  ]
+}

@@ -44,11 +44,11 @@ CAMERA_USAGE_DESCRIPTION = (
 
 SOURCE_DOCUMENT_HASHES = {
     "docs/01-PRD (1).md":
-        "24928b3434f9feea4f6a4407ed31e04ac555a7d8171868d807a0de27be4b1153",
+        "4a15d5049cbb407b5884e7e98c53280048fba68e1e13c38ea54abd50f21f17bc",
     "docs/02-UIUX-Specification.md":
         "c3f51cbc4ae8d25bed48f3b4442cf70d803523f6b6ba21cac6b0268cb9143f2c",
     "docs/03-App-Flow-Architecture.md":
-        "01a9de0c055e9e33fe0961cfaf427240f2272c1d6f1c17fad247ad791e782594",
+        "e84b0a45c7085f4ff29aed4dc18368631ba15e1c599fe10cca9cf495be3dc6e9",
 }
 
 REFERENCE_IMAGE_HASHES = {

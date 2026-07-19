@@ -61,4 +61,19 @@ struct TrueMaxModelTests {
         restoredState.acknowledgeDisclaimer()
         #expect(!restoredState.requiresMedicalDisclaimer)
     }
+
+    @Test
+    func intelligencePackIsVersionedAndFullyProvenanced() {
+        let entries = TrueMaxKnowledgeBase.entries
+        #expect(TrueMaxKnowledgeBase.schemaVersion == 1)
+        #expect(TrueMaxKnowledgeBase.packVersion == "2026.07.19")
+        #expect(TrueMaxKnowledgeBase.reviewCadenceDays == 90)
+        #expect(Set(entries.map(\.id)).count == entries.count)
+        #expect(entries.count == 8)
+        #expect(entries.allSatisfy { $0.sourceURL.scheme == "https" })
+        #expect(entries.contains { $0.id == "vision-face-capture-quality" })
+        #expect(entries.contains { $0.id == "avfoundation-depth-data" })
+        #expect(entries.contains { $0.id == "privacy-manifest" })
+        #expect(entries.contains { $0.id == "nist-ai-rmf-1" })
+    }
 }

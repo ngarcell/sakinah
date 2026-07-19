@@ -58,12 +58,14 @@ introductory offer for which the customer is eligible. Hosted
 ## Local intelligence layer
 
 `TrueMaxIntelligenceLayer.swift` is a versioned, bundled knowledge base and
-deterministic rule engine. It records the reviewed Apple platform references
-behind capture and privacy behavior, then emits explainable action-plan signals
-from derived ranges and capture mode only. It has no network fetch, no raw image
-input, and no subscriber attributes. Updating the knowledge revision is an
-explicit release change that must be reviewed alongside the privacy manifest
-and App Store disclosures.
+deterministic rule engine. It maps current Apple Vision/AVFoundation capture
+guidance, age/privacy requirements, App Store safety boundaries, and AI
+traceability practices into explainable action-plan signals. The source registry
+is [`docs/truemax-intelligence-sources.json`](docs/truemax-intelligence-sources.json)
+and is checked by `scripts/verify_truemax_intelligence.py`. It has no network
+fetch, no raw image input, and no subscriber attributes. Updating the knowledge
+revision is an explicit release change that must be reviewed alongside the
+privacy manifest and App Store disclosures.
 
 ## Privacy boundary
 
@@ -99,6 +101,7 @@ customer-information update stream.
 - `ios/SakinahUITests/` — launch and critical-flow UI tests
 - `docs/` — product sources, supplied visual references, and App Store metadata
 - `scripts/verify_truemax_contracts.py` — Linux-runnable release-contract gate
+- `scripts/verify_truemax_intelligence.py` — evidence-pack and offline-boundary gate
 
 The target name and folder remain `Sakinah` to avoid destabilizing the existing
 project identity. The user-facing display name is TrueMax.
@@ -109,6 +112,7 @@ Run the fast contract gate from the repository root:
 
 ```bash
 python3 scripts/verify_truemax_contracts.py
+python3 scripts/verify_truemax_intelligence.py
 ```
 
 The verifier protects identifiers, RevenueCat configuration, the custom
