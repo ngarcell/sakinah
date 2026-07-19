@@ -22,6 +22,12 @@ final class SubscriptionService {
         static let annual = "com.socialreporthq.sakinah.premium.annual"
         static let lifetime = "com.socialreporthq.sakinah.premium.lifetimev2"
 
+        // RevenueCat's Test Store uses these identifiers for the same packages.
+        // They are only considered when the debug Test Store key is active; the
+        // protected App Store product IDs above remain unchanged for production.
+        static let testStoreMonthly = "monthly"
+        static let testStoreAnnual = "yearly"
+
         static let allProductIDs: Set<String> = [monthly, annual, lifetime]
         static let sellablePlanProductIDs: Set<String> = [monthly, annual]
     }
@@ -241,11 +247,11 @@ final class SubscriptionService {
     }
 
     private var monthlyPackage: Package? {
-        availablePackages.first { $0.storeProduct.productIdentifier == ProductCatalog.monthly }
+        availablePackages.first { matches($0.storeProduct, to: .monthly) }
     }
 
     private var annualPackage: Package? {
-        availablePackages.first { $0.storeProduct.productIdentifier == ProductCatalog.annual }
+        availablePackages.first { matches($0.storeProduct, to: .annual) }
     }
 
     private var lifetimePackage: Package? {
@@ -279,7 +285,7 @@ final class SubscriptionService {
 
         let ownedNonConsumables = customerInfo.nonSubscriptions
             .map(\.productIdentifier)
-            .filter { ProductCatalog.allProductIDs.contains($0) }
+            .filter { knownProductIDs.contains($0) }
 
         return Array(Set(ownedNonConsumables)).sorted(by: Self.productPriority)
     }
@@ -368,9 +374,9 @@ final class SubscriptionService {
             purchaseError = userFacingErrorMessage(for: error)
         }
 
-        let products = await Purchases.shared.products(Array(ProductCatalog.allProductIDs))
-        monthlyProduct = products.first { $0.productIdentifier == ProductCatalog.monthly }
-        annualProduct = products.first { $0.productIdentifier == ProductCatalog.annual }
+        let products = await Purchases.shared.products(Array(productIDsToLoad))
+        monthlyProduct = products.first { matches($0, to: .monthly) }
+        annualProduct = products.first { matches($0, to: .annual) }
         lifetimeProduct = products.first { $0.productIdentifier == ProductCatalog.lifetime }
 
         if monthlyProduct == nil || annualProduct == nil {
@@ -499,11 +505,11 @@ final class SubscriptionService {
     private func resolvedTier(from customerInfo: CustomerInfo) -> SubscriptionTier {
         let activeEntitlementProductIDs = Set(activeEntitlementProductIdentifiers(from: customerInfo))
 
-        if !activeEntitlementProductIDs.isDisjoint(with: ProductCatalog.allProductIDs) {
+        if !activeEntitlementProductIDs.isDisjoint(with: knownProductIDs) {
             return .premium
         }
 
-        if !customerInfo.activeSubscriptions.isDisjoint(with: ProductCatalog.allProductIDs) {
+        if !customerInfo.activeSubscriptions.isDisjoint(with: knownProductIDs) {
             return .premium
         }
 
@@ -783,19 +789,51 @@ final class SubscriptionService {
     }
 
     private func includesAnnualPlan(_ offering: Offering) -> Bool {
-        packageProductIdentifiers(in: offering).contains(ProductCatalog.annual)
+        offering.availablePackages.contains { matches($0.storeProduct, to: .annual) }
     }
 
     private func isAnnualOnlyOffering(_ offering: Offering) -> Bool {
-        packageProductIdentifiers(in: offering) == [ProductCatalog.annual]
+        packageProductIdentifiers(in: offering).count == 1
+            && includesAnnualPlan(offering)
     }
 
     private func isMonthlyAnnualOnlyOffering(_ offering: Offering) -> Bool {
-        packageProductIdentifiers(in: offering) == ProductCatalog.sellablePlanProductIDs
+        packageProductIdentifiers(in: offering).count == 2
+            && includesMonthlyAndAnnualPlans(offering)
     }
 
     private func includesMonthlyAndAnnualPlans(_ offering: Offering) -> Bool {
-        ProductCatalog.sellablePlanProductIDs.isSubset(of: packageProductIdentifiers(in: offering))
+        includesMonthlyPlan(offering) && includesAnnualPlan(offering)
+    }
+
+    private func includesMonthlyPlan(_ offering: Offering) -> Bool {
+        offering.availablePackages.contains { matches($0.storeProduct, to: .monthly) }
+    }
+
+    private func matches(_ product: StoreProduct, to plan: Plan) -> Bool {
+        switch plan {
+        case .annual:
+            return product.productIdentifier == ProductCatalog.annual
+                || (configuration?.usesTestStore == true
+                    && product.productIdentifier == ProductCatalog.testStoreAnnual)
+        case .monthly:
+            return product.productIdentifier == ProductCatalog.monthly
+                || (configuration?.usesTestStore == true
+                    && product.productIdentifier == ProductCatalog.testStoreMonthly)
+        }
+    }
+
+    private var productIDsToLoad: Set<String> {
+        var productIDs = ProductCatalog.allProductIDs
+        if configuration?.usesTestStore == true {
+            productIDs.insert(ProductCatalog.testStoreMonthly)
+            productIDs.insert(ProductCatalog.testStoreAnnual)
+        }
+        return productIDs
+    }
+
+    private var knownProductIDs: Set<String> {
+        productIDsToLoad
     }
 
     private func packageProductIdentifiers(in offering: Offering) -> Set<String> {
