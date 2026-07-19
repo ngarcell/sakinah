@@ -26,6 +26,8 @@ final class SubscriptionService {
         static let sellablePlanProductIDs: Set<String> = [monthly, annual]
     }
 
+    private static let allPlansOfferingIdentifier = "default2"
+
     private enum DefaultsKey {
         static let tier = "sakinah.subscriptionTier"
         static let migrationSyncCompleted = "sakinah.revenuecatMigrationSyncCompleted"
@@ -315,7 +317,6 @@ final class SubscriptionService {
         let shouldAttemptMigration = !userDefaults.bool(forKey: DefaultsKey.migrationSyncCompleted)
 
         Task {
-            _ = await preparePaywall(forceRefresh: false)
             await runLegacyMigrationSyncIfNeeded(shouldAttemptMigration: shouldAttemptMigration)
         }
     }
@@ -323,10 +324,18 @@ final class SubscriptionService {
     func preparePaywall(forceRefresh: Bool = false) async -> Bool {
         guard ensureRevenueCatAvailable() else { return false }
 
-        let loadedProducts = await loadProducts(forceRefresh: forceRefresh || currentOffering == nil)
+        var loadedProducts = await loadProducts(forceRefresh: forceRefresh || currentOffering == nil)
+
+        // The app bootstrap and the paywall can become active at nearly the same time.
+        // If RevenueCat returns an incomplete cache on that first request, retry once so
+        // the custom paywall does not remain stuck showing placeholder prices.
+        if !loadedProducts {
+            loadedProducts = await loadProducts(forceRefresh: true)
+        }
+
         await refreshEntitlements()
 
-        return loadedProducts && currentOffering != nil
+        return loadedProducts && hasAnyPurchaseOption
     }
 
     @discardableResult
@@ -363,6 +372,19 @@ final class SubscriptionService {
         monthlyProduct = products.first { $0.productIdentifier == ProductCatalog.monthly }
         annualProduct = products.first { $0.productIdentifier == ProductCatalog.annual }
         lifetimeProduct = products.first { $0.productIdentifier == ProductCatalog.lifetime }
+
+        if monthlyProduct == nil || annualProduct == nil {
+            let loadedProductIDs = products.map(\.productIdentifier).sorted().joined(separator: ", ")
+            let receivedProductIDs = loadedProductIDs.isEmpty ? "none" : loadedProductIDs
+            print(
+                "RevenueCat did not return both sellable TrueMax products. "
+                    + "Expected monthly/annual IDs; received: \(receivedProductIDs)"
+            )
+
+            if currentOffering == nil && manageOffering == nil {
+                purchaseError = "Plans are temporarily unavailable. Please try again soon."
+            }
+        }
 
         return hasAnyPurchaseOption
     }
@@ -724,7 +746,9 @@ final class SubscriptionService {
     }
 
     private func selectMainOffering(from offerings: Offerings) -> Offering? {
-        let preferredOffering = offerings.current ?? offerings.all["default"]
+        let preferredOffering = offerings.all[Self.allPlansOfferingIdentifier]
+            ?? offerings.current
+            ?? offerings.all["default"]
         let candidates = [preferredOffering].compactMap { $0 } + offerings.all.values.sorted(by: { $0.identifier < $1.identifier })
 
         if let annualOnly = candidates.first(where: isAnnualOnlyOffering) {
@@ -739,7 +763,7 @@ final class SubscriptionService {
     }
 
     private func selectManageOffering(from offerings: Offerings) -> Offering? {
-        let preferredKeys = ["default2", "manage", "plans", "allplans"]
+        let preferredKeys = [Self.allPlansOfferingIdentifier, "manage", "plans", "allplans"]
         let preferredOfferings = preferredKeys.compactMap { offerings.all[$0] }
         let remainingOfferings = offerings.all.values
             .filter { !preferredKeys.contains($0.identifier) }
