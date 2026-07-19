@@ -13,6 +13,7 @@ struct TrueMaxOnboardingFlow: View {
         case ageGate
         case privacy
         case scanTrial
+        case review
         case paywall
     }
 
@@ -38,6 +39,7 @@ struct TrueMaxOnboardingFlow: View {
     @State private var ageChoice: AgeChoice?
     @State private var showsUnderageSupport = false
     @State private var systemAgeStatus: SystemAgeStatus = .notStarted
+    @State private var isAwaitingReviewResolution = false
     @AppStorage("truemax.ahaReviewPrompted") private var hasRequestedAHAReview = false
 
     var body: some View {
@@ -68,6 +70,8 @@ struct TrueMaxOnboardingFlow: View {
                             }
                         )
                     }
+                case .review:
+                    reviewHandoff
                 case .paywall:
                     TrueMaxPaywallView(
                         showsCloseButton: true,
@@ -271,8 +275,12 @@ struct TrueMaxOnboardingFlow: View {
                 if subscriptionService.isPremium {
                     appState.completeOnboarding()
                 } else if appState.reverseTrialConsumed {
-                    appState.presentPaywall()
-                    move(to: .paywall)
+                    if hasRequestedAHAReview {
+                        appState.presentPaywall()
+                        move(to: .paywall)
+                    } else {
+                        requestReviewThenShowPaywall()
+                    }
                 } else {
                     move(to: .scanTrial)
                 }
@@ -307,6 +315,9 @@ struct TrueMaxOnboardingFlow: View {
     }
 
     private func requestReviewThenShowPaywall() {
+        // StoreKit intentionally has no completion callback. Move to a
+        // neutral handoff screen and require a deliberate continuation tap
+        // after the system review sheet is completed or dismissed.
         guard !hasRequestedAHAReview else {
             move(to: .paywall)
             return
@@ -317,10 +328,48 @@ struct TrueMaxOnboardingFlow: View {
             "product": "truemax",
             "placement": "before_first_value_paywall"
         ])
+        isAwaitingReviewResolution = true
         requestReview()
+        move(to: .review)
+    }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-            move(to: .paywall)
+    private func showPaywallAfterReviewResolution() {
+        guard isAwaitingReviewResolution else { return }
+        isAwaitingReviewResolution = false
+        move(to: .paywall)
+    }
+
+    private var reviewHandoff: some View {
+        OnboardingScaffold(
+            progress: progress(for: .review),
+            actionTitle: "Continue to plans",
+            action: showPaywallAfterReviewResolution
+        ) {
+            VStack(spacing: 22) {
+                Spacer(minLength: 28)
+
+                TrueMaxIconCircle(
+                    symbol: "checkmark.seal.fill",
+                    color: TrueMaxPalette.accentLight,
+                    size: 72
+                )
+
+                VStack(spacing: 10) {
+                    Text("Thanks for trying TrueMax")
+                        .font(.title2.weight(.bold))
+                        .fontDesign(.rounded)
+                        .foregroundStyle(TrueMaxPalette.textPrimary)
+                        .multilineTextAlignment(.center)
+
+                    Text("When you’re ready, continue to choose the plan that keeps your personal insights going.")
+                        .font(.body)
+                        .foregroundStyle(TrueMaxPalette.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer(minLength: 24)
+            }
         }
     }
 
