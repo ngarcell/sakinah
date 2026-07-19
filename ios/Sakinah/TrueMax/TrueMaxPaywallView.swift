@@ -1,4 +1,5 @@
 import SwiftUI
+import RevenueCat
 
 struct TrueMaxPaywallView: View {
     private enum TrialEligibilityPresentation: Equatable {
