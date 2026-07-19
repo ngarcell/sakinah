@@ -12,6 +12,20 @@ struct TrueMaxScanRootView: View {
         case permission
     }
 
+    let isOnboardingTrial: Bool
+    let onTrialExit: (() -> Void)?
+    let onTrialCompleted: (() -> Void)?
+
+    init(
+        isOnboardingTrial: Bool = false,
+        onTrialExit: (() -> Void)? = nil,
+        onTrialCompleted: (() -> Void)? = nil
+    ) {
+        self.isOnboardingTrial = isOnboardingTrial
+        self.onTrialExit = onTrialExit
+        self.onTrialCompleted = onTrialCompleted
+    }
+
     @Environment(TrueMaxAppState.self) private var appState
     @Environment(SubscriptionService.self) private var subscriptionService
     @Environment(\.modelContext) private var modelContext
@@ -498,7 +512,11 @@ struct TrueMaxScanRootView: View {
         HStack {
             TrueMaxCloseButton {
                 cameraController.stop()
-                appState.selectedTab = .home
+                if isOnboardingTrial {
+                    onTrialExit?()
+                } else {
+                    appState.selectedTab = .home
+                }
             }
             Spacer()
             Text(title)
@@ -683,6 +701,12 @@ struct TrueMaxScanRootView: View {
         capturedImage = nil
         completedScan = nil
         bypassedCooldown = false
+
+        if isOnboardingTrial {
+            onTrialCompleted?()
+            return
+        }
+
         appState.selectedTab = .home
 
         if !subscriptionService.isPremium {

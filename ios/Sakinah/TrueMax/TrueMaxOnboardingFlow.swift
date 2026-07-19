@@ -10,6 +10,8 @@ struct TrueMaxOnboardingFlow: View {
         case howItWorks
         case ageGate
         case privacy
+        case scanTrial
+        case paywall
     }
 
     private enum AgeChoice {
@@ -26,6 +28,7 @@ struct TrueMaxOnboardingFlow: View {
     }
 
     @Environment(TrueMaxAppState.self) private var appState
+    @Environment(SubscriptionService.self) private var subscriptionService
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var step: Step = .welcome
@@ -50,6 +53,29 @@ struct TrueMaxOnboardingFlow: View {
                     ageGate
                 case .privacy:
                     privacy
+                case .scanTrial:
+                    NavigationStack {
+                        TrueMaxScanRootView(
+                            isOnboardingTrial: true,
+                            onTrialExit: { move(to: .privacy) },
+                            onTrialCompleted: {
+                                appState.consumeReverseTrial()
+                                move(to: .paywall)
+                            }
+                        )
+                    }
+                case .paywall:
+                    TrueMaxPaywallView(
+                        showsCloseButton: true,
+                        onUnlocked: {
+                            appState.dismissPaywall()
+                            appState.completeOnboarding()
+                        },
+                        onClose: {
+                            appState.dismissPaywall()
+                            move(to: .privacy)
+                        }
+                    )
                 }
             }
         }
@@ -231,7 +257,14 @@ struct TrueMaxOnboardingFlow: View {
             back: { move(to: .ageGate) },
             actionTitle: "Start your first scan",
             action: {
-                appState.completeOnboarding()
+                if subscriptionService.isPremium {
+                    appState.completeOnboarding()
+                } else if appState.reverseTrialConsumed {
+                    appState.presentPaywall()
+                    move(to: .paywall)
+                } else {
+                    move(to: .scanTrial)
+                }
             }
         ) {
             VStack(spacing: 24) {
