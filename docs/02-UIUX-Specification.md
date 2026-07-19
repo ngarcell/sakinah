@@ -24,9 +24,11 @@ titles stay compact, and content headings use semantic Dynamic Type styles.
 
 ### Onboarding
 
-Welcome, how it works, age gate, privacy, and custom paywall. Every step has a
-visible back/close affordance, clear camera/data language, and no account form.
-The age gate is supportive and does not shame a decline or underage result.
+Welcome, how it works, age gate, privacy, first scan, result reveal, and custom
+paywall. The first scan is intentionally available before purchase so the user
+can experience the baseline and action plan. Every step has a visible
+back/close affordance, clear camera/data language, and no account form. The age
+gate is supportive and does not shame a decline or underage result.
 
 ### Home
 

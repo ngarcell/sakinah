@@ -68,6 +68,7 @@ final class TrueMaxAppState {
         static let onboardingVersion = "truemax.onboardingVersion"
         static let cooldownDays = "truemax.cooldownDays"
         static let disclaimerAcknowledged = "truemax.disclaimerAcknowledged"
+        static let reverseTrialConsumed = "truemax.reverseTrialConsumed"
     }
 
     @ObservationIgnored private let defaults: UserDefaults
@@ -77,6 +78,7 @@ final class TrueMaxAppState {
     var presentsPaywall = false
     var scanRequestID = UUID()
     var onboardingRestartID = UUID()
+    private(set) var reverseTrialConsumed: Bool
     var disclaimerAcknowledged: Bool {
         didSet {
             defaults.set(disclaimerAcknowledged, forKey: DefaultsKey.disclaimerAcknowledged)
@@ -99,6 +101,7 @@ final class TrueMaxAppState {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         self.disclaimerAcknowledged = defaults.bool(forKey: DefaultsKey.disclaimerAcknowledged)
+        self.reverseTrialConsumed = defaults.bool(forKey: DefaultsKey.reverseTrialConsumed)
         let storedCooldown = defaults.integer(forKey: DefaultsKey.cooldownDays)
         self.cooldownDays = storedCooldown == 0 ? 7 : min(max(storedCooldown, 1), 30)
     }
@@ -111,6 +114,10 @@ final class TrueMaxAppState {
         hasCompletedOnboarding && !disclaimerAcknowledged
     }
 
+    var canUseReverseTrialScan: Bool {
+        !reverseTrialConsumed
+    }
+
     func completeOnboarding() {
         defaults.set(TrueMaxBrand.onboardingVersion, forKey: DefaultsKey.onboardingVersion)
         selectedTab = .scan
@@ -118,6 +125,21 @@ final class TrueMaxAppState {
 
     func acknowledgeDisclaimer() {
         disclaimerAcknowledged = true
+    }
+
+    func consumeReverseTrial() {
+        guard !reverseTrialConsumed else { return }
+        reverseTrialConsumed = true
+        defaults.set(true, forKey: DefaultsKey.reverseTrialConsumed)
+        presentsPaywall = true
+    }
+
+    func presentPaywall() {
+        presentsPaywall = true
+    }
+
+    func dismissPaywall() {
+        presentsPaywall = false
     }
 
     func startScan() {

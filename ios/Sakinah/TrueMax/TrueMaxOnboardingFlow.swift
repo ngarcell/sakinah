@@ -10,7 +10,6 @@ struct TrueMaxOnboardingFlow: View {
         case howItWorks
         case ageGate
         case privacy
-        case paywall
     }
 
     private enum AgeChoice {
@@ -27,7 +26,6 @@ struct TrueMaxOnboardingFlow: View {
     }
 
     @Environment(TrueMaxAppState.self) private var appState
-    @Environment(SubscriptionService.self) private var subscriptionService
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var step: Step = .welcome
@@ -52,14 +50,6 @@ struct TrueMaxOnboardingFlow: View {
                     ageGate
                 case .privacy:
                     privacy
-                case .paywall:
-                    TrueMaxPaywallView(
-                        showsCloseButton: true,
-                        onUnlocked: appState.completeOnboarding,
-                        onClose: {
-                            move(to: .privacy)
-                        }
-                    )
                 }
             }
         }
@@ -71,11 +61,6 @@ struct TrueMaxOnboardingFlow: View {
             reduceMotion ? nil : .easeInOut(duration: 0.28),
             value: showsUnderageSupport
         )
-        .onChange(of: subscriptionService.isPremium) { _, isPremium in
-            if isPremium, step == .paywall {
-                appState.completeOnboarding()
-            }
-        }
     }
 
     private var welcome: some View {
@@ -244,13 +229,9 @@ struct TrueMaxOnboardingFlow: View {
         OnboardingScaffold(
             progress: progress(for: .privacy),
             back: { move(to: .ageGate) },
-            actionTitle: subscriptionService.isPremium ? "Continue" : "See plans",
+            actionTitle: "Start your first scan",
             action: {
-                if subscriptionService.isPremium {
-                    appState.completeOnboarding()
-                } else {
-                    move(to: .paywall)
-                }
+                appState.completeOnboarding()
             }
         ) {
             VStack(spacing: 24) {
@@ -269,7 +250,7 @@ struct TrueMaxOnboardingFlow: View {
                         .foregroundStyle(TrueMaxPalette.textPrimary)
                         .multilineTextAlignment(.center)
 
-                    Text("Choose a plan to unlock your baseline analysis and practical style guidance.")
+                    Text("Take your first scan and see your baseline before choosing a plan.")
                         .font(.body)
                         .foregroundStyle(TrueMaxPalette.textSecondary)
                         .multilineTextAlignment(.center)

@@ -16,11 +16,15 @@ struct ContentView: View {
             } else if !appState.hasCompletedOnboarding {
                 TrueMaxOnboardingFlow()
                     .id(appState.onboardingRestartID)
-            } else if !subscriptionService.isPremium {
+            } else if appState.presentsPaywall && !subscriptionService.isPremium {
                 TrueMaxPaywallView(
-                    showsCloseButton: false,
+                    showsCloseButton: true,
                     onUnlocked: {
+                        appState.dismissPaywall()
                         appState.selectedTab = .home
+                    },
+                    onClose: {
+                        appState.dismissPaywall()
                     }
                 )
             } else {

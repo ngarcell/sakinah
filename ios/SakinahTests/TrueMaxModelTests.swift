@@ -35,7 +35,30 @@ struct TrueMaxModelTests {
 
         #expect(state.appearance == .dark)
         #expect(state.cooldownDays == 7)
+        #expect(state.canUseReverseTrialScan)
         #expect(!state.hasCompletedOnboarding)
+    }
+
+    @MainActor
+    @Test
+    func reverseTrialIsConsumedAndPersistsAfterTheFirstResult() {
+        let suiteName = "TrueMaxReverseTrialTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        defer {
+            defaults.removePersistentDomain(forName: suiteName)
+        }
+
+        let state = TrueMaxAppState(defaults: defaults)
+        state.consumeReverseTrial()
+
+        #expect(state.reverseTrialConsumed)
+        #expect(!state.canUseReverseTrialScan)
+        #expect(state.presentsPaywall)
+
+        let restoredState = TrueMaxAppState(defaults: defaults)
+        #expect(restoredState.reverseTrialConsumed)
+        #expect(!restoredState.canUseReverseTrialScan)
     }
 
     @MainActor

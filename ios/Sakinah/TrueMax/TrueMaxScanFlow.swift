@@ -13,6 +13,7 @@ struct TrueMaxScanRootView: View {
     }
 
     @Environment(TrueMaxAppState.self) private var appState
+    @Environment(SubscriptionService.self) private var subscriptionService
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.openURL) private var openURL
@@ -581,6 +582,11 @@ struct TrueMaxScanRootView: View {
     }
 
     private func requestCamera() {
+        guard subscriptionService.isPremium || appState.canUseReverseTrialScan else {
+            appState.presentPaywall()
+            return
+        }
+
         if needsCooldownConfirmation {
             showsCooldownPrompt = true
         } else {
@@ -678,6 +684,10 @@ struct TrueMaxScanRootView: View {
         completedScan = nil
         bypassedCooldown = false
         appState.selectedTab = .home
+
+        if !subscriptionService.isPremium {
+            appState.consumeReverseTrial()
+        }
     }
 
     private func resetForNewScan() {
