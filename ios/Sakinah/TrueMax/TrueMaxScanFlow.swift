@@ -45,30 +45,7 @@ struct TrueMaxScanRootView: View {
     @State private var photoModeExplained = false
 
     var body: some View {
-        Group {
-            switch phase {
-            case .checklist:
-                checklistView
-            case .photoMode:
-                photoModeView
-            case .camera:
-                cameraView
-            case .processing:
-                processingView
-            case .result:
-                if let completedScan {
-                    TrueMaxResultDetailView(
-                        scan: completedScan,
-                        showsResultReveal: true,
-                        onDone: finishResult
-                    )
-                } else {
-                    checklistView
-                }
-            case .permission:
-                cameraPermissionView
-            }
-        }
+        phaseContent
         .toolbar(navigationBarVisibility, for: .navigationBar)
         .toolbar(tabBarVisibility, for: .tabBar)
         .onChange(of: appState.scanRequestID) { _, _ in
@@ -104,6 +81,37 @@ struct TrueMaxScanRootView: View {
             Button("Wait until later", role: .cancel) {}
         } message: {
             Text(cooldownMessage)
+        }
+    }
+
+    @ViewBuilder
+    private var phaseContent: some View {
+        switch phase {
+        case .checklist:
+            checklistView
+        case .photoMode:
+            photoModeView
+        case .camera:
+            cameraView
+        case .processing:
+            processingView
+        case .result:
+            resultView
+        case .permission:
+            cameraPermissionView
+        }
+    }
+
+    @ViewBuilder
+    private var resultView: some View {
+        if let completedScan {
+            TrueMaxResultDetailView(
+                scan: completedScan,
+                showsResultReveal: true,
+                onDone: finishResult
+            )
+        } else {
+            checklistView
         }
     }
 
