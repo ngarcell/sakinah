@@ -439,6 +439,18 @@ final class SubscriptionService {
                 return false
             }
 
+            // StoreKit 2/Test Store can return the purchase result before the
+            // entitlement cache has propagated. Refresh briefly so the app
+            // advances immediately after a successful purchase instead of
+            // leaving the paywall on screen until the next app activation.
+            if !isPremium {
+                for _ in 0..<3 {
+                    if isPremium { break }
+                    try? await Task.sleep(nanoseconds: 300_000_000)
+                    await refreshEntitlements()
+                }
+            }
+
             guard isPremium else {
                 purchaseError = "Your purchase is being confirmed. Premium will unlock automatically."
                 return false
