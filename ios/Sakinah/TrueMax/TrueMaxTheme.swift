@@ -21,8 +21,6 @@ enum TrueMaxPalette {
     static let textSecondary = adaptive(light: 0x4F5158, dark: 0xA5A7AF)
     static let textTertiary = adaptive(light: 0x62636A, dark: 0x777A84)
 
-    // The light variants are deliberately deeper so semantic text and controls
-    // remain legible on pale surfaces. Dark-mode values preserve the original UI.
     static let accent = adaptive(light: 0x175CD3, dark: 0x397DF8)
     static let accentLight = adaptive(light: 0x1454B8, dark: 0x5B98FF)
     static let accentPressed = adaptive(light: 0x10479F, dark: 0x2A62CE)
@@ -37,8 +35,7 @@ enum TrueMaxPalette {
         endPoint: .trailing
     )
 
-    /// A darker action gradient keeps white button labels readable in both
-    /// appearances. `primaryGradient` remains available for decorative marks.
+    /// A darker action gradient keeps white button labels readable.
     static let actionGradient = LinearGradient(
         colors: [
             adaptive(light: 0x175CD3, dark: 0x397DF8),
@@ -48,15 +45,7 @@ enum TrueMaxPalette {
         endPoint: .trailing
     )
 
-    private static func adaptive(light: UInt, dark: UInt) -> Color {
-        Color(
-            uiColor: UIColor { traits in
-                UIColor(
-                    hex: traits.userInterfaceStyle == .dark ? dark : light
-                )
-            }
-        )
-    }
+    private static func adaptive(light _: UInt, dark: UInt) -> Color { Color(hex: dark) }
 }
 
 extension Color {
@@ -67,17 +56,6 @@ extension Color {
             green: Double((hex >> 8) & 0xff) / 255,
             blue: Double(hex & 0xff) / 255,
             opacity: alpha
-        )
-    }
-}
-
-private extension UIColor {
-    convenience init(hex: UInt) {
-        self.init(
-            red: CGFloat((hex >> 16) & 0xff) / 255,
-            green: CGFloat((hex >> 8) & 0xff) / 255,
-            blue: CGFloat(hex & 0xff) / 255,
-            alpha: 1
         )
     }
 }

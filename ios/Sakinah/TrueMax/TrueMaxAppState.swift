@@ -51,32 +51,14 @@ enum TrueMaxRootTab: Int, CaseIterable, Identifiable {
 
 enum TrueMaxAppearance: Int, CaseIterable, Identifiable {
     case dark
-    case light
-    case system
 
     var id: Int { rawValue }
 
     var title: String {
-        switch self {
-        case .dark:
-            return "Dark"
-        case .light:
-            return "Light"
-        case .system:
-            return "System"
-        }
+        "Dark"
     }
 
-    var colorScheme: ColorScheme? {
-        switch self {
-        case .dark:
-            return .dark
-        case .light:
-            return .light
-        case .system:
-            return nil
-        }
-    }
+    var colorScheme: ColorScheme { .dark }
 }
 
 @Observable
@@ -84,7 +66,6 @@ enum TrueMaxAppearance: Int, CaseIterable, Identifiable {
 final class TrueMaxAppState {
     private enum DefaultsKey {
         static let onboardingVersion = "truemax.onboardingVersion"
-        static let appearance = "truemax.appearance"
         static let cooldownDays = "truemax.cooldownDays"
         static let disclaimerAcknowledged = "truemax.disclaimerAcknowledged"
     }
@@ -101,11 +82,9 @@ final class TrueMaxAppState {
             defaults.set(disclaimerAcknowledged, forKey: DefaultsKey.disclaimerAcknowledged)
         }
     }
-    var appearance: TrueMaxAppearance {
-        didSet {
-            defaults.set(appearance.rawValue, forKey: DefaultsKey.appearance)
-        }
-    }
+    // Kept as a compatibility value for existing state/tests; TrueMax is
+    // intentionally dark-only and no longer exposes an appearance switcher.
+    let appearance: TrueMaxAppearance = .dark
     var cooldownDays: Int {
         didSet {
             let normalized = min(max(cooldownDays, 1), 30)
@@ -120,13 +99,6 @@ final class TrueMaxAppState {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         self.disclaimerAcknowledged = defaults.bool(forKey: DefaultsKey.disclaimerAcknowledged)
-        if defaults.object(forKey: DefaultsKey.appearance) == nil {
-            self.appearance = .dark
-        } else {
-            self.appearance = TrueMaxAppearance(
-                rawValue: defaults.integer(forKey: DefaultsKey.appearance)
-            ) ?? .dark
-        }
         let storedCooldown = defaults.integer(forKey: DefaultsKey.cooldownDays)
         self.cooldownDays = storedCooldown == 0 ? 7 : min(max(storedCooldown, 1), 30)
     }

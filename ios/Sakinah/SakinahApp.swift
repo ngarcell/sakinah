@@ -27,7 +27,7 @@ struct SakinahApp: App {
             }
                 .environment(appState)
                 .environment(subscriptionService)
-                .preferredColorScheme(appState.appearance.colorScheme)
+                .preferredColorScheme(.dark)
                 .tint(TrueMaxPalette.accentLight)
                 .task {
                     guard modelBootstrap.failureMessage == nil else {

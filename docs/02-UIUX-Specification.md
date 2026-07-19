@@ -9,10 +9,9 @@ titles stay compact, and content headings use semantic Dynamic Type styles.
 
 ## Visual system
 
-- Dark is the default appearance; Settings offers Light and System.
-- Backgrounds are near-black in dark mode and warm white in light mode. Cards,
-  borders, text, positive, neutral, and caution colors are adaptive semantic
-  tokens in `TrueMaxTheme.swift`.
+- Dark mode is fixed throughout the app; Settings does not offer an appearance
+  or theme switcher. Backgrounds, cards, borders, text, positive, neutral, and
+  caution colors use the dark semantic tokens in `TrueMaxTheme.swift`.
 - Primary actions use the contrast-safe `actionGradient`; decorative marks may
   use `primaryGradient`.
 - Rounded cards, 44pt minimum touch targets, generous spacing, and no dense

@@ -44,9 +44,9 @@ CAMERA_USAGE_DESCRIPTION = (
 
 SOURCE_DOCUMENT_HASHES = {
     "docs/01-PRD (1).md":
-        "4a15d5049cbb407b5884e7e98c53280048fba68e1e13c38ea54abd50f21f17bc",
+        "2c4f33f21d5f732d7e7b3544b163ae30ea62c4787fa995675e9a9cc7bcfc06e7",
     "docs/02-UIUX-Specification.md":
-        "c3f51cbc4ae8d25bed48f3b4442cf70d803523f6b6ba21cac6b0268cb9143f2c",
+        "1ae46a77620022f570eedd6b111cceb6317ef00d13018004ba4d9e348264fd88",
     "docs/03-App-Flow-Architecture.md":
         "e84b0a45c7085f4ff29aed4dc18368631ba15e1c599fe10cca9cf495be3dc6e9",
 }

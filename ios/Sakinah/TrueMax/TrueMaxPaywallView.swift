@@ -73,9 +73,6 @@ struct TrueMaxPaywallView: View {
                                     Text("Choose your plan")
                                         .font(.headline.weight(.bold))
                                         .foregroundStyle(TrueMaxPalette.textPrimary)
-                                    Text("ANNUAL DEFAULT")
-                                        .font(.caption2.weight(.black))
-                                        .foregroundStyle(TrueMaxPalette.accentLight)
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             } else {
@@ -83,10 +80,6 @@ struct TrueMaxPaywallView: View {
                                     Text("Choose your plan")
                                         .font(.headline.weight(.bold))
                                         .foregroundStyle(TrueMaxPalette.textPrimary)
-                                    Spacer(minLength: 4)
-                                    Text("ANNUAL DEFAULT")
-                                        .font(.caption2.weight(.black))
-                                        .foregroundStyle(TrueMaxPalette.accentLight)
                                 }
                             }
                         }

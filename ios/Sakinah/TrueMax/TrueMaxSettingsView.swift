@@ -113,40 +113,19 @@ struct TrueMaxSettingsView: View {
     private var experienceSection: some View {
         TrueMaxSettingsSection(title: "EXPERIENCE") {
             VStack(alignment: .leading, spacing: 12) {
-                Label {
-                    Text("Appearance")
-                        .font(.body.weight(.semibold))
-                } icon: {
-                    Image(systemName: "circle.lefthalf.filled")
-                        .foregroundStyle(TrueMaxPalette.accentLight)
-                }
-                .foregroundStyle(TrueMaxPalette.textPrimary)
+                Stepper(value: cooldownBinding, in: 1...30) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Rescan reminder")
+                            .font(.body.weight(.semibold))
+                            .foregroundStyle(TrueMaxPalette.textPrimary)
 
-                Picker("Appearance", selection: appearanceBinding) {
-                    ForEach(TrueMaxAppearance.allCases) { appearance in
-                        Text(appearance.title).tag(appearance)
+                        Text(cooldownDescription)
+                            .font(.subheadline)
+                            .foregroundStyle(TrueMaxPalette.textSecondary)
                     }
                 }
-                .pickerStyle(.segmented)
-                .accessibilityHint("Dark mode is the default")
-            }
-            .padding(.vertical, 5)
-
-            TrueMaxSettingsDivider()
-
-            Stepper(value: cooldownBinding, in: 1...30) {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Rescan reminder")
-                        .font(.body.weight(.semibold))
-                        .foregroundStyle(TrueMaxPalette.textPrimary)
-
-                    Text(cooldownDescription)
-                        .font(.subheadline)
-                        .foregroundStyle(TrueMaxPalette.textSecondary)
-                }
-            }
-            .frame(minHeight: 58)
-            .accessibilityHint("Adjusts the local, non-blocking rescan reminder")
+                .frame(minHeight: 58)
+                .accessibilityHint("Adjusts the local, non-blocking rescan reminder")
 
             TrueMaxSettingsDivider()
 
@@ -339,13 +318,6 @@ struct TrueMaxSettingsView: View {
         .frame(maxWidth: .infinity)
         .multilineTextAlignment(.center)
         .accessibilityElement(children: .combine)
-    }
-
-    private var appearanceBinding: Binding<TrueMaxAppearance> {
-        Binding(
-            get: { appState.appearance },
-            set: { appState.appearance = $0 }
-        )
     }
 
     private var cooldownBinding: Binding<Int> {
