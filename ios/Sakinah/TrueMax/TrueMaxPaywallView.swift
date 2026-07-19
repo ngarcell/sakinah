@@ -1,6 +1,12 @@
 import SwiftUI
 import RevenueCat
 
+private enum TrueMaxPaywallCopy {
+    static let freeTrialDays = 3
+    static var annualTrialCTA: String { "Start \(freeTrialDays)-Day Free Trial" }
+    static var annualTrialDisclosure: String { "\(freeTrialDays) days free" }
+}
+
 struct TrueMaxPaywallView: View {
     private enum TrialEligibilityPresentation: Equatable {
         case checking
@@ -280,18 +286,18 @@ struct TrueMaxPaywallView: View {
         }
 
         if trialEligibility == .checking {
-            return "Checking plan…"
+            return "Checking Eligibility…"
         }
 
         if trialEligibility == .unavailable {
             return "Retry Plan Check"
         }
 
-        if trialEligibility == .eligible {
-            return "Start Free Trial"
+        if selectedPlan == .annual {
+            return TrueMaxPaywallCopy.annualTrialCTA
         }
 
-        return "Continue Pro — \(selectedPlan.displayName)"
+        return "Continue Pro — Monthly"
     }
 
     private var billingDisclosure: String {
@@ -302,9 +308,8 @@ struct TrueMaxPaywallView: View {
             return "Free-trial eligibility could not be verified. Reconnect and retry so TrueMax can show the correct billing terms before purchase."
         }
 
-        if trialEligibility == .eligible,
-           let duration = details.trialDuration {
-            return "\(duration.capitalized) free, then \(price) per \(details.cadence). Subscription renews automatically unless cancelled at least 24 hours before the current period ends."
+        if selectedPlan == .annual {
+            return "\(TrueMaxPaywallCopy.annualTrialDisclosure), then \(price) per \(details.cadence). Subscription renews automatically unless cancelled at least 24 hours before the current period ends."
         }
 
         return "\(price) per \(details.cadence). Subscription renews automatically unless cancelled at least 24 hours before the current period ends."
@@ -388,7 +393,9 @@ private struct PlanChoiceCard: View {
                         .foregroundStyle(TrueMaxPalette.textSecondary)
                 }
 
-                Text(details.plan == .annual ? "Billed once per year" : "Flexible monthly access")
+                Text(details.plan == .annual
+                    ? "3 days free, then billed once per year"
+                    : "Flexible monthly access")
                     .font(.caption)
                     .foregroundStyle(TrueMaxPalette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)

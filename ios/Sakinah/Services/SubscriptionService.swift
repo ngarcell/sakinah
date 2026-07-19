@@ -40,6 +40,7 @@ final class SubscriptionService {
     }
 
     private static let unavailablePriceText = "Price unavailable"
+    private static let requiredFreeTrialDays = 3
 
     static let shared = SubscriptionService()
     static let monthlyProductID = ProductCatalog.monthly
@@ -656,7 +657,14 @@ final class SubscriptionService {
     private static func freeTrialDuration(for product: StoreProduct?) -> String? {
         guard let introductoryDiscount = product?.introductoryDiscount else { return nil }
         guard introductoryDiscount.paymentMode == .freeTrial else { return nil }
-        return compactSubscriptionPeriod(introductoryDiscount.subscriptionPeriod)
+
+        let period = introductoryDiscount.subscriptionPeriod
+        guard period.unit == .day,
+              period.value * max(introductoryDiscount.numberOfPeriods, 1) == requiredFreeTrialDays else {
+            return nil
+        }
+
+        return "\(requiredFreeTrialDays) days"
     }
 
     private static func annualMonthlyEquivalent(for product: StoreProduct?) -> String? {
