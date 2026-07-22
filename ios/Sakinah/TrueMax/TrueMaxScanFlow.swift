@@ -7,6 +7,7 @@ struct TrueMaxScanRootView: View {
         case checklist
         case photoMode
         case camera
+        case demoCamera
         case processing
         case result
         case permission
@@ -28,6 +29,7 @@ struct TrueMaxScanRootView: View {
 
     @Environment(TrueMaxAppState.self) private var appState
     @Environment(SubscriptionService.self) private var subscriptionService
+    @Environment(TrueMaxMarketingWalkthroughController.self) private var demo
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.openURL) private var openURL
@@ -43,6 +45,7 @@ struct TrueMaxScanRootView: View {
     @State private var showsCooldownPrompt = false
     @State private var bypassedCooldown = false
     @State private var photoModeExplained = false
+    @State private var isRunningDemoCapture = false
 
     var body: some View {
         phaseContent
@@ -56,6 +59,18 @@ struct TrueMaxScanRootView: View {
                 "phase": String(describing: newPhase),
                 "onboarding_trial": isOnboardingTrial
             ])
+        }
+        .onChange(of: demo.phase) { _, demoPhase in
+            switch demoPhase {
+            case .scanChecklist:
+                resetForNewScan()
+            case .scanCapture:
+                runDemoCapture()
+            case .home, .styles, .history, .finished:
+                if phase == .result { finishResult() }
+            default:
+                break
+            }
         }
         .onChange(of: scenePhase) { _, newPhase in
             cameraController.setSceneActive(newPhase == .active)
@@ -93,6 +108,8 @@ struct TrueMaxScanRootView: View {
             photoModeView
         case .camera:
             cameraView
+        case .demoCamera:
+            demoCameraView
         case .processing:
             processingView
         case .result:
@@ -379,6 +396,42 @@ struct TrueMaxScanRootView: View {
         }
     }
 
+    private var demoCameraView: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            Image("TrueMaxDemoCurrent")
+                .resizable()
+                .scaledToFill()
+                .ignoresSafeArea()
+            LinearGradient(
+                colors: [.black.opacity(0.55), .clear, .black.opacity(0.78)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+            FaceCaptureOval()
+                .stroke(TrueMaxPalette.positive, style: StrokeStyle(lineWidth: 2, dash: [8, 5]))
+                .padding(.horizontal, 54)
+                .padding(.vertical, 165)
+            VStack {
+                Text("Position your face")
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                    .padding(.top, 18)
+                Spacer()
+                Label("Great framing · Hold still", systemImage: "checkmark.circle.fill")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(TrueMaxPalette.positive)
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 82, height: 82)
+                    .overlay { Circle().strokeBorder(Color.white, lineWidth: 4).padding(-8) }
+                    .padding(.top, 18)
+                    .padding(.bottom, 38)
+            }
+        }
+    }
+
     private var processingView: some View {
         ZStack {
             TrueMaxPageBackground()
@@ -570,7 +623,7 @@ struct TrueMaxScanRootView: View {
 
     private var tabBarVisibility: Visibility {
         switch phase {
-        case .camera, .processing, .photoMode, .permission, .result:
+        case .camera, .demoCamera, .processing, .photoMode, .permission, .result:
             return .hidden
         case .checklist:
             return .visible
@@ -739,6 +792,58 @@ struct TrueMaxScanRootView: View {
         }
     }
 
+    private func runDemoCapture() {
+        guard demo.isPlaying, !isRunningDemoCapture,
+              let image = UIImage(named: "TrueMaxDemoCurrent") else { return }
+        isRunningDemoCapture = true
+        cameraController.stop()
+        capturedImage = image
+        phase = .demoCamera
+
+        Task {
+            try? await Task.sleep(for: .milliseconds(650))
+            phase = .processing
+            let analysis: TrueMaxAnalysisResult
+            do {
+                analysis = try await TrueMaxAnalysisEngine.analyze(
+                    image: image,
+                    captureMode: .photo2D
+                )
+            } catch {
+                // The bundled portrait is designed for Vision. Keep simulator
+                // playback reliable on runtimes where face detection differs.
+                analysis = TrueMaxMarketingSeed.fallbackCurrentAnalysis()
+            }
+
+            do {
+                for scan in scans where scan.id == TrueMaxMarketingSeed.currentID {
+                    _ = TrueMaxStorage.deleteCapture(filename: scan.imageFilename)
+                    modelContext.delete(scan)
+                }
+                try modelContext.save()
+
+                let filename = try TrueMaxStorage.saveCapture(
+                    image,
+                    id: TrueMaxMarketingSeed.currentID
+                )
+                let scan = ScanRecord(
+                    id: TrueMaxMarketingSeed.currentID,
+                    imageFilename: filename,
+                    analysis: analysis
+                )
+                modelContext.insert(scan)
+                try modelContext.save()
+                try await Task.sleep(for: .seconds(2.4))
+                completedScan = scan
+                phase = .result
+            } catch {
+                errorMessage = error.localizedDescription
+                phase = .checklist
+            }
+            isRunningDemoCapture = false
+        }
+    }
+
     private func finishResult() {
         TrueMaxAnalytics.shared.capture("scan AHA result completed", properties: [
             "onboarding_trial": isOnboardingTrial,
@@ -757,7 +862,7 @@ struct TrueMaxScanRootView: View {
 
         appState.selectedTab = .home
 
-        if !subscriptionService.isPremium {
+        if !subscriptionService.isPremium && !demo.isPlaying {
             appState.consumeReverseTrial()
         }
     }

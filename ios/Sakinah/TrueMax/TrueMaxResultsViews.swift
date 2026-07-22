@@ -4,6 +4,8 @@ import SwiftUI
 struct TrueMaxResultDetailView: View {
     @Environment(TrueMaxAppState.self) private var appState
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(TrueMaxMarketingWalkthroughController.self) private var demo
+    @State private var showsDemoActionPlan = false
 
     let scan: ScanRecord
     var showsResultReveal = true
@@ -23,13 +25,14 @@ struct TrueMaxResultDetailView: View {
         ZStack {
             TrueMaxPageBackground()
 
-            ScrollView {
-                VStack(spacing: 22) {
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 22) {
                     if showsResultReveal {
                         revealHeader
                     }
 
-                    captureCard
+                    captureCard.id("result-capture")
 
                     VStack(spacing: 8) {
                         Text(showsResultReveal ? "A clear starting point." : "Your measurements")
@@ -69,6 +72,7 @@ struct TrueMaxResultDetailView: View {
                         }
                     }
                     .buttonStyle(TrueMaxPrimaryButtonStyle())
+                    .id("result-action-plan")
 
                     HStack(spacing: 8) {
                         Image(systemName: "checkmark.circle")
@@ -84,11 +88,23 @@ struct TrueMaxResultDetailView: View {
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.bottom, 22)
+                    }
+                    .padding(.horizontal, 20)
+                    .trueMaxContentWidth()
                 }
-                .padding(.horizontal, 20)
-                .trueMaxContentWidth()
+                .scrollIndicators(.hidden)
+                .onChange(of: demo.phase) { _, phase in
+                    if phase == .scanResult {
+                        withAnimation(.easeInOut(duration: 0.55)) {
+                            proxy.scrollTo("result-capture", anchor: .top)
+                        }
+                    } else if phase == .resultScroll {
+                        withAnimation(.easeInOut(duration: 1.1)) {
+                            proxy.scrollTo("result-action-plan", anchor: .center)
+                        }
+                    }
+                }
             }
-            .scrollIndicators(.hidden)
         }
         .navigationTitle(showsResultReveal ? "Your baseline" : scan.createdAt.formatted(date: .abbreviated, time: .omitted))
         .navigationBarTitleDisplayMode(.inline)
@@ -111,6 +127,16 @@ struct TrueMaxResultDetailView: View {
                     }
                     .fontWeight(.semibold)
                 }
+            }
+        }
+        .navigationDestination(isPresented: $showsDemoActionPlan) {
+            TrueMaxActionPlanView(scan: scan)
+        }
+        .onChange(of: demo.phase) { _, phase in
+            if phase == .actionPlan {
+                showsDemoActionPlan = true
+            } else if phase == .styles || phase == .history || phase == .finished {
+                showsDemoActionPlan = false
             }
         }
     }
@@ -267,6 +293,7 @@ struct TrueMaxActionPlanView: View {
     let scan: ScanRecord
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(TrueMaxMarketingWalkthroughController.self) private var demo
     @State private var showsAll = false
 
     var body: some View {
@@ -329,6 +356,11 @@ struct TrueMaxActionPlanView: View {
         }
         .navigationTitle("Your action plan")
         .navigationBarTitleDisplayMode(.inline)
+        .onChange(of: demo.phase) { _, phase in
+            if phase == .actionPlanAll {
+                withAnimation(.easeInOut(duration: 0.45)) { showsAll = true }
+            }
+        }
     }
 
     private var visibleGuidance: [GuidanceItem] {

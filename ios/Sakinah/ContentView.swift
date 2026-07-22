@@ -3,6 +3,9 @@ import SwiftUI
 struct ContentView: View {
     @Environment(TrueMaxAppState.self) private var appState
     @Environment(SubscriptionService.self) private var subscriptionService
+    @Environment(TrueMaxMarketingWalkthroughController.self) private var demo
+    @Environment(\.modelContext) private var modelContext
+    @State private var demoError: String?
 
     var body: some View {
         ZStack {
@@ -13,6 +16,14 @@ struct ContentView: View {
                     title: "Preparing TrueMax",
                     detail: "Checking your access and preparing your workspace."
                 )
+            } else if demo.showsLauncher {
+                TrueMaxMarketingLauncherView(
+                    onPlay: startWalkthrough,
+                    onExplore: {
+                        demo.showsLauncher = false
+                        appState.selectedTab = .home
+                    }
+                )
             } else if !appState.hasCompletedOnboarding {
                 TrueMaxOnboardingFlow()
                     .id(appState.onboardingRestartID)
@@ -22,6 +33,7 @@ struct ContentView: View {
                     onUnlocked: {
                         appState.dismissPaywall()
                         appState.selectedTab = .home
+                        demo.presentLauncher()
                     },
                     onClose: {
                         appState.dismissPaywall()
@@ -50,6 +62,24 @@ struct ContentView: View {
             TrueMaxAnalytics.shared.capture("tab selected", properties: [
                 "tab": tab.title
             ])
+        }
+        .alert("Walkthrough unavailable", isPresented: Binding(
+            get: { demoError != nil },
+            set: { if !$0 { demoError = nil } }
+        )) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(demoError ?? "Please try again.")
+        }
+    }
+
+    private func startWalkthrough() {
+        do {
+            try TrueMaxMarketingSeed.prepare(in: modelContext)
+            appState.selectedTab = .home
+            demo.start()
+        } catch {
+            demoError = error.localizedDescription
         }
     }
 }

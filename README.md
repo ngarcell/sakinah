@@ -124,6 +124,7 @@ for the product reasoning and activation contract.
 - `docs/` — product sources, supplied visual references, and App Store metadata
 - `docs/truemax-analytics.md` — anonymous event coverage and privacy boundary
 - `docs/truemax-reverse-trial-strategy.md` — AHA path, paywall timing, and activation loop
+- `docs/marketing-walkthrough.md` — post-paywall demo and simulator recording workflow
 - `scripts/verify_truemax_contracts.py` — Linux-runnable release-contract gate
 - `scripts/verify_truemax_intelligence.py` — evidence-pack and offline-boundary gate
 

@@ -321,11 +321,13 @@ struct TrueMaxStyleLibraryView: View {
     let scan: ScanRecord
 
     @Environment(\.modelContext) private var modelContext
+    @Environment(TrueMaxMarketingWalkthroughController.self) private var demo
     @Query private var favorites: [StyleFavorite]
     @Query(sort: \ScanRecord.createdAt, order: .reverse)
     private var scans: [ScanRecord]
 
     @State private var category: TrueMaxHairStyle.Category = .recommended
+    @State private var showsDemoPreview = false
 
     private let columns = [
         GridItem(.flexible(), spacing: 12),
@@ -420,6 +422,27 @@ struct TrueMaxStyleLibraryView: View {
                 "category": category.rawValue
             ])
         }
+        .onChange(of: demo.phase) { _, phase in
+            switch phase {
+            case .styleCategory:
+                withAnimation(.easeInOut(duration: 0.45)) { category = .textured }
+            case .stylePreview:
+                showsDemoPreview = !filteredRecommendations.isEmpty
+            case .history, .finished:
+                showsDemoPreview = false
+            default:
+                break
+            }
+        }
+        .navigationDestination(isPresented: $showsDemoPreview) {
+            if let recommendation = filteredRecommendations.first ?? recommendations.first {
+                TrueMaxStylePreviewView(
+                    scan: recommendationScan,
+                    initialRecommendation: recommendation,
+                    recommendations: recommendations
+                )
+            }
+        }
     }
 
     private var recommendationScan: ScanRecord {
@@ -462,6 +485,7 @@ private struct TrueMaxStylePreviewView: View {
     let recommendations: [TrueMaxStyleRecommendation]
 
     @Environment(\.modelContext) private var modelContext
+    @Environment(TrueMaxMarketingWalkthroughController.self) private var demo
     @Query private var favorites: [StyleFavorite]
 
     @State private var selectedRecommendation: TrueMaxStyleRecommendation
@@ -631,6 +655,13 @@ private struct TrueMaxStylePreviewView: View {
         }
         .navigationTitle("Try a style")
         .navigationBarTitleDisplayMode(.inline)
+        .onChange(of: demo.phase) { _, phase in
+            if phase == .styleFavorite, !isFavorite {
+                withAnimation(.spring(response: 0.45, dampingFraction: 0.75)) {
+                    toggleFavorite()
+                }
+            }
+        }
     }
 
     private var isFavorite: Bool {

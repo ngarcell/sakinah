@@ -13,6 +13,7 @@ struct SakinahApp: App {
 
     @State private var appState = TrueMaxAppState()
     @State private var subscriptionService = SubscriptionService.shared
+    @State private var marketingWalkthrough = TrueMaxMarketingWalkthroughController()
 
     private let modelBootstrap = Self.makeModelContainer()
 
@@ -31,6 +32,7 @@ struct SakinahApp: App {
             }
                 .environment(appState)
                 .environment(subscriptionService)
+                .environment(marketingWalkthrough)
                 .preferredColorScheme(.dark)
                 .tint(TrueMaxPalette.accentLight)
                 .task {
@@ -39,6 +41,11 @@ struct SakinahApp: App {
                         return
                     }
                     subscriptionService.loadSubscriptionState()
+                    if ProcessInfo.processInfo.arguments.contains("-TrueMaxMarketingDemo") {
+                        appState.isBootstrapping = false
+                        marketingWalkthrough.presentLauncher()
+                        return
+                    }
                     _ = await subscriptionService.preparePaywall(forceRefresh: false)
                     appState.isBootstrapping = false
                 }

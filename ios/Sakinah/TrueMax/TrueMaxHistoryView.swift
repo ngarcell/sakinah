@@ -12,6 +12,7 @@ struct TrueMaxHistoryView: View {
     }
 
     @Environment(\.modelContext) private var modelContext
+    @Environment(TrueMaxMarketingWalkthroughController.self) private var demo
     @Query(sort: \ScanRecord.createdAt, order: .reverse) private var scans: [ScanRecord]
 
     @State private var filter: Filter = .all
@@ -97,6 +98,28 @@ struct TrueMaxHistoryView: View {
                 "scan_count": scans.count,
                 "filter": filter.rawValue
             ])
+        }
+        .onChange(of: demo.phase) { _, phase in
+            switch phase {
+            case .historySelect:
+                isSelecting = true
+                selectedIDs.removeAll()
+            case .historyFirst:
+                if let current = scans.first(where: {
+                    $0.id == TrueMaxMarketingSeed.currentID
+                }) { toggle(current) }
+            case .historySecond:
+                if let older = scans.first(where: {
+                    $0.id == TrueMaxMarketingSeed.olderID
+                }) { toggle(older) }
+            case .historyCompare:
+                showsComparison = comparisonScans.count == 2
+            case .finished:
+                showsComparison = false
+                isSelecting = false
+            default:
+                break
+            }
         }
         .navigationDestination(isPresented: $showsComparison) {
             if comparisonScans.count == 2 {
@@ -288,6 +311,7 @@ private struct HistoryDeletionNotice: Identifiable {
 }
 
 struct TrueMaxComparisonView: View {
+    @Environment(TrueMaxMarketingWalkthroughController.self) private var demo
     @State private var leftScan: ScanRecord
     @State private var rightScan: ScanRecord
 
@@ -300,39 +324,49 @@ struct TrueMaxComparisonView: View {
         ZStack {
             TrueMaxPageBackground()
 
-            ScrollView {
-                VStack(spacing: 20) {
-                    scanSelectors
-                    imageComparison
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 20) {
+                        scanSelectors.id("comparison-top")
+                        imageComparison
 
-                    VStack(alignment: .leading, spacing: 14) {
-                        Text("What changed")
-                            .font(.title2.weight(.bold))
-                            .foregroundStyle(TrueMaxPalette.textPrimary)
+                        VStack(alignment: .leading, spacing: 14) {
+                            Text("What changed")
+                                .font(.title2.weight(.bold))
+                                .foregroundStyle(TrueMaxPalette.textPrimary)
 
-                        ForEach(MetricKind.allCases) { metric in
-                            ComparisonMetricRow(
-                                metric: metric,
-                                left: leftScan.range(for: metric),
-                                right: rightScan.range(for: metric)
-                            )
+                            ForEach(MetricKind.allCases) { metric in
+                                ComparisonMetricRow(
+                                    metric: metric,
+                                    left: leftScan.range(for: metric),
+                                    right: rightScan.range(for: metric)
+                                )
+                            }
+                        }
+                        .id("comparison-changes")
+
+                        Label(
+                            "Lighting, expression, grooming, and capture angle can affect visible change.",
+                            systemImage: "info.circle"
+                        )
+                        .font(.footnote)
+                        .foregroundStyle(TrueMaxPalette.neutral)
+                        .multilineTextAlignment(.center)
+                        .padding(.bottom, 22)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 12)
+                    .trueMaxContentWidth()
+                }
+                .scrollIndicators(.hidden)
+                .onChange(of: demo.phase) { _, phase in
+                    if phase == .historyScroll {
+                        withAnimation(.easeInOut(duration: 1.1)) {
+                            proxy.scrollTo("comparison-changes", anchor: .top)
                         }
                     }
-
-                    Label(
-                        "Lighting, expression, grooming, and capture angle can affect visible change.",
-                        systemImage: "info.circle"
-                    )
-                    .font(.footnote)
-                    .foregroundStyle(TrueMaxPalette.neutral)
-                    .multilineTextAlignment(.center)
-                    .padding(.bottom, 22)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 12)
-                .trueMaxContentWidth()
             }
-            .scrollIndicators(.hidden)
         }
         .navigationTitle("Compare")
         .navigationBarTitleDisplayMode(.inline)

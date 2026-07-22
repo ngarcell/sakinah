@@ -33,6 +33,18 @@ final class SakinahUITests: XCTestCase {
     }
 
     @MainActor
+    func testMarketingWalkthroughLauncherIsRecordReady() throws {
+        let app = XCUIApplication()
+        app.launchArguments.append("-TrueMaxMarketingDemo")
+        app.launch()
+
+        let playButton = app.buttons["Play 55-second walkthrough"]
+        XCTAssertTrue(playButton.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["Explore on my own"].exists)
+        XCTAssertTrue(app.staticTexts["SEE TRUEMAX IN ACTION"].exists)
+    }
+
+    @MainActor
     func testLaunchPerformance() throws {
         // This measures how long it takes to launch your application.
         measure(metrics: [XCTApplicationLaunchMetric()]) {

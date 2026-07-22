@@ -2,23 +2,25 @@ import SwiftUI
 
 struct TrueMaxMainTabView: View {
     @Environment(TrueMaxAppState.self) private var appState
+    @Environment(TrueMaxMarketingWalkthroughController.self) private var demo
 
     var body: some View {
         @Bindable var appState = appState
 
-        TabView(selection: $appState.selectedTab) {
-            NavigationStack {
-                TrueMaxHomeView()
-            }
-            .tag(TrueMaxRootTab.home)
-            .tabItem {
-                Label(
-                    TrueMaxRootTab.home.title,
-                    systemImage: appState.selectedTab == .home
-                        ? TrueMaxRootTab.home.selectedSymbol
-                        : TrueMaxRootTab.home.symbol
-                )
-            }
+        ZStack {
+            TabView(selection: $appState.selectedTab) {
+                NavigationStack {
+                    TrueMaxHomeView()
+                }
+                .tag(TrueMaxRootTab.home)
+                .tabItem {
+                    Label(
+                        TrueMaxRootTab.home.title,
+                        systemImage: appState.selectedTab == .home
+                            ? TrueMaxRootTab.home.selectedSymbol
+                            : TrueMaxRootTab.home.symbol
+                    )
+                }
 
             NavigationStack {
                 TrueMaxScanRootView()
@@ -56,14 +58,29 @@ struct TrueMaxMainTabView: View {
                         : TrueMaxRootTab.settings.symbol
                 )
             }
-        }
-        .tint(TrueMaxPalette.accentLight)
-        .toolbarBackground(TrueMaxPalette.backgroundRaised, for: .tabBar)
-        .toolbarBackground(.visible, for: .tabBar)
-        .onAppear {
-            TrueMaxAnalytics.shared.screen("main tabs", properties: [
-                "selected_tab": appState.selectedTab.title
-            ])
+            }
+            .tint(TrueMaxPalette.accentLight)
+            .toolbarBackground(TrueMaxPalette.backgroundRaised, for: .tabBar)
+            .toolbarBackground(.visible, for: .tabBar)
+            .onAppear {
+                TrueMaxAnalytics.shared.screen("main tabs", properties: [
+                    "selected_tab": appState.selectedTab.title
+                ])
+            }
+            .onChange(of: demo.phase) { _, phase in
+                switch phase {
+                case .home, .homeScroll, .styles, .styleCategory, .stylePreview, .styleFavorite, .finished:
+                    appState.selectedTab = .home
+                case .scanChecklist, .scanCapture, .scanProcessing, .scanResult, .resultScroll, .actionPlan, .actionPlanAll:
+                    appState.selectedTab = .scan
+                case .history, .historySelect, .historyFirst, .historySecond, .historyCompare, .historyScroll:
+                    appState.selectedTab = .history
+                case .idle:
+                    break
+                }
+            }
+
+            TrueMaxMarketingPlaybackOverlay()
         }
     }
 }

@@ -3,29 +3,47 @@ import SwiftUI
 
 struct TrueMaxHomeView: View {
     @Environment(TrueMaxAppState.self) private var appState
+    @Environment(TrueMaxMarketingWalkthroughController.self) private var demo
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Query(sort: \ScanRecord.createdAt, order: .reverse) private var scans: [ScanRecord]
+    @State private var showsDemoStyles = false
 
     var body: some View {
         ZStack {
             TrueMaxPageBackground()
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    homeHeader
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        homeHeader.id("home-top")
 
-                    if let latest = scans.first {
-                        returningHome(latest)
-                    } else {
-                        firstScanHome
+                        if let latest = scans.first {
+                            returningHome(latest)
+                        } else {
+                            firstScanHome
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 14)
+                    .padding(.bottom, 28)
+                    .trueMaxContentWidth()
+                }
+                .scrollIndicators(.hidden)
+                .onChange(of: demo.phase) { _, phase in
+                    switch phase {
+                    case .home:
+                        withAnimation(.easeInOut(duration: 0.7)) { proxy.scrollTo("home-top", anchor: .top) }
+                    case .homeScroll:
+                        withAnimation(.easeInOut(duration: 1.1)) { proxy.scrollTo("home-tools", anchor: .center) }
+                    case .styles:
+                        showsDemoStyles = scans.first != nil
+                    case .history, .finished:
+                        showsDemoStyles = false
+                    default:
+                        break
                     }
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 14)
-                .padding(.bottom, 28)
-                .trueMaxContentWidth()
             }
-            .scrollIndicators(.hidden)
         }
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
@@ -33,6 +51,11 @@ struct TrueMaxHomeView: View {
                 "scan_count": scans.count,
                 "has_baseline": !scans.isEmpty
             ])
+        }
+        .navigationDestination(isPresented: $showsDemoStyles) {
+            if let latest = scans.first {
+                TrueMaxStyleLibraryView(scan: latest)
+            }
         }
     }
 
@@ -100,6 +123,7 @@ struct TrueMaxHomeView: View {
                     }
                 }
             }
+            .id("home-tools")
         }
     }
 
@@ -168,6 +192,7 @@ struct TrueMaxHomeView: View {
                     }
                 }
             }
+            .id("home-tools")
 
             nextScanSuggestion(for: latest)
         }
