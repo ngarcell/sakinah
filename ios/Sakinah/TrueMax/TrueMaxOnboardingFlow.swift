@@ -6,6 +6,8 @@ import DeclaredAgeRange
 #endif
 
 struct TrueMaxOnboardingFlow: View {
+    let onSkip: () -> Void
+
     private enum Step: Int, CaseIterable {
         case welcome
         case ageGate
@@ -35,6 +37,10 @@ struct TrueMaxOnboardingFlow: View {
     @State private var ageChoice: AgeChoice?
     @State private var showsUnderageSupport = false
     @State private var systemAgeStatus: SystemAgeStatus = .notStarted
+
+    init(onSkip: @escaping () -> Void) {
+        self.onSkip = onSkip
+    }
 
     var body: some View {
         ZStack {
@@ -88,41 +94,57 @@ struct TrueMaxOnboardingFlow: View {
     }
 
     private var welcome: some View {
-        OnboardingScaffold(
-            progress: progress(for: .welcome),
-            actionTitle: "Check my baseline",
-            action: { move(to: .ageGate) }
-        ) {
-            VStack(spacing: 24) {
-                Spacer(minLength: 18)
+        ZStack(alignment: .topTrailing) {
+            OnboardingScaffold(
+                progress: progress(for: .welcome),
+                actionTitle: "Check my baseline",
+                action: { move(to: .ageGate) }
+            ) {
+                VStack(spacing: 24) {
+                    Spacer(minLength: 18)
 
-                TrueMaxBrandLockup()
+                    TrueMaxBrandLockup()
 
-                FaceMeshIllustration()
-                    .frame(height: 250)
-                    .padding(.horizontal, 20)
-                    .accessibilityLabel("Geometric facial measurement illustration")
+                    FaceMeshIllustration()
+                        .frame(height: 250)
+                        .padding(.horizontal, 20)
+                        .accessibilityLabel("Geometric facial measurement illustration")
 
-                VStack(spacing: 10) {
-                    Text("Know what works for you.")
-                        .font(.title2.weight(.bold))
-                        .fontDesign(.rounded)
-                        .foregroundStyle(TrueMaxPalette.textPrimary)
-                        .multilineTextAlignment(.center)
+                    VStack(spacing: 10) {
+                        Text("Know what works for you.")
+                            .font(.title2.weight(.bold))
+                            .fontDesign(.rounded)
+                            .foregroundStyle(TrueMaxPalette.textPrimary)
+                            .multilineTextAlignment(.center)
 
-                    Text("Complete one private scan, see your measurement ranges and practical next steps, then decide whether to continue.")
-                        .font(.body)
-                        .foregroundStyle(TrueMaxPalette.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
+                        Text("Complete one private scan, see your measurement ranges and practical next steps, then decide whether to continue.")
+                            .font(.body)
+                            .foregroundStyle(TrueMaxPalette.textSecondary)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    Text("Designed for adults 18+")
+                        .font(.footnote.weight(.medium))
+                        .foregroundStyle(TrueMaxPalette.textTertiary)
+
+                    Spacer(minLength: 8)
                 }
-
-                Text("Designed for adults 18+")
-                    .font(.footnote.weight(.medium))
-                    .foregroundStyle(TrueMaxPalette.textTertiary)
-
-                Spacer(minLength: 8)
             }
+
+            Button("Skip") {
+                onSkip()
+            }
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(TrueMaxPalette.textPrimary)
+            .padding(.horizontal, 16)
+            .frame(minHeight: 44)
+            .background(.ultraThinMaterial, in: Capsule())
+            .overlay { Capsule().strokeBorder(TrueMaxPalette.border) }
+            .padding(.top, 12)
+            .padding(.trailing, 18)
+            .accessibilityIdentifier("truemax.skipOnboarding")
+            .accessibilityHint("Bypasses setup and opens the demo walkthrough dashboard")
         }
     }
 

@@ -18,6 +18,8 @@ The older record is deterministic seeded data. The current record is created dur
 
 For the production path, complete the reverse trial and unlock the paywall. The walkthrough launcher appears immediately after the successful unlock.
 
+For a fresh install, tap **Skip** in the upper-right corner of the welcome screen. This marks onboarding complete and opens the walkthrough launcher immediately; tap **Play 55-second walkthrough** to begin. Choosing **Explore on my own** opens the Home dashboard instead.
+
 For a recording-only launch that bypasses setup:
 
 1. Open `ios/Sakinah.xcodeproj` in Xcode.

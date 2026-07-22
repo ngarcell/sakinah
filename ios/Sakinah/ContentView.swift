@@ -25,7 +25,7 @@ struct ContentView: View {
                     }
                 )
             } else if !appState.hasCompletedOnboarding {
-                TrueMaxOnboardingFlow()
+                TrueMaxOnboardingFlow(onSkip: skipToWalkthrough)
                     .id(appState.onboardingRestartID)
             } else if appState.presentsPaywall && !subscriptionService.isPremium {
                 TrueMaxPaywallView(
@@ -76,10 +76,23 @@ struct ContentView: View {
     private func startWalkthrough() {
         do {
             try TrueMaxMarketingSeed.prepare(in: modelContext)
+            if !appState.hasCompletedOnboarding {
+                appState.completeOnboarding()
+            }
             appState.selectedTab = .home
             demo.start()
         } catch {
             demoError = error.localizedDescription
         }
+    }
+
+    private func skipToWalkthrough() {
+        appState.dismissPaywall()
+        appState.completeOnboarding()
+        appState.selectedTab = .home
+        demo.presentLauncher()
+        TrueMaxAnalytics.shared.capture("onboarding skipped", properties: [
+            "destination": "marketing_walkthrough"
+        ])
     }
 }
