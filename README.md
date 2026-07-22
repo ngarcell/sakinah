@@ -102,6 +102,20 @@ navigation, onboarding progression, scan phases and outcomes, paywall and
 purchase outcomes, and settings usage. It never sends face captures,
 measurements, landmarks, style choices, or free-form user content.
 
+## Reverse-trial activation
+
+```text
+Native promise -> adult confirmation -> privacy/capture preparation
+  -> one real on-device scan -> full baseline + action plan (AHA)
+  -> plan selection -> unlock -> Home with that saved baseline visible
+```
+
+The baseline result is rendered by the shipping scan and analysis flow before
+plans appear. There is no account form, feature tour, sample result, App Store
+review prompt, or conversion bridge between the AHA and plans. See
+[`docs/truemax-reverse-trial-strategy.md`](docs/truemax-reverse-trial-strategy.md)
+for the product reasoning and activation contract.
+
 ## Repository layout
 
 - `ios/Sakinah/` — live native iOS target and retained RevenueCat services
@@ -109,6 +123,7 @@ measurements, landmarks, style choices, or free-form user content.
 - `ios/SakinahUITests/` — launch and critical-flow UI tests
 - `docs/` — product sources, supplied visual references, and App Store metadata
 - `docs/truemax-analytics.md` — anonymous event coverage and privacy boundary
+- `docs/truemax-reverse-trial-strategy.md` — AHA path, paywall timing, and activation loop
 - `scripts/verify_truemax_contracts.py` — Linux-runnable release-contract gate
 - `scripts/verify_truemax_intelligence.py` — evidence-pack and offline-boundary gate
 

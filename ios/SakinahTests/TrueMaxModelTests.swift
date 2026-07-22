@@ -76,7 +76,7 @@ struct TrueMaxModelTests {
 
         #expect(state.hasCompletedOnboarding)
         #expect(state.onboardingCompleted)
-        #expect(state.selectedTab == .scan)
+        #expect(state.selectedTab == .home)
         #expect(state.requiresMedicalDisclaimer)
 
         let restoredState = TrueMaxAppState(defaults: defaults)

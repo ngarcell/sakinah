@@ -1,5 +1,4 @@
 import Foundation
-import StoreKit
 import SwiftUI
 
 #if canImport(DeclaredAgeRange)
@@ -9,11 +8,9 @@ import DeclaredAgeRange
 struct TrueMaxOnboardingFlow: View {
     private enum Step: Int, CaseIterable {
         case welcome
-        case howItWorks
         case ageGate
         case privacy
         case scanTrial
-        case review
         case paywall
     }
 
@@ -32,15 +29,12 @@ struct TrueMaxOnboardingFlow: View {
 
     @Environment(TrueMaxAppState.self) private var appState
     @Environment(SubscriptionService.self) private var subscriptionService
-    @Environment(\.requestReview) private var requestReview
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var step: Step = .welcome
     @State private var ageChoice: AgeChoice?
     @State private var showsUnderageSupport = false
     @State private var systemAgeStatus: SystemAgeStatus = .notStarted
-    @State private var isAwaitingReviewResolution = false
-    @AppStorage("truemax.ahaReviewPrompted") private var hasRequestedAHAReview = false
 
     var body: some View {
         ZStack {
@@ -53,8 +47,6 @@ struct TrueMaxOnboardingFlow: View {
                 switch step {
                 case .welcome:
                     welcome
-                case .howItWorks:
-                    howItWorks
                 case .ageGate:
                     ageGate
                 case .privacy:
@@ -66,12 +58,10 @@ struct TrueMaxOnboardingFlow: View {
                             onTrialExit: { move(to: .privacy) },
                             onTrialCompleted: {
                                 appState.consumeReverseTrial()
-                                requestReviewThenShowPaywall()
+                                move(to: .paywall)
                             }
                         )
                     }
-                case .review:
-                    reviewHandoff
                 case .paywall:
                     TrueMaxPaywallView(
                         showsCloseButton: true,
@@ -100,8 +90,8 @@ struct TrueMaxOnboardingFlow: View {
     private var welcome: some View {
         OnboardingScaffold(
             progress: progress(for: .welcome),
-            actionTitle: "Get started",
-            action: { move(to: .howItWorks) }
+            actionTitle: "Check my baseline",
+            action: { move(to: .ageGate) }
         ) {
             VStack(spacing: 24) {
                 Spacer(minLength: 18)
@@ -120,7 +110,7 @@ struct TrueMaxOnboardingFlow: View {
                         .foregroundStyle(TrueMaxPalette.textPrimary)
                         .multilineTextAlignment(.center)
 
-                    Text("Understand your proportions and build a practical routine.")
+                    Text("Complete one private scan, see your measurement ranges and practical next steps, then decide whether to continue.")
                         .font(.body)
                         .foregroundStyle(TrueMaxPalette.textSecondary)
                         .multilineTextAlignment(.center)
@@ -136,53 +126,10 @@ struct TrueMaxOnboardingFlow: View {
         }
     }
 
-    private var howItWorks: some View {
-        OnboardingScaffold(
-            progress: progress(for: .howItWorks),
-            back: { move(to: .welcome) },
-            actionTitle: "Continue",
-            action: { move(to: .ageGate) }
-        ) {
-            VStack(alignment: .leading, spacing: 26) {
-                Spacer(minLength: 24)
-
-                Text("How TrueMax works")
-                    .font(.title2.weight(.bold))
-                    .fontDesign(.rounded)
-                    .foregroundStyle(TrueMaxPalette.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                Text("A simple flow from capture to action.")
-                    .font(.body)
-                    .foregroundStyle(TrueMaxPalette.textSecondary)
-
-                VStack(spacing: 12) {
-                    HowItWorksCard(
-                        symbol: "viewfinder",
-                        title: "Capture",
-                        detail: "Follow the live guide for one clear, neutral photo."
-                    )
-                    HowItWorksCard(
-                        symbol: "ruler",
-                        title: "Measure",
-                        detail: "Apple Vision landmarks are analysed locally and shown as honest ranges."
-                    )
-                    HowItWorksCard(
-                        symbol: "sparkles",
-                        title: "Improve",
-                        detail: "Get practical grooming, presentation, hair, and color guidance."
-                    )
-                }
-
-                Spacer(minLength: 12)
-            }
-        }
-    }
-
     private var ageGate: some View {
         OnboardingScaffold(
             progress: progress(for: .ageGate),
-            back: { move(to: .howItWorks) },
+            back: { move(to: .welcome) },
             actionTitle: "Continue",
             actionEnabled: ageChoice != nil,
             action: {
@@ -275,12 +222,8 @@ struct TrueMaxOnboardingFlow: View {
                 if subscriptionService.isPremium {
                     appState.completeOnboarding()
                 } else if appState.reverseTrialConsumed {
-                    if hasRequestedAHAReview {
-                        appState.presentPaywall()
-                        move(to: .paywall)
-                    } else {
-                        requestReviewThenShowPaywall()
-                    }
+                    appState.presentPaywall()
+                    move(to: .paywall)
                 } else {
                     move(to: .scanTrial)
                 }
@@ -296,81 +239,63 @@ struct TrueMaxOnboardingFlow: View {
                 )
 
                 VStack(spacing: 10) {
-                    Text("Ready to begin?")
+                    Text("Your first baseline is private.")
                         .font(.title2.weight(.bold))
                         .fontDesign(.rounded)
                         .foregroundStyle(TrueMaxPalette.textPrimary)
                         .multilineTextAlignment(.center)
 
-                    Text("Take your first scan and see your baseline before choosing a plan.")
+                    Text("Follow the capture guide, then review your real measurement ranges and action plan before choosing a plan.")
                         .font(.body)
                         .foregroundStyle(TrueMaxPalette.textSecondary)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                 }
+
+                VStack(spacing: 0) {
+                    onboardingPromise(
+                        "No account required",
+                        icon: "person.crop.circle.badge.checkmark"
+                    )
+                    Divider().overlay(TrueMaxPalette.border)
+                    onboardingPromise(
+                        "Face processing stays on this iPhone",
+                        icon: "iphone.gen3"
+                    )
+                    Divider().overlay(TrueMaxPalette.border)
+                    onboardingPromise(
+                        "Your full baseline appears before plans",
+                        icon: "checkmark.seal.fill"
+                    )
+                }
+                .trueMaxCard()
+
+                Text("For the clearest result, use even front lighting, remove glasses, and hold a neutral expression.")
+                    .font(.footnote)
+                    .foregroundStyle(TrueMaxPalette.textTertiary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 Spacer(minLength: 10)
             }
         }
     }
 
-    private func requestReviewThenShowPaywall() {
-        // StoreKit intentionally has no completion callback. Move to a
-        // neutral handoff screen and require a deliberate continuation tap
-        // after the system review sheet is completed or dismissed.
-        guard !hasRequestedAHAReview else {
-            move(to: .paywall)
-            return
+    private func onboardingPromise(_ title: String, icon: String) -> some View {
+        HStack(spacing: 14) {
+            Image(systemName: icon)
+                .foregroundStyle(TrueMaxPalette.accentLight)
+                .frame(width: 28)
+                .accessibilityHidden(true)
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(TrueMaxPalette.textPrimary)
+            Spacer(minLength: 4)
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundStyle(TrueMaxPalette.positive)
+                .accessibilityHidden(true)
         }
-
-        hasRequestedAHAReview = true
-        TrueMaxAnalytics.shared.capture("aha review prompt requested", properties: [
-            "product": "truemax",
-            "placement": "before_first_value_paywall"
-        ])
-        isAwaitingReviewResolution = true
-        requestReview()
-        move(to: .review)
-    }
-
-    private func showPaywallAfterReviewResolution() {
-        guard isAwaitingReviewResolution else { return }
-        isAwaitingReviewResolution = false
-        move(to: .paywall)
-    }
-
-    private var reviewHandoff: some View {
-        OnboardingScaffold(
-            progress: progress(for: .review),
-            actionTitle: "Continue to plans",
-            action: showPaywallAfterReviewResolution
-        ) {
-            VStack(spacing: 22) {
-                Spacer(minLength: 28)
-
-                TrueMaxIconCircle(
-                    symbol: "checkmark.seal.fill",
-                    color: TrueMaxPalette.accentLight,
-                    size: 72
-                )
-
-                VStack(spacing: 10) {
-                    Text("Thanks for trying TrueMax")
-                        .font(.title2.weight(.bold))
-                        .fontDesign(.rounded)
-                        .foregroundStyle(TrueMaxPalette.textPrimary)
-                        .multilineTextAlignment(.center)
-
-                    Text("When you’re ready, continue to choose the plan that keeps your personal insights going.")
-                        .font(.body)
-                        .foregroundStyle(TrueMaxPalette.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                Spacer(minLength: 24)
-            }
-        }
+        .padding(.vertical, 12)
     }
 
     private var underageSupport: some View {
@@ -381,7 +306,7 @@ struct TrueMaxOnboardingFlow: View {
                         showsUnderageSupport = false
                         ageChoice = nil
                         if systemAgeStatus == .blocked {
-                            move(to: .howItWorks)
+                            move(to: .welcome)
                         }
                     } label: {
                         Image(systemName: "chevron.left")
@@ -436,7 +361,14 @@ struct TrueMaxOnboardingFlow: View {
     }
 
     private func progress(for step: Step) -> Double {
-        Double(step.rawValue + 1) / Double(Step.allCases.count)
+        switch step {
+        case .welcome:
+            return 1.0 / 3.0
+        case .ageGate:
+            return 2.0 / 3.0
+        case .privacy, .scanTrial, .paywall:
+            return 1.0
+        }
     }
 
     private func move(to nextStep: Step) {
@@ -589,7 +521,7 @@ private struct OnboardingScaffold<Content: View>: View {
                 }
 
                 HStack(spacing: 5) {
-                    ForEach(0..<6, id: \.self) { index in
+                    ForEach(0..<3, id: \.self) { index in
                         Circle()
                             .fill(index == activeDot ? TrueMaxPalette.accentLight : TrueMaxPalette.textTertiary.opacity(0.45))
                             .frame(width: index == activeDot ? 8 : 6, height: index == activeDot ? 8 : 6)
@@ -598,7 +530,7 @@ private struct OnboardingScaffold<Content: View>: View {
                 .frame(maxWidth: .infinity)
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel("Onboarding progress")
-                .accessibilityValue(activeDot == 5 ? "Finishing setup" : "Setup in progress")
+                .accessibilityValue(activeDot == 2 ? "Ready for first scan" : "Setup in progress")
 
                 Color.clear.frame(width: 44, height: 44)
             }
@@ -623,32 +555,7 @@ private struct OnboardingScaffold<Content: View>: View {
     }
 
     private var activeDot: Int {
-        max(0, min(5, Int(ceil(progress * 6)) - 1))
-    }
-}
-
-private struct HowItWorksCard: View {
-    let symbol: String
-    let title: String
-    let detail: String
-
-    var body: some View {
-        HStack(spacing: 16) {
-            TrueMaxIconCircle(symbol: symbol, size: 56)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.title3.weight(.bold))
-                    .foregroundStyle(TrueMaxPalette.textPrimary)
-                Text(detail)
-                    .font(.subheadline)
-                    .foregroundStyle(TrueMaxPalette.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-
-            Spacer(minLength: 0)
-        }
-        .trueMaxCard()
+        max(0, min(2, Int(ceil(progress * 3)) - 1))
     }
 }
 

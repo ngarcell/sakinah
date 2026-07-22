@@ -124,7 +124,10 @@ final class TrueMaxAppState {
     func completeOnboarding() {
         defaults.set(TrueMaxBrand.onboardingVersion, forKey: DefaultsKey.onboardingVersion)
         onboardingCompleted = true
-        selectedTab = .scan
+        // The reverse-trial scan is already persisted. Home immediately shows
+        // that exact baseline and its next actions instead of asking for a
+        // second scan.
+        selectedTab = .home
         TrueMaxAnalytics.shared.capture("onboarding completed")
     }
 
