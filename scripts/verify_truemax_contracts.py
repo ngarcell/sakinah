@@ -684,6 +684,21 @@ class ContractVerifier:
         else:
             self.pass_contract("No product analytics runtime")
 
+        if not (
+            re.search(
+                r"enum\s+SubscriptionTier\s*:\s*String[^{]*\{",
+                joined,
+            )
+            and re.search(r"\bcase\s+free\b", joined)
+            and re.search(r"\bcase\s+premium\b", joined)
+        ):
+            self.fail_contract(
+                "Subscription entitlement compatibility state",
+                "SubscriptionTier must retain free/premium raw values used by SubscriptionService",
+            )
+        else:
+            self.pass_contract("Subscription entitlement compatibility state")
+
         onboarding_source = next(
             (
                 source

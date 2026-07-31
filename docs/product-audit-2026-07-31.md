@@ -92,7 +92,7 @@ Checks included:
 | L-01 | Accessibility — `ios/Sakinah/TrueMax/TrueMaxHistoryView.swift:403` | Comparison VoiceOver always said “older left, newer right,” even after Swap. | Announce the actual left/right dates. |
 | L-02 | Product semantics — `ios/Sakinah/TrueMax/TrueMaxHistoryView.swift:578` | Any measurement shift was green, implying improvement despite the no-ranking promise. | Use neutral accent styling for change. |
 | L-03 | Data accuracy — `ios/Sakinah/TrueMax/TrueMaxSettingsView.swift:580` | “Photos saved” counted a non-null filename even when the file was absent or invalid. | Count only validated files that exist. |
-| L-04 | Maintainability — `ios/Sakinah/TrueMax/TrueMaxModels.swift:1` | An unused `SubscriptionTier.free` encoded a freemium concept that does not exist. | Removed the unused enum. |
+| L-04 | Compatibility — `ios/Sakinah/TrueMax/TrueMaxModels.swift:4` | The audit initially misclassified `SubscriptionTier.free` as an unused freemium concept, but `SubscriptionService` requires its persisted raw value for “no active entitlement.” Removing it caused a compile failure. | Restored the compatibility enum and documented that `.free` means locked/no entitlement; the root hard paywall still prevents freemium access. |
 
 ## Protected-owner findings and follow-up status
 
@@ -244,7 +244,7 @@ Checks included:
 
 ## Validation evidence
 
-- `python3 scripts/verify_truemax_contracts.py` — **23/23 passed**
+- `python3 scripts/verify_truemax_contracts.py` — **24/24 passed**
 - `python3 scripts/verify_truemax_intelligence.py` — **passed**
 - ast-grep Swift parse pass — **0 command/parse failures across Swift sources**
 - `git diff --check` — **passed**

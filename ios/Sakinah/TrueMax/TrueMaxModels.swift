@@ -1,6 +1,15 @@
 import Foundation
 import SwiftData
 
+/// Persisted entitlement state used by SubscriptionService.
+///
+/// The `.free` raw value is retained for storage compatibility and means
+/// "no active entitlement"; it does not grant a freemium workspace.
+nonisolated enum SubscriptionTier: String, Codable, Sendable {
+    case free
+    case premium
+}
+
 nonisolated enum CaptureMode: String, Codable, CaseIterable, Sendable {
     case depth3D
     case photo2D
