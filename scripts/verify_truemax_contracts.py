@@ -587,6 +587,35 @@ class ContractVerifier:
         self.pass_contract("Custom SwiftUI paywall without hosted PaywallView")
         self.pass_contract("Monthly/annual choices with annual selected by default")
 
+        eligibility_markers = (
+            "case .eligible:",
+            "return TrueMaxPaywallCopy.annualTrialCTA",
+            "case .ineligible:",
+            'return "Continue Pro — Annual"',
+            'purchaseTerms: "Starts immediately at',
+            "accessDetail: annualPlanAccessDetail",
+            "trialEligibility(for: .annual)",
+            "annualTrialEligibility == .unavailable",
+            "annualTrialEligibility == .checking",
+            "guard selectedPlan == .annual else",
+        )
+        missing_eligibility_markers = [
+            marker for marker in eligibility_markers if marker not in joined
+        ]
+        if (
+            missing_eligibility_markers
+            or 'details.plan == .annual\n                    ? "3 days free' in joined
+        ):
+            detail = ", ".join(missing_eligibility_markers)
+            if not detail:
+                detail = "annual plan card still has unconditional free-trial copy"
+            self.fail_contract(
+                "Eligible-only annual trial presentation",
+                detail,
+            )
+        else:
+            self.pass_contract("Eligible-only annual trial presentation")
+
     def verify_local_runtime(self, sources: dict[Path, str]) -> None:
         if not sources:
             self.fail_contract(

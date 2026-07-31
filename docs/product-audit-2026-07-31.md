@@ -28,11 +28,9 @@ been fixed. The app now:
 - makes guidance cards actionable and improves state, accessibility, and
   performance behavior.
 
-One **critical protected commercial defect remains**: an ineligible annual
-customer is still shown three-day-trial copy. The Declared Age Range entitlement
-is also missing from the protected signing configuration. These were not
-modified because the audit explicitly excludes commercial code and production
-configuration.
+The critical paywall truthfulness defect identified below was resolved in a
+separately authorized, narrowly scoped commercial follow-up. The Declared Age
+Range entitlement remains missing from the protected signing configuration.
 
 ## Scope and method
 
@@ -96,30 +94,30 @@ Checks included:
 | L-03 | Data accuracy — `ios/Sakinah/TrueMax/TrueMaxSettingsView.swift:580` | “Photos saved” counted a non-null filename even when the file was absent or invalid. | Count only validated files that exist. |
 | L-04 | Maintainability — `ios/Sakinah/TrueMax/TrueMaxModels.swift:1` | An unused `SubscriptionTier.free` encoded a freemium concept that does not exist. | Removed the unused enum. |
 
-## Findings requiring protected-owner action
+## Protected-owner findings and follow-up status
 
 ### Critical
 
-#### P-01 — Ineligible annual customers are promised a free trial
+#### P-01 — Resolved: ineligible annual customers were promised a free trial
 
 - **Category:** commercial truthfulness / billing UX
-- **Location:** `ios/Sakinah/TrueMax/TrueMaxPaywallView.swift:315-345`,
-  `ios/Sakinah/TrueMax/TrueMaxPaywallView.swift:355-359`, and
-  `ios/Sakinah/TrueMax/TrueMaxPaywallView.swift:432-434`
-- **Problem:** `.ineligible` and `.noIntroOfferExists` are resolved correctly,
-  but every non-error annual state still renders “Start 3-Day Free Trial,” an
-  annual free-trial disclosure, and “3 days free” on the card.
-- **Impact:** false purchase claim for existing/ineligible Apple customers,
+- **Location:** `ios/Sakinah/TrueMax/TrueMaxPaywallView.swift:323-383` and
+  `ios/Sakinah/TrueMax/TrueMaxPaywallView.swift:387-400`
+- **Original problem:** `.ineligible` and `.noIntroOfferExists` resolved
+  correctly, but every non-error annual state rendered “Start 3-Day Free
+  Trial,” an annual free-trial disclosure, and “3 days free” on the card.
+- **Original impact:** false purchase claim for existing/ineligible customers,
   direct conflict with “annual only and only when eligible,” customer harm, and
   App Review/compliance risk.
-- **Reproduction:** use an Apple sandbox account that already consumed the
+- **Original reproduction:** use an Apple sandbox account that already consumed the
   introductory offer (or an annual product without an intro offer) → open the
   paywall → wait for eligibility to resolve → select annual → observe the
   three-day-trial CTA and disclosure.
-- **Required fix:** in the protected paywall, show trial CTA/card/disclosure
-  only for `.eligible`; show “Continue Pro — Annual” and immediate annual
-  billing terms for `.ineligible`; keep unknown/unavailable blocked.
-- **Why unchanged:** this file is explicitly protected commercial/payment code.
+- **Resolution:** trial CTA, plan-card detail, and billing disclosure now appear
+  only for `.eligible`. Ineligible/no-offer customers see “Continue Pro —
+  Annual,” immediate billing terms, and can purchase without a false trial
+  claim. Unknown eligibility remains retry-only. Monthly never checks or
+  mentions trial eligibility.
 
 ### High
 
@@ -242,16 +240,16 @@ Checks included:
 | Style favorite toggle | Transactional, duplicate-cleaning, visible failure path. |
 | History comparison | Correct left/right accessibility state after swap; neutral change semantics. |
 | Marketing walkthrough | Launch-argument-only and excluded from shipping onboarding/purchase paths. |
-| Trial eligibility | **Blocked for release by P-01 in protected commercial code.** |
+| Trial eligibility | Source behavior fixed: eligible annual shows the trial; ineligible annual shows immediate billing; unknown retries; monthly has no trial. StoreKit sandbox confirmation remains required. |
 
 ## Validation evidence
 
-- `python3 scripts/verify_truemax_contracts.py` — **22/22 passed**
+- `python3 scripts/verify_truemax_contracts.py` — **23/23 passed**
 - `python3 scripts/verify_truemax_intelligence.py` — **passed**
 - ast-grep Swift parse pass — **0 command/parse failures across Swift sources**
 - `git diff --check` — **passed**
 - public Privacy, Terms, Support endpoints — **HTTP 200**
-- protected commercial/configuration diff check — **no modifications**
+- production configuration diff check — **no modifications**
 
 Xcode, Swift, and `xcodebuild` are not available in this WSL environment.
 Therefore a native compile, XCTest/UI test execution, signed-entitlement
@@ -259,9 +257,8 @@ inspection, StoreKit sandbox verification, VoiceOver/Dynamic Type pass, and
 physical TrueDepth/2D/orientation testing remain mandatory before release.
 Passing source contracts is not a substitute for those checks.
 
-## Protected files left unchanged
+## Production configuration and remaining commercial files left unchanged
 
-- `ios/Sakinah/TrueMax/TrueMaxPaywallView.swift`
 - `ios/Sakinah/Services/SubscriptionService.swift`
 - `ios/Sakinah/Services/RevenueCatConfiguration.swift`
 - `ios/Sakinah/Info.plist`

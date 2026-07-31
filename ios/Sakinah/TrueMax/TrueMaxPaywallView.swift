@@ -8,7 +8,7 @@ private enum TrueMaxPaywallCopy {
 }
 
 struct TrueMaxPaywallView: View {
-    private enum TrialEligibilityPresentation: Equatable {
+    private enum AnnualTrialEligibilityPresentation: Equatable {
         case checking
         case eligible
         case ineligible
@@ -24,7 +24,7 @@ struct TrueMaxPaywallView: View {
     var onClose: (() -> Void)?
 
     @State private var selectedPlan: SubscriptionService.Plan = .annual
-    @State private var trialEligibility: TrialEligibilityPresentation = .checking
+    @State private var annualTrialEligibility: AnnualTrialEligibilityPresentation = .checking
 
     init(
         showsCloseButton: Bool = true,
@@ -137,16 +137,18 @@ struct TrueMaxPaywallView: View {
                     "error_type": subscriptionService.purchaseError == nil ? "unknown" : "revenuecat"
                 ])
             }
-            await refreshTrialEligibility()
+            await refreshAnnualTrialEligibility()
         }
         .onChange(of: selectedPlan) { _, plan in
             TrueMaxAnalytics.shared.capture("paywall plan selected", properties: [
                 "plan": plan.rawValue
             ])
             subscriptionService.clearError()
-            trialEligibility = .checking
-            Task {
-                await refreshTrialEligibility()
+            if plan == .annual {
+                annualTrialEligibility = .checking
+                Task {
+                    await refreshAnnualTrialEligibility()
+                }
             }
         }
         .onChange(of: subscriptionService.isPremium) { _, isPremium in
@@ -236,9 +238,10 @@ struct TrueMaxPaywallView: View {
                     "cta": primaryCTATitle
                 ])
                 Task {
-                    if trialEligibility == .unavailable {
-                        trialEligibility = .checking
-                        await refreshTrialEligibility()
+                    if selectedPlan == .annual,
+                       annualTrialEligibility == .unavailable {
+                        annualTrialEligibility = .checking
+                        await refreshAnnualTrialEligibility()
                         return
                     }
 
@@ -268,7 +271,10 @@ struct TrueMaxPaywallView: View {
             .disabled(
                 subscriptionService.isPurchasing
                     || !subscriptionService.planDetails(for: selectedPlan).isAvailable
-                    || trialEligibility == .checking
+                    || (
+                        selectedPlan == .annual
+                            && annualTrialEligibility == .checking
+                    )
             )
 
             Text(billingDisclosure)
@@ -291,7 +297,8 @@ struct TrueMaxPaywallView: View {
     private var monthlyPlanCard: some View {
         PlanChoiceCard(
             details: subscriptionService.planDetails(for: .monthly),
-            isSelected: selectedPlan == .monthly
+            isSelected: selectedPlan == .monthly,
+            accessDetail: "Flexible monthly access"
         ) {
             TrueMaxAnalytics.shared.capture("paywall plan selected", properties: [
                 "plan": SubscriptionService.Plan.monthly.rawValue
@@ -303,7 +310,8 @@ struct TrueMaxPaywallView: View {
     private var annualPlanCard: some View {
         PlanChoiceCard(
             details: subscriptionService.planDetails(for: .annual),
-            isSelected: selectedPlan == .annual
+            isSelected: selectedPlan == .annual,
+            accessDetail: annualPlanAccessDetail
         ) {
             TrueMaxAnalytics.shared.capture("paywall plan selected", properties: [
                 "plan": SubscriptionService.Plan.annual.rawValue
@@ -317,53 +325,81 @@ struct TrueMaxPaywallView: View {
             return "Confirming…"
         }
 
-        if trialEligibility == .checking {
-            return "Checking Eligibility…"
+        guard selectedPlan == .annual else {
+            return "Continue Pro — Monthly"
         }
 
-        if trialEligibility == .unavailable {
+        switch annualTrialEligibility {
+        case .checking:
+            return "Checking Eligibility…"
+        case .eligible:
+            return TrueMaxPaywallCopy.annualTrialCTA
+        case .ineligible:
+            return "Continue Pro — Annual"
+        case .unavailable:
             return "Retry Plan Check"
         }
-
-        if selectedPlan == .annual {
-            return TrueMaxPaywallCopy.annualTrialCTA
-        }
-
-        return "Continue Pro — Monthly"
     }
 
     private var billingDisclosure: String {
         let details = subscriptionService.planDetails(for: selectedPlan)
         let price = details.localizedPrice ?? "the displayed App Store price"
 
-        if trialEligibility == .unavailable {
-            return "Free-trial eligibility could not be verified. Reconnect and retry so TrueMax can show the correct billing terms before purchase."
+        guard selectedPlan == .annual else {
+            return renewalDisclosure(
+                purchaseTerms: "\(price) per \(details.cadence)"
+            )
         }
 
-        if selectedPlan == .annual {
-            return "\(TrueMaxPaywallCopy.annualTrialDisclosure), then \(price) per \(details.cadence). Subscription renews automatically unless cancelled at least 24 hours before the current period ends."
+        switch annualTrialEligibility {
+        case .checking:
+            return "Checking free-trial eligibility so TrueMax can show the exact annual billing terms before purchase."
+        case .eligible:
+            return renewalDisclosure(
+                purchaseTerms: "\(TrueMaxPaywallCopy.annualTrialDisclosure), then \(price) per \(details.cadence)"
+            )
+        case .ineligible:
+            return renewalDisclosure(
+                purchaseTerms: "Starts immediately at \(price) per \(details.cadence)"
+            )
+        case .unavailable:
+            return "Free-trial eligibility could not be verified. Reconnect and retry so TrueMax can show the correct annual billing terms before purchase."
         }
-
-        return "\(price) per \(details.cadence). Subscription renews automatically unless cancelled at least 24 hours before the current period ends."
     }
 
-    private func refreshTrialEligibility() async {
-        let plan = selectedPlan
-        let status = await subscriptionService.trialEligibility(for: plan)
-        guard selectedPlan == plan else { return }
+    private var annualPlanAccessDetail: String {
+        switch annualTrialEligibility {
+        case .checking:
+            return "Checking trial eligibility…"
+        case .eligible:
+            return "\(TrueMaxPaywallCopy.annualTrialDisclosure), then billed once per year"
+        case .ineligible:
+            return "Starts now, billed once per year"
+        case .unavailable:
+            return "Reconnect to verify trial eligibility"
+        }
+    }
+
+    private func renewalDisclosure(purchaseTerms: String) -> String {
+        "\(purchaseTerms). Subscription renews automatically unless cancelled at least 24 hours before the current period ends."
+    }
+
+    private func refreshAnnualTrialEligibility() async {
+        let status = await subscriptionService.trialEligibility(for: .annual)
+        guard selectedPlan == .annual else { return }
 
         switch status {
         case .eligible:
-            trialEligibility = .eligible
+            annualTrialEligibility = .eligible
         case .ineligible, .noIntroOfferExists:
-            trialEligibility = .ineligible
+            annualTrialEligibility = .ineligible
         case .unknown:
-            trialEligibility = .unavailable
+            annualTrialEligibility = .unavailable
         @unknown default:
-            trialEligibility = .unavailable
+            annualTrialEligibility = .unavailable
         }
         TrueMaxAnalytics.shared.capture("trial eligibility checked", properties: [
-            "plan": plan.rawValue,
+            "plan": SubscriptionService.Plan.annual.rawValue,
             "status": String(describing: status)
         ])
     }
@@ -372,6 +408,7 @@ struct TrueMaxPaywallView: View {
 private struct PlanChoiceCard: View {
     let details: SubscriptionService.PlanDetails
     let isSelected: Bool
+    let accessDetail: String
     let action: () -> Void
 
     var body: some View {
@@ -429,9 +466,7 @@ private struct PlanChoiceCard: View {
                         .foregroundStyle(TrueMaxPalette.textSecondary)
                 }
 
-                Text(details.plan == .annual
-                    ? "3 days free, then billed once per year"
-                    : "Flexible monthly access")
+                Text(accessDetail)
                     .font(.caption)
                     .foregroundStyle(TrueMaxPalette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -454,7 +489,7 @@ private struct PlanChoiceCard: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(
-            "\(details.displayName), \(details.localizedPrice ?? "price loading")"
+            "\(details.displayName), \(details.localizedPrice ?? "price loading"), \(accessDetail)"
         )
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
