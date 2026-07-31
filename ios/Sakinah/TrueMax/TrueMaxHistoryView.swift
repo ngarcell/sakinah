@@ -399,7 +399,9 @@ struct TrueMaxComparisonView: View {
         .clipShape(RoundedRectangle(cornerRadius: 20))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Scan comparison")
-        .accessibilityValue("Older scan on the left, newer scan on the right")
+        .accessibilityValue(
+            "\(leftScan.createdAt.formatted(date: .abbreviated, time: .omitted)) on the left, \(rightScan.createdAt.formatted(date: .abbreviated, time: .omitted)) on the right"
+        )
         .accessibilityHint("Use the Swap button to reverse the scans.")
         .overlay(alignment: .center) {
             Image(systemName: "pause.fill")
@@ -576,7 +578,7 @@ private struct ComparisonMetricRow: View {
     private var changeColor: Color {
         abs(right.midpoint - left.midpoint) < 0.75
             ? TrueMaxPalette.neutral
-            : TrueMaxPalette.positive
+            : TrueMaxPalette.accentLight
     }
 
     private func formatted(_ value: Double) -> String {

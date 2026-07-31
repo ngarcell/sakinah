@@ -30,6 +30,8 @@ final class SakinahUITests: XCTestCase {
         XCTAssertTrue(app.wait(for: .runningForeground, timeout: 8))
         XCTAssertFalse(app.textFields["Email"].exists)
         XCTAssertFalse(app.secureTextFields["Password"].exists)
+        XCTAssertFalse(app.buttons["truemax.skipOnboarding"].exists)
+        XCTAssertFalse(app.buttons["Play 55-second walkthrough"].exists)
     }
 
     @MainActor

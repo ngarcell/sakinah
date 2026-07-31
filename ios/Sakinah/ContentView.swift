@@ -25,19 +25,17 @@ struct ContentView: View {
                     }
                 )
             } else if !appState.hasCompletedOnboarding {
-                TrueMaxOnboardingFlow(onSkip: skipToWalkthrough)
+                TrueMaxOnboardingFlow()
                     .id(appState.onboardingRestartID)
-            } else if appState.presentsPaywall && !subscriptionService.isPremium {
+            } else if !subscriptionService.isPremium
+                        && !isMarketingPlaybackVisible {
                 TrueMaxPaywallView(
-                    showsCloseButton: true,
+                    showsCloseButton: false,
                     onUnlocked: {
                         appState.dismissPaywall()
                         appState.selectedTab = .home
-                        demo.presentLauncher()
                     },
-                    onClose: {
-                        appState.dismissPaywall()
-                    }
+                    onClose: {}
                 )
             } else {
                 TrueMaxMainTabView()
@@ -63,6 +61,21 @@ struct ContentView: View {
                 "tab": tab.title
             ])
         }
+        .alert(
+            "Cosmetic information only",
+            isPresented: Binding(
+                get: { appState.requiresMedicalDisclaimer },
+                set: { _ in }
+            )
+        ) {
+            Button("I understand") {
+                appState.acknowledgeDisclaimer()
+            }
+        } message: {
+            Text(
+                "TrueMax provides image-dependent cosmetic estimates and general grooming guidance. It is not a medical device, diagnosis, attractiveness score, or substitute for professional care."
+            )
+        }
         .alert("Walkthrough unavailable", isPresented: Binding(
             get: { demoError != nil },
             set: { if !$0 { demoError = nil } }
@@ -79,6 +92,9 @@ struct ContentView: View {
             if !appState.hasCompletedOnboarding {
                 appState.completeOnboarding()
             }
+            if appState.requiresMedicalDisclaimer {
+                appState.acknowledgeDisclaimer()
+            }
             appState.selectedTab = .home
             demo.start()
         } catch {
@@ -86,13 +102,7 @@ struct ContentView: View {
         }
     }
 
-    private func skipToWalkthrough() {
-        appState.dismissPaywall()
-        appState.completeOnboarding()
-        appState.selectedTab = .home
-        demo.presentLauncher()
-        TrueMaxAnalytics.shared.capture("onboarding skipped", properties: [
-            "destination": "marketing_walkthrough"
-        ])
+    private var isMarketingPlaybackVisible: Bool {
+        demo.isPlaying || demo.phase == .finished
     }
 }

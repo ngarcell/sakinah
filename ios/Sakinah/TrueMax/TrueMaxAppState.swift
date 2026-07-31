@@ -136,10 +136,17 @@ final class TrueMaxAppState {
     }
 
     func consumeReverseTrial() {
+        recordReverseTrialResult()
+        presentsPaywall = true
+    }
+
+    /// Persists the one-result allowance as soon as a real result is saved.
+    /// Paywall presentation remains a separate step so the result can be
+    /// reviewed first without a force-quit granting another free scan.
+    func recordReverseTrialResult() {
         guard !reverseTrialConsumed else { return }
         reverseTrialConsumed = true
         defaults.set(true, forKey: DefaultsKey.reverseTrialConsumed)
-        presentsPaywall = true
         TrueMaxAnalytics.shared.capture("reverse trial consumed")
     }
 

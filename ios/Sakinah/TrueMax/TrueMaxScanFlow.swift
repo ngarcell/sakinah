@@ -210,6 +210,15 @@ struct TrueMaxScanRootView: View {
                     .buttonStyle(TrueMaxPrimaryButtonStyle())
                     .disabled(isOpeningCamera)
 
+                    if let errorMessage {
+                        Label(errorMessage, systemImage: "exclamationmark.triangle")
+                            .font(.footnote.weight(.medium))
+                            .foregroundStyle(TrueMaxPalette.caution)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityLabel("Camera error: \(errorMessage)")
+                    }
+
                     Spacer(minLength: 8)
                 }
                 .padding(.horizontal, 20)
@@ -709,6 +718,14 @@ struct TrueMaxScanRootView: View {
             case .denied, .restricted:
                 phase = .permission
             case .authorized:
+                guard cameraController.isConfigured,
+                      cameraController.isRunning else {
+                    errorMessage = cameraController.lastError?.localizedDescription
+                        ?? "The front camera could not be started. Please try again."
+                    cameraController.stop()
+                    phase = .checklist
+                    return
+                }
                 if cameraController.captureMode == .photo2D, !photoModeExplained {
                     cameraController.stop()
                     phase = .photoMode
@@ -773,6 +790,9 @@ struct TrueMaxScanRootView: View {
                 }
 
                 completedScan = scan
+                if !subscriptionService.isPremium && !demo.isPlaying {
+                    appState.recordReverseTrialResult()
+                }
                 phase = .result
                 TrueMaxAnalytics.shared.capture("scan result available", properties: [
                     "capture_mode": scan.captureMode.title,

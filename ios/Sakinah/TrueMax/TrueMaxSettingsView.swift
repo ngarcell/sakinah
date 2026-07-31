@@ -470,7 +470,7 @@ private struct TrueMaxDataPrivacyView: View {
                 .foregroundStyle(TrueMaxPalette.textPrimary)
                 .multilineTextAlignment(.center)
 
-            Text("TrueMax has no account, cloud sync, or ads. Face captures and measurements stay in the app’s protected local storage; anonymous product events never include face data.")
+            Text("TrueMax has no account, cloud sync, ads, or product analytics. Face captures, measurements, and product interactions stay on this iPhone.")
                 .font(.body)
                 .foregroundStyle(TrueMaxPalette.textSecondary)
                 .multilineTextAlignment(.center)
@@ -578,7 +578,9 @@ private struct TrueMaxDataPrivacyView: View {
     }
 
     private var scansWithPhotos: Int {
-        scans.filter { $0.imageFilename != nil }.count
+        scans.filter {
+            TrueMaxStorage.captureExists(filename: $0.imageFilename)
+        }.count
     }
 
     private func exportData() {

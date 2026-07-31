@@ -1,47 +1,19 @@
 import Foundation
-import PostHog
 
-/// Centralized anonymous product analytics for TrueMax.
+/// No-op telemetry boundary for TrueMax.
 ///
-/// Only product-usage metadata is sent. Facial images, measurements, landmark
-/// data, style choices, and free-form user content remain on the device.
+/// Existing call sites intentionally remain so protected commercial surfaces do
+/// not need to change. No SDK is configured and no event or property leaves the
+/// device, matching the product requirements and published privacy policy.
 @MainActor
 final class TrueMaxAnalytics {
     static let shared = TrueMaxAnalytics()
 
-    private static let projectToken = "phc_qR88a5FF4vWuSMrUZ8yGBsC5hPfMuHkcHgEydgcRQo5f"
-    private static let host = "https://us.i.posthog.com"
-
-    private var isConfigured = false
-
     private init() {}
 
-    func configure() {
-        guard !isConfigured else { return }
+    func configure() {}
 
-        let config = PostHogConfig(
-            projectToken: Self.projectToken,
-            host: Self.host
-        )
-        config.captureElementInteractions = true
-        config.rageClickConfig.enabled = true
-        config.personProfiles = .identifiedOnly
-        PostHogSDK.shared.setup(config)
-        isConfigured = true
+    func capture(_ event: String, properties: [String: Any] = [:]) {}
 
-        capture("app opened")
-    }
-
-    func capture(_ event: String, properties: [String: Any] = [:]) {
-        guard isConfigured else { return }
-        PostHogSDK.shared.capture(event, properties: properties)
-    }
-
-    func screen(_ name: String, properties: [String: Any] = [:]) {
-        capture("screen viewed", properties: [
-            "$screen_name": name,
-            "screen": name,
-            "source": "manual_swiftui",
-        ].merging(properties) { _, new in new })
-    }
+    func screen(_ name: String, properties: [String: Any] = [:]) {}
 }

@@ -50,11 +50,25 @@ enum TrueMaxStorage {
 
     static func image(filename: String?) -> UIImage? {
         guard let filename,
+              isValidCaptureFilename(filename),
               let directory = try? capturesDirectory() else {
             return nil
         }
 
         return UIImage(contentsOfFile: directory.appendingPathComponent(filename).path)
+    }
+
+    static func captureExists(filename: String?) -> Bool {
+        guard let filename,
+              isValidCaptureFilename(filename),
+              let directory = try? storageDirectoryURL(
+                named: capturesDirectoryName
+              ) else {
+            return false
+        }
+        return FileManager.default.fileExists(
+            atPath: directory.appendingPathComponent(filename).path
+        )
     }
 
     @discardableResult
@@ -63,7 +77,7 @@ enum TrueMaxStorage {
             return .deletedOrAbsent
         }
 
-        guard URL(fileURLWithPath: filename).lastPathComponent == filename else {
+        guard isValidCaptureFilename(filename) else {
             return .failure(
                 .couldNotDeleteCapture(
                     reason: "The stored filename was invalid, so no file was touched."
@@ -172,6 +186,17 @@ enum TrueMaxStorage {
 
     private static func capturesDirectory() throws -> URL {
         try protectedDirectory(named: capturesDirectoryName)
+    }
+
+    private static func isValidCaptureFilename(_ filename: String) -> Bool {
+        let url = URL(fileURLWithPath: filename)
+        guard !filename.isEmpty,
+              url.lastPathComponent == filename,
+              url.pathExtension.lowercased() == "jpg" else {
+            return false
+        }
+        return UUID(uuidString: url.deletingPathExtension().lastPathComponent)
+            != nil
     }
 
     private static func exportsDirectory() throws -> URL {

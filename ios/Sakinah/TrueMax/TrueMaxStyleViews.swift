@@ -328,6 +328,7 @@ struct TrueMaxStyleLibraryView: View {
 
     @State private var category: TrueMaxHairStyle.Category = .recommended
     @State private var showsDemoPreview = false
+    @State private var favoriteError: String?
 
     private let columns = [
         GridItem(.flexible(), spacing: 12),
@@ -443,6 +444,17 @@ struct TrueMaxStyleLibraryView: View {
                 )
             }
         }
+        .alert(
+            "Favorite wasn’t updated",
+            isPresented: Binding(
+                get: { favoriteError != nil },
+                set: { if !$0 { favoriteError = nil } }
+            )
+        ) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(favoriteError ?? "Please try again.")
+        }
     }
 
     private var recommendationScan: ScanRecord {
@@ -469,14 +481,15 @@ struct TrueMaxStyleLibraryView: View {
     }
 
     private func toggleFavorite(_ style: TrueMaxHairStyle) {
-        if let existing = favorites.first(where: { $0.styleID == style.id }) {
-            modelContext.delete(existing)
-        } else {
-            modelContext.insert(
-                StyleFavorite(styleID: style.id, title: style.title)
+        do {
+            try TrueMaxFavoriteStore.toggle(
+                styleID: style.id,
+                title: style.title,
+                in: modelContext
             )
+        } catch {
+            favoriteError = error.localizedDescription
         }
-        try? modelContext.save()
     }
 }
 
@@ -489,6 +502,7 @@ private struct TrueMaxStylePreviewView: View {
     @Query private var favorites: [StyleFavorite]
 
     @State private var selectedRecommendation: TrueMaxStyleRecommendation
+    @State private var favoriteError: String?
 
     init(
         scan: ScanRecord,
@@ -662,6 +676,17 @@ private struct TrueMaxStylePreviewView: View {
                 }
             }
         }
+        .alert(
+            "Favorite wasn’t updated",
+            isPresented: Binding(
+                get: { favoriteError != nil },
+                set: { if !$0 { favoriteError = nil } }
+            )
+        ) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(favoriteError ?? "Please try again.")
+        }
     }
 
     private var isFavorite: Bool {
@@ -673,25 +698,23 @@ private struct TrueMaxStylePreviewView: View {
     }
 
     private func toggleFavorite() {
-        if let favorite = favorites.first(where: { $0.styleID == selectedStyle.id }) {
-            modelContext.delete(favorite)
-        } else {
-            modelContext.insert(
-                StyleFavorite(
-                    styleID: selectedStyle.id,
-                    title: selectedStyle.title
-                )
+        do {
+            try TrueMaxFavoriteStore.toggle(
+                styleID: selectedStyle.id,
+                title: selectedStyle.title,
+                in: modelContext
             )
+        } catch {
+            favoriteError = error.localizedDescription
         }
-        try? modelContext.save()
     }
 }
 
 struct TrueMaxColorAnalysisView: View {
-    let scan: ScanRecord
+    private let profile: TrueMaxColorProfile
 
-    private var profile: TrueMaxColorProfile {
-        TrueMaxColorAnalyzer.profile(
+    init(scan: ScanRecord) {
+        profile = TrueMaxColorAnalyzer.profile(
             for: TrueMaxStorage.image(filename: scan.imageFilename)
         )
     }
@@ -955,6 +978,10 @@ private struct TrueMaxColorProfile {
 }
 
 private enum TrueMaxColorAnalyzer {
+    private static let context = CIContext(
+        options: [.workingColorSpace: NSNull()]
+    )
+
     static func profile(for image: UIImage?) -> TrueMaxColorProfile {
         guard let image,
               let values = averageRGBA(of: image) else {
@@ -994,15 +1021,14 @@ private enum TrueMaxColorAnalyzer {
         guard let output = filter.outputImage else { return nil }
 
         var bitmap = [UInt8](repeating: 0, count: 4)
-        CIContext(options: [.workingColorSpace: NSNull()])
-            .render(
-                output,
-                toBitmap: &bitmap,
-                rowBytes: 4,
-                bounds: CGRect(x: 0, y: 0, width: 1, height: 1),
-                format: .RGBA8,
-                colorSpace: CGColorSpaceCreateDeviceRGB()
-            )
+        context.render(
+            output,
+            toBitmap: &bitmap,
+            rowBytes: 4,
+            bounds: CGRect(x: 0, y: 0, width: 1, height: 1),
+            format: .RGBA8,
+            colorSpace: CGColorSpaceCreateDeviceRGB()
+        )
 
         return (
             Double(bitmap[0]) / 255,
@@ -1089,7 +1115,7 @@ private enum TrueMaxColorAnalyzer {
 
     private static let neutralProfile = TrueMaxColorProfile(
         title: "Neutral starting palette",
-        detail: "Complete a scan for a capture-based estimate",
+        detail: "Capture photo unavailable",
         guidance: "Balanced navy, charcoal, soft white, and forest are flexible starting points.",
         chooseDetail: "Balanced, medium-contrast colors",
         sparingDetail: "Extremely bright or highly muted colors",

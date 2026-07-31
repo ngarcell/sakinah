@@ -6,8 +6,6 @@ import DeclaredAgeRange
 #endif
 
 struct TrueMaxOnboardingFlow: View {
-    let onSkip: () -> Void
-
     private enum Step: Int, CaseIterable {
         case welcome
         case ageGate
@@ -38,10 +36,6 @@ struct TrueMaxOnboardingFlow: View {
     @State private var showsUnderageSupport = false
     @State private var systemAgeStatus: SystemAgeStatus = .notStarted
 
-    init(onSkip: @escaping () -> Void) {
-        self.onSkip = onSkip
-    }
-
     var body: some View {
         ZStack {
             TrueMaxPageBackground()
@@ -63,8 +57,12 @@ struct TrueMaxOnboardingFlow: View {
                             isOnboardingTrial: true,
                             onTrialExit: { move(to: .privacy) },
                             onTrialCompleted: {
-                                appState.consumeReverseTrial()
-                                move(to: .paywall)
+                                if subscriptionService.isPremium {
+                                    appState.completeOnboarding()
+                                } else {
+                                    appState.consumeReverseTrial()
+                                    move(to: .paywall)
+                                }
                             }
                         )
                     }
@@ -94,57 +92,41 @@ struct TrueMaxOnboardingFlow: View {
     }
 
     private var welcome: some View {
-        ZStack(alignment: .topTrailing) {
-            OnboardingScaffold(
-                progress: progress(for: .welcome),
-                actionTitle: "Check my baseline",
-                action: { move(to: .ageGate) }
-            ) {
-                VStack(spacing: 24) {
-                    Spacer(minLength: 18)
+        OnboardingScaffold(
+            progress: progress(for: .welcome),
+            actionTitle: "Check my baseline",
+            action: { move(to: .ageGate) }
+        ) {
+            VStack(spacing: 24) {
+                Spacer(minLength: 18)
 
-                    TrueMaxBrandLockup()
+                TrueMaxBrandLockup()
 
-                    FaceMeshIllustration()
-                        .frame(height: 250)
-                        .padding(.horizontal, 20)
-                        .accessibilityLabel("Geometric facial measurement illustration")
+                FaceMeshIllustration()
+                    .frame(height: 250)
+                    .padding(.horizontal, 20)
+                    .accessibilityLabel("Geometric facial measurement illustration")
 
-                    VStack(spacing: 10) {
-                        Text("Know what works for you.")
-                            .font(.title2.weight(.bold))
-                            .fontDesign(.rounded)
-                            .foregroundStyle(TrueMaxPalette.textPrimary)
-                            .multilineTextAlignment(.center)
+                VStack(spacing: 10) {
+                    Text("Know what works for you.")
+                        .font(.title2.weight(.bold))
+                        .fontDesign(.rounded)
+                        .foregroundStyle(TrueMaxPalette.textPrimary)
+                        .multilineTextAlignment(.center)
 
-                        Text("Complete one private scan, see your measurement ranges and practical next steps, then decide whether to continue.")
-                            .font(.body)
-                            .foregroundStyle(TrueMaxPalette.textSecondary)
-                            .multilineTextAlignment(.center)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-
-                    Text("Designed for adults 18+")
-                        .font(.footnote.weight(.medium))
-                        .foregroundStyle(TrueMaxPalette.textTertiary)
-
-                    Spacer(minLength: 8)
+                    Text("Complete one private scan, see your measurement ranges and practical next steps, then decide whether to continue.")
+                        .font(.body)
+                        .foregroundStyle(TrueMaxPalette.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-            }
 
-            Button("Skip") {
-                onSkip()
+                Text("Designed for adults 18+")
+                    .font(.footnote.weight(.medium))
+                    .foregroundStyle(TrueMaxPalette.textTertiary)
+
+                Spacer(minLength: 8)
             }
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(TrueMaxPalette.textPrimary)
-            .padding(.horizontal, 16)
-            .frame(minHeight: 44)
-            .background(.ultraThinMaterial, in: Capsule())
-            .overlay { Capsule().strokeBorder(TrueMaxPalette.border) }
-            .padding(.top, 12)
-            .padding(.trailing, 18)
-            .accessibilityIdentifier("truemax.skipOnboarding")
-            .accessibilityHint("Bypasses setup and opens the demo walkthrough dashboard")
         }
     }
 
@@ -192,9 +174,10 @@ struct TrueMaxOnboardingFlow: View {
                         isSelected: ageChoice == .adult
                     ) {
                         ageChoice = .adult
-                        TrueMaxAnalytics.shared.capture("onboarding age selected", properties: [
-                            "age_range": "adult"
-                        ])
+                        TrueMaxAnalytics.shared.capture(
+                            "onboarding age choice made",
+                            properties: ["method": "self_attestation"]
+                        )
                     }
                     .disabled(
                         systemAgeStatus == .checking
@@ -207,9 +190,10 @@ struct TrueMaxOnboardingFlow: View {
                         isSelected: ageChoice == .underage
                     ) {
                         ageChoice = .underage
-                        TrueMaxAnalytics.shared.capture("onboarding age selected", properties: [
-                            "age_range": "underage"
-                        ])
+                        TrueMaxAnalytics.shared.capture(
+                            "onboarding age choice made",
+                            properties: ["method": "self_attestation"]
+                        )
                     }
                     .disabled(systemAgeStatus == .checking)
                 }
@@ -241,9 +225,7 @@ struct TrueMaxOnboardingFlow: View {
                     "reverse_trial_consumed": appState.reverseTrialConsumed,
                     "is_premium": subscriptionService.isPremium
                 ])
-                if subscriptionService.isPremium {
-                    appState.completeOnboarding()
-                } else if appState.reverseTrialConsumed {
+                if !subscriptionService.isPremium && appState.reverseTrialConsumed {
                     appState.presentPaywall()
                     move(to: .paywall)
                 } else {
@@ -446,12 +428,13 @@ struct TrueMaxOnboardingFlow: View {
         case .adult:
             systemAgeStatus = .confirmedAdult
             ageChoice = .adult
-        case .underage, .declined:
+        case .underage:
             systemAgeStatus = .blocked
             ageChoice = .underage
             showsUnderageSupport = true
-        case .unavailable:
+        case .declined, .unavailable:
             systemAgeStatus = .unavailable
+            ageChoice = nil
         }
     }
 }
@@ -488,8 +471,11 @@ private struct TrueMaxSystemAgeRangeCheck: View {
                         if let lowerBound = ageRange.lowerBound,
                            lowerBound >= 18 {
                             onResult(.adult)
-                        } else {
+                        } else if let upperBound = ageRange.upperBound,
+                                  upperBound < 18 {
                             onResult(.underage)
+                        } else {
+                            onResult(.unavailable)
                         }
                     case .declinedSharing:
                         onResult(.declined)

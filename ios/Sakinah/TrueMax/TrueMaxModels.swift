@@ -1,11 +1,6 @@
 import Foundation
 import SwiftData
 
-nonisolated enum SubscriptionTier: String, Codable, Sendable {
-    case free
-    case premium
-}
-
 nonisolated enum CaptureMode: String, Codable, CaseIterable, Sendable {
     case depth3D
     case photo2D
@@ -155,6 +150,23 @@ nonisolated struct MetricRangeValue: Codable, Hashable, Sendable {
     let low: Double
     let high: Double
     let unit: MetricUnit
+
+    init(low: Double, high: Double, unit: MetricUnit) {
+        let finiteLow = low.isFinite ? low : 0
+        let finiteHigh = high.isFinite ? high : finiteLow
+        self.low = min(finiteLow, finiteHigh)
+        self.high = max(finiteLow, finiteHigh)
+        self.unit = unit
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(
+            low: try container.decode(Double.self, forKey: .low),
+            high: try container.decode(Double.self, forKey: .high),
+            unit: try container.decode(MetricUnit.self, forKey: .unit)
+        )
+    }
 
     var displayText: String {
         let lowText = formatted(low)
@@ -335,5 +347,43 @@ final class StyleFavorite {
         self.styleID = styleID
         self.title = title
         self.createdAt = createdAt
+    }
+}
+
+@MainActor
+enum TrueMaxFavoriteStore {
+    @discardableResult
+    static func toggle(
+        styleID: String,
+        title: String,
+        in context: ModelContext
+    ) throws -> Bool {
+        let requestedStyleID = styleID
+        let descriptor = FetchDescriptor<StyleFavorite>(
+            predicate: #Predicate { favorite in
+                favorite.styleID == requestedStyleID
+            }
+        )
+
+        do {
+            let matches = try context.fetch(descriptor)
+            if matches.isEmpty {
+                context.insert(
+                    StyleFavorite(styleID: styleID, title: title)
+                )
+                try context.save()
+                return true
+            }
+
+            // Clean up any legacy duplicates as part of removing a favorite.
+            for favorite in matches {
+                context.delete(favorite)
+            }
+            try context.save()
+            return false
+        } catch {
+            context.rollback()
+            throw error
+        }
     }
 }

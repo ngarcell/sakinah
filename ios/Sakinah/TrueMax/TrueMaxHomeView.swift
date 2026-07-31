@@ -159,24 +159,30 @@ struct TrueMaxHomeView: View {
                         .foregroundStyle(TrueMaxPalette.textPrimary)
 
                     ForEach(latest.guidance.prefix(3)) { item in
-                        HStack(spacing: 14) {
-                            TrueMaxIconCircle(
-                                symbol: item.category.symbol,
-                                size: 48
-                            )
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text(item.category.title)
-                                    .font(.headline)
-                                    .foregroundStyle(TrueMaxPalette.textPrimary)
-                                Text(item.title)
-                                    .font(.subheadline)
-                                    .foregroundStyle(TrueMaxPalette.textSecondary)
+                        NavigationLink {
+                            TrueMaxActionPlanView(scan: latest)
+                        } label: {
+                            HStack(spacing: 14) {
+                                TrueMaxIconCircle(
+                                    symbol: item.category.symbol,
+                                    size: 48
+                                )
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text(item.category.title)
+                                        .font(.headline)
+                                        .foregroundStyle(TrueMaxPalette.textPrimary)
+                                    Text(item.title)
+                                        .font(.subheadline)
+                                        .foregroundStyle(TrueMaxPalette.textSecondary)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundStyle(TrueMaxPalette.textTertiary)
                             }
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundStyle(TrueMaxPalette.textTertiary)
+                            .trueMaxCard()
                         }
-                        .trueMaxCard()
+                        .buttonStyle(.plain)
+                        .accessibilityHint("Opens your full action plan")
                     }
                 }
             }

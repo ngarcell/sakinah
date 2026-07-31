@@ -2,7 +2,8 @@
 
 ## What the recording shows
 
-The post-paywall **Play 55-second walkthrough** runs one continuous, hands-free product story:
+The recording-only **Play 55-second walkthrough** runs one continuous,
+hands-free product story:
 
 1. The Home baseline and weekly focus scroll into view.
 2. The scan checklist opens.
@@ -16,11 +17,11 @@ The older record is deterministic seeded data. The current record is created dur
 
 ## Launch from Xcode
 
-For the production path, complete the reverse trial and unlock the paywall. The walkthrough launcher appears immediately after the successful unlock.
+The launcher is intentionally unavailable from the shipping onboarding and
+purchase flows. Exposing it there would bypass the adult/privacy gates and
+replace the promised real baseline with seeded demo data.
 
-For a fresh install, tap **Skip** in the upper-right corner of the welcome screen. This marks onboarding complete and opens the walkthrough launcher immediately; tap **Play 55-second walkthrough** to begin. Choosing **Explore on my own** opens the Home dashboard instead.
-
-For a recording-only launch that bypasses setup:
+For a recording-only launch:
 
 1. Open `ios/Sakinah.xcodeproj` in Xcode.
 2. Select an iPhone simulator and the Sakinah scheme.

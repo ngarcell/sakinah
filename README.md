@@ -15,9 +15,10 @@ pharmacological, or psychological advice.
 Use these inputs in this order:
 
 1. The user's explicit overrides: the display brand is **TrueMax**; preserve the
-   existing RevenueCat monthly and annual subscriptions; use a custom paywall
-   with annual selected by default; use no authentication; and keep facial data
-   on device.
+   existing RevenueCat monthly and annual subscriptions; use a custom hard
+   paywall after the one-result reverse trial, with annual selected by default
+   and a three-day trial only for eligible annual purchases; use no
+   authentication; and keep facial data on device.
 2. [`docs/01-PRD (1).md`](docs/01-PRD%20(1).md)
 3. [`docs/02-UIUX-Specification.md`](docs/02-UIUX-Specification.md)
 4. [`docs/03-App-Flow-Architecture.md`](docs/03-App-Flow-Architecture.md)
@@ -72,17 +73,14 @@ privacy manifest and App Store disclosures.
 Face captures, geometry, measurements, coaching, and history are processed and
 stored locally with no account or cloud sync. RevenueCat and Apple necessarily
 use network communication for product loading, purchases, restoration, and
-entitlement verification. Anonymous PostHog product telemetry also uses the
-network for activation, scan-flow, paywall, and conversion events. Product
-copy must therefore say that **facial data stays on device**, not that the
-entire app makes zero network calls.
+entitlement verification. Product copy must therefore say that **facial data
+stays on device**, not that the entire app makes zero network calls.
 
 The active TrueMax runtime must not use:
 
 - CloudKit or iCloud data sync
 - Sign in with Apple or any other authentication
-- advertising or analytics that receives facial images, measurements, or
-  subscriber attributes
+- advertising or product analytics
 - remote face-analysis/model APIs
 - public ratings, leaderboards, social comparison, or generated idealized faces
 
@@ -97,10 +95,9 @@ SwiftData must use an explicit local `ModelConfiguration` with
 and entitlement state, using its existing cached `CustomerInfo`, refresh, and
 customer-information update stream.
 
-TrueMaxAnalytics uses PostHog with anonymous events only. It captures app
-navigation, onboarding progression, scan phases and outcomes, paywall and
-purchase outcomes, and settings usage. It never sends face captures,
-measurements, landmarks, style choices, or free-form user content.
+`TrueMaxAnalytics` is deliberately a no-op compatibility facade. Existing call
+sites do not configure an analytics SDK or transmit events, properties, face
+captures, measurements, landmarks, style choices, or free-form user content.
 
 ## Reverse-trial activation
 
@@ -112,7 +109,10 @@ Native promise -> adult confirmation -> privacy/capture preparation
 
 The baseline result is rendered by the shipping scan and analysis flow before
 plans appear. There is no account form, feature tour, sample result, App Store
-review prompt, or conversion bridge between the AHA and plans. See
+review prompt, freemium workspace, or conversion bridge between the AHA and
+plans. After onboarding, a user without an active entitlement sees the
+non-dismissible paywall; monthly never claims a trial, and annual may claim a
+three-day trial only after StoreKit eligibility is confirmed. See
 [`docs/truemax-reverse-trial-strategy.md`](docs/truemax-reverse-trial-strategy.md)
 for the product reasoning and activation contract.
 
@@ -122,9 +122,9 @@ for the product reasoning and activation contract.
 - `ios/SakinahTests/` — unit and contract-oriented tests
 - `ios/SakinahUITests/` — launch and critical-flow UI tests
 - `docs/` — product sources, supplied visual references, and App Store metadata
-- `docs/truemax-analytics.md` — anonymous event coverage and privacy boundary
+- `docs/truemax-analytics.md` — no-analytics runtime and privacy boundary
 - `docs/truemax-reverse-trial-strategy.md` — AHA path, paywall timing, and activation loop
-- `docs/marketing-walkthrough.md` — post-paywall demo and simulator recording workflow
+- `docs/marketing-walkthrough.md` — launch-argument-only simulator recording workflow
 - `scripts/verify_truemax_contracts.py` — Linux-runnable release-contract gate
 - `scripts/verify_truemax_intelligence.py` — evidence-pack and offline-boundary gate
 

@@ -643,16 +643,100 @@ class ContractVerifier:
             "",
         )
         if (
-            "import PostHog" not in analytics_source
-            or "PostHogSDK.shared.setup" not in analytics_source
-            or "personProfiles = .identifiedOnly" not in analytics_source
+            "import PostHog" in analytics_source
+            or "PostHogSDK.shared.setup" in analytics_source
+            or "PostHogSDK.shared.capture" in analytics_source
+            or "func configure() {}" not in analytics_source
         ):
             self.fail_contract(
-                "Anonymous PostHog analytics boundary",
-                "TrueMaxAnalytics must configure PostHog anonymously",
+                "No product analytics runtime",
+                "TrueMaxAnalytics must remain a no-op with no PostHog SDK calls",
             )
         else:
-            self.pass_contract("Anonymous PostHog analytics boundary")
+            self.pass_contract("No product analytics runtime")
+
+        onboarding_source = next(
+            (
+                source
+                for path, source in sources.items()
+                if path.name == "TrueMaxOnboardingFlow.swift"
+            ),
+            "",
+        )
+        content_source = next(
+            (
+                source
+                for path, source in sources.items()
+                if path.name == "ContentView.swift"
+            ),
+            "",
+        )
+        bypass_markers = (
+            "truemax.skipOnboarding",
+            "skipToWalkthrough",
+            'Button("Skip")',
+        )
+        bypasses = [
+            marker
+            for marker in bypass_markers
+            if marker in onboarding_source or marker in content_source
+        ]
+        if bypasses:
+            self.fail_contract(
+                "Adult and reverse-trial gates cannot be skipped",
+                f"shipping bypass markers found: {', '.join(bypasses)}",
+            )
+        else:
+            self.pass_contract("Adult and reverse-trial gates cannot be skipped")
+
+        app_state_source = next(
+            (
+                source
+                for path, source in sources.items()
+                if path.name == "TrueMaxAppState.swift"
+            ),
+            "",
+        )
+        scan_source = next(
+            (
+                source
+                for path, source in sources.items()
+                if path.name == "TrueMaxScanFlow.swift"
+            ),
+            "",
+        )
+        if (
+            "func recordReverseTrialResult()" not in app_state_source
+            or "appState.recordReverseTrialResult()" not in scan_source
+        ):
+            self.fail_contract(
+                "Saved result consumes the one-result allowance",
+                "the allowance must persist when the result is saved, before paywall presentation",
+            )
+        else:
+            self.pass_contract("Saved result consumes the one-result allowance")
+
+        if (
+            "appState.requiresMedicalDisclaimer" not in content_source
+            or "appState.acknowledgeDisclaimer()" not in content_source
+        ):
+            self.fail_contract(
+                "Medical disclaimer acknowledgement is enforced",
+                "the persisted disclaimer state must be presented and acknowledged",
+            )
+        else:
+            self.pass_contract("Medical disclaimer acknowledgement is enforced")
+
+        if (
+            "else if !subscriptionService.isPremium" not in content_source
+            or "showsCloseButton: false" not in content_source
+        ):
+            self.fail_contract(
+                "Completed workspace is behind the hard paywall",
+                "completed non-premium users must see a non-dismissible paywall",
+            )
+        else:
+            self.pass_contract("Completed workspace is behind the hard paywall")
 
     def verify_metadata_document(self) -> None:
         source = self.read_text("docs/app-store-metadata.md")

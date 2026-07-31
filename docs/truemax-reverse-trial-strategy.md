@@ -54,9 +54,16 @@ Activation loop
 
 The paywall can appear only after `TrueMaxScanRootView` has completed the real
 capture-analysis-save path and the user has reviewed `TrueMaxResultDetailView`.
-The reverse-trial consumed state is persisted at that boundary. An App Store
+The one-result allowance is persisted immediately after the successful save so
+force-quitting the result cannot grant another baseline; paywall presentation
+still waits for **Done** so the result remains fully reviewable. An App Store
 review sheet and the former second-tap handoff were removed because both break
 the highest-intent moment without adding product value.
+
+After onboarding, the workspace is available only while the RevenueCat
+entitlement is active. There is no freemium or lapsed-subscriber workspace:
+inactive users return to a non-dismissible hard paywall. The annual plan alone
+may offer a three-day trial, and only when StoreKit confirms eligibility.
 
 Unlock completes onboarding and lands on Home, not Scan. Home immediately
 shows the exact saved baseline, its guidance, local-history entry, style tools,
@@ -69,15 +76,17 @@ use of demonstrated value instead of forcing the user to repeat setup.
   idealized-face comparisons.
 - TrueDepth assistance is described only when available; Photo mode remains an
   explicit fallback.
-- Face captures, landmarks, measurements, age signals, and guidance remain
-  local and are excluded from anonymous telemetry and subscriber attributes.
+- Face captures, landmarks, measurements, age signals, guidance, and product
+  interactions remain local and are not sent as analytics or subscriber
+  attributes.
 - Underage, permission-denied, unavailable-camera, analysis-error, and local
   save-error paths remain explicit and recoverable.
 
 ## Activation measurement
 
-Measure: welcome viewed -> adult gate passed -> scan CTA -> camera ready ->
-capture accepted -> result saved -> AHA completed -> plans reached -> access
-unlocked -> Home viewed -> second meaningful action. Only stable phases,
-capture mode, confidence categories, counts, and error categories are sent;
-facial inputs and result values are never analytics properties.
+The intended funnel is: welcome viewed -> adult gate passed -> scan CTA ->
+camera ready -> capture accepted -> result saved -> AHA completed -> plans
+reached -> access unlocked -> Home viewed -> second meaningful action.
+TrueMax does not currently transmit this funnel. Validate it with local QA and
+StoreKit sandbox scenarios unless and until a separately reviewed,
+privacy-disclosed analytics system is approved.
